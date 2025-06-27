@@ -1,58 +1,118 @@
 const express = require('express');
-const { Product } = require('../../db/models');
+const { Product, License } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
 const router = express.Router();
+const upload = require('../../utils/s3');
 
-// GET /api/products - Get all products
+// Helper to fetch licenses
+const getLicenses = () => {
+  return License.findAll({
+    attributes: ['id', 'name', 'price'],
+  });
+};
+
+// GET /api/products - Get all products with Basic license price for beats
 router.get('/', async (req, res, next) => {
   try {
-    const products = await Product.findAll();
-    console.log('Products fetched:', products);
-    return res.status(200).json({ products });
+    const products = await Product.findAll({
+      order: [['createdAt', 'DESC']],
+    });
+
+    const licenses = await getLicenses();
+    const basicLicense = licenses.find(l => l.name.toLowerCase() === 'basic');
+
+    if (!basicLicense) {
+      return res.status(500).json({ message: 'Basic license not configured in database.' });
+    }
+
+    const productsWithLicenses = products.map(product => {
+      const productJson = product.toJSON();
+
+      if (productJson.type === 'beat') {
+        productJson.price = basicLicense.price;
+        productJson.licenses = licenses;
+      }
+
+      return productJson;
+    });
+
+    return res.status(200).json({ products: productsWithLicenses });
   } catch (error) {
     console.error('Error fetching products:', error);
     next(error);
   }
 });
 
-// GET /api/products/:productId - Get a product by ID
+// GET /api/products/:productId - Get product by ID with licenses if beat
 router.get('/:productId', async (req, res, next) => {
   try {
-    const productId = req.params.productId;
-    const product = await Product.findByPk(productId);
+    const product = await Product.findByPk(req.params.productId);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found.' });
     }
 
-    return res.status(200).json(product);
+    const productJson = product.toJSON();
+
+    if (productJson.type === 'beat') {
+      const licenses = await getLicenses();
+      productJson.licenses = licenses;
+    }
+
+    return res.status(200).json(productJson);
   } catch (error) {
     console.error('Error fetching product:', error);
     next(error);
   }
 });
 
-// POST /api/products - Create a new product (Admin only)
-router.post('/', requireAuth, async (req, res, next) => {
+// POST /api/products - Admin only create
+router.post('/', requireAuth, upload.single('image'), async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized: Only admins can create products.' });
+      return res.status(403).json({ message: 'Only admins can create products.' });
     }
 
-    const { title, description, price, audioUrl, imageUrl, licenseId } = req.body;
+    const {
+      title,
+      description,
+      type,
+      youtubeLink,
+      audioPreviewUrl,
+      price,
+    } = req.body;
 
-    if (!title || !price ) {
-      return res.status(400).json({ message: 'title and price are required.' });
+    const normalizedType = type?.toLowerCase();
+
+    if (!title || !normalizedType) {
+      return res.status(400).json({ message: 'Title and type are required.' });
     }
+
+    const allowedTypes = ['beat', 'loop_kit', 'drum_kit'];
+    if (!allowedTypes.includes(normalizedType)) {
+      return res.status(400).json({ message: 'Invalid product type.' });
+    }
+
+    if (normalizedType === 'beat' && price !== null && price !== undefined) {
+      return res.status(400).json({ message: 'Price should not be set for beats; use licenses.' });
+    }
+
+    if ((normalizedType === 'loop_kit' || normalizedType === 'drum_kit') &&
+        (price === null || price === undefined)) {
+      return res.status(400).json({ message: 'Price is required for loop kits and drum kits.' });
+    }
+
+    const imageUrl = req.file ? req.file.location : null;
 
     const newProduct = await Product.create({
+      userId: req.user.id,
       title,
       description: description || '',
-      price,
-      audioUrl: audioUrl || '',
-      imageUrl: imageUrl || '',
-      licenseId,
-      userId: req.user.id,
+      type: normalizedType,
+      youtubeLink: youtubeLink || null,
+      audioPreviewUrl: audioPreviewUrl || null,
+      price: price || null,
+      imageUrl,
     });
 
     return res.status(201).json(newProduct);
@@ -62,55 +122,83 @@ router.post('/', requireAuth, async (req, res, next) => {
   }
 });
 
-
-// PUT /api/products/:productId - Update a product by ID (Admin only)
-router.put('/:productId', requireAuth, async (req, res, next) => {
+// PUT /api/products/:productId - Admin only update
+router.put('/:productId', requireAuth, upload.single('image'), async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized: Only admins can update products.' });
+      return res.status(403).json({ message: 'Only admins can update products.' });
     }
 
-    const productId = req.params.productId;
-    const { productName, productType, price, description, filePath } = req.body;
-
-    const product = await Product.findByPk(productId);
+    const product = await Product.findByPk(req.params.productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found.' });
     }
 
-    // Update only if provided
-    if (productName !== undefined) product.productName = productName;
-    if (productType !== undefined) product.productType = productType;
-    if (price !== undefined) product.price = price;
+    const {
+      title,
+      description,
+      type,
+      youtubeLink,
+      audioPreviewUrl,
+      price,
+    } = req.body;
+
+    const normalizedType = type?.toLowerCase() || product.type;
+    const allowedTypes = ['beat', 'loop_kit', 'drum_kit'];
+
+    if (!allowedTypes.includes(normalizedType)) {
+      return res.status(400).json({ message: 'Invalid product type.' });
+    }
+
+    if (normalizedType === 'beat' && price !== null && price !== undefined) {
+      return res.status(400).json({ message: 'Price should not be set for beats; use licenses.' });
+    }
+
+    if ((normalizedType === 'loop_kit' || normalizedType === 'drum_kit') &&
+        (price === null || price === undefined)) {
+      return res.status(400).json({ message: 'Price is required for loop kits and drum kits.' });
+    }
+
+    // Update fields
+    if (title !== undefined) product.title = title;
     if (description !== undefined) product.description = description;
-    if (filePath !== undefined) product.filePath = filePath;
+    if (type !== undefined) product.type = normalizedType;
+    if (youtubeLink !== undefined) product.youtubeLink = youtubeLink;
+    if (audioPreviewUrl !== undefined) product.audioPreviewUrl = audioPreviewUrl;
+    if (price !== undefined) product.price = price;
+    if (req.file) product.imageUrl = req.file.location;
 
     await product.save();
 
-    return res.status(200).json(product);
+    const productJson = product.toJSON();
+
+    if (productJson.type === 'beat') {
+      const licenses = await getLicenses();
+      productJson.licenses = licenses;
+    }
+
+    return res.status(200).json(productJson);
   } catch (error) {
     console.error('Error updating product:', error);
     next(error);
   }
 });
 
-// DELETE /api/products/:productId - Delete a product by ID (Admin only)
+// DELETE /api/products/:productId - Admin only delete
 router.delete('/:productId', requireAuth, async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized: Only admins can delete products.' });
+      return res.status(403).json({ message: 'Only admins can delete products.' });
     }
 
-    const productId = req.params.productId;
-    const product = await Product.findByPk(productId);
-
+    const product = await Product.findByPk(req.params.productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found.' });
     }
 
     await product.destroy();
-    return res.status(200).json({ message: "Product deleted successfully." });
 
+    return res.status(200).json({ message: 'Product deleted successfully.' });
   } catch (error) {
     console.error('Error deleting product:', error);
     next(error);

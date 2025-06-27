@@ -8,37 +8,31 @@ import {
   Button,
   TextField,
   Typography,
-  Card as MuiCard,
+  Card,
   CardContent,
   Alert,
+  useTheme,
 } from "@mui/material";
 
 import { styled } from "@mui/material/styles";
 
-const Card = styled(MuiCard)(({ theme }) => ({
-  width: "100%",
-  maxWidth: 500,
-  borderRadius: 0,
-  padding: theme.spacing(3),
-  margin: "0 auto",
-  background: "black",
-  backdropFilter: "blur(12px)",
-  boxShadow: "0 8px 30px black",
-  border: "1px solid black",
-}));
-
+// Neon gradient button on top of your theme's button styles
 const NeonButton = styled(Button)(({ theme }) => ({
   marginTop: theme.spacing(4),
-  padding: theme.spacing(1.5),
-  fontWeight: "bold",
-  background: "linear-gradient(90deg, #00e5ff, #ff69b4)",
-  color: "black",
-  '&:hover': {
-    background: "linear-gradient(90deg, #00bcd4, #ff4081)",
+  background: `linear-gradient(90deg, #00e5ff, ${theme.palette.primary.main})`,
+  color: theme.palette.text.primary,
+  fontWeight: 700,
+  boxShadow: `0 0 8px #00e5ffaa, 0 0 20px ${theme.palette.primary.main}aa`,
+  textTransform: "uppercase",
+  letterSpacing: "1.5px",
+  "&:hover": {
+    background: `linear-gradient(90deg, #00bcd4, ${theme.palette.primary.dark})`,
+    boxShadow: `0 0 14px #00bcd4cc, 0 0 30px ${theme.palette.primary.dark}cc`,
   },
 }));
 
 function LoginFormModal() {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const { closeModal } = useModal();
   const user = useSelector((state) => state.session.user);
@@ -73,7 +67,12 @@ function LoginFormModal() {
           variant="h4"
           align="center"
           gutterBottom
-          sx={{ color: "#00e5ff", fontWeight: "bold" }}
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            letterSpacing: 2,
+          }}
         >
           Log In
         </Typography>
@@ -81,7 +80,7 @@ function LoginFormModal() {
           component="form"
           onSubmit={handleSubmit}
           noValidate
-          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 3 }}
         >
           <TextField
             label="Username or Email"
@@ -89,10 +88,27 @@ function LoginFormModal() {
             onChange={(e) => setCredential(e.target.value)}
             fullWidth
             required
-            InputLabelProps={{ style: { color: "#80deea" } }}
-            inputProps={{ style: { color: "#fff" } }}
+            InputLabelProps={{ sx: { color: theme.palette.secondary.main } }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#333" },
+                "&:hover fieldset": { borderColor: theme.palette.primary.main },
+                "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
+              },
+              input: { color: theme.palette.text.primary },
+            }}
           />
-          {errors.credential && <Alert severity="error">{errors.credential}</Alert>}
+          {errors.credential && (
+            <Alert
+              severity="error"
+              sx={{
+                backgroundColor: "rgba(255,0,0,0.12)",
+                color: theme.palette.error.main,
+              }}
+            >
+              {errors.credential}
+            </Alert>
+          )}
 
           <TextField
             label="Password"
@@ -101,17 +117,29 @@ function LoginFormModal() {
             onChange={(e) => setPassword(e.target.value)}
             fullWidth
             required
-            InputLabelProps={{ style: { color: "#80deea" } }}
-            inputProps={{ style: { color: "#fff" } }}
+            InputLabelProps={{ sx: { color: theme.palette.secondary.main } }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: "#333" },
+                "&:hover fieldset": { borderColor: theme.palette.primary.main },
+                "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
+              },
+              input: { color: theme.palette.text.primary },
+            }}
           />
-          {errors.password && <Alert severity="error">{errors.password}</Alert>}
+          {errors.password && (
+            <Alert
+              severity="error"
+              sx={{
+                backgroundColor: "rgba(255,0,0,0.12)",
+                color: theme.palette.error.main,
+              }}
+            >
+              {errors.password}
+            </Alert>
+          )}
 
-          <NeonButton
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isButtonDisabled}
-          >
+          <NeonButton type="submit" fullWidth disabled={isButtonDisabled}>
             Log In
           </NeonButton>
         </Box>

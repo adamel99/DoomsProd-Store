@@ -7,52 +7,31 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Products', {
+    options.tableName = 'Licenses';
+    return queryInterface.createTable('Licenses', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
-      },
-      licenseId: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'Licenses',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-      },
-      title: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
-      description: {
-        type: Sequelize.TEXT,
+      name: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
       price: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
       },
-      audioUrl: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      imageUrl: {
-        type: Sequelize.STRING,
+      description: {
+        type: Sequelize.TEXT,
         allowNull: true,
+        defaultValue: '',
+      },
+      downloadLimit: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        defaultValue: null,  // null means unlimited
       },
       createdAt: {
         allowNull: false,
@@ -68,7 +47,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    options.tableName = 'Products';
+    options.tableName = 'Licenses';
     return queryInterface.dropTable(options);
   },
 };

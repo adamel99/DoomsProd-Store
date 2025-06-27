@@ -13,17 +13,15 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 
-
-
-
 const AboutMe = () => {
-  const theme = useTheme(); // get access to your theme
+  const theme = useTheme();
+
   const glassStyle = {
-    backdropFilter: "blur(10px)",
-    background: theme.palette.background.paper, // use theme paper bg
-    border: `1px solid ${theme.palette.divider}`, // use theme divider color
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-    borderRadius: 4,
+    backdropFilter: "blur(12px)",
+    background: "rgba(255, 255, 255, 0.05)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    borderRadius: 2,
+    boxShadow: "0 12px 40px rgba(255, 64, 129, 0.12)",
   };
   const sections = [
     {
@@ -56,11 +54,11 @@ const AboutMe = () => {
   return (
     <Box
       sx={{
-        background: `linear-gradient(135deg, ${theme.palette.background.default}, #203a43, #2c5364)`, // use theme background.default dynamically
+        backgroundColor: "#0d0d0d",
         minHeight: "100vh",
-        color: theme.palette.text.primary,
-        py: theme.spacing(10),
-        px: theme.spacing(2),
+        py: 10,
+        px: 2,
+        color: "#f0f0f0",
       }}
     >
       <Container maxWidth="md">
@@ -71,31 +69,34 @@ const AboutMe = () => {
             sx={{
               width: 140,
               height: 140,
-              boxShadow: theme.shadows[5], // use theme shadows
-              border: `3px solid ${theme.palette.primary.main}`,
+              border: "3px solid #ff4081",
+              boxShadow: "0 4px 20px rgba(255, 64, 129, 0.5)",
             }}
           />
         </Box>
 
         <Grid container spacing={4}>
-          {sections.map((section, index) => (
-            <Grid item xs={12} key={index}>
-              <Card sx={{ ...glassStyle, p: 3 }}>
+          {sections.map((section, idx) => (
+            <Grid item xs={12} key={idx}>
+              <Card sx={{ ...glassStyle, p: 4 }}>
                 <CardContent>
                   <Typography
                     variant="h5"
+                    fontWeight="bold"
                     sx={{
-                      fontWeight: "bold",
-                      color: theme.palette.primary.light, // theme primary light
+                      color: "#ff4081",
                       mb: 1,
-                      textShadow: `0 1px 3px ${theme.palette.common.black}99`, // black with 60% opacity
+                      textShadow: "0 2px 4px rgba(0,0,0,0.3)",
                     }}
                   >
                     {section.title}
                   </Typography>
                   <Typography
                     variant="body1"
-                    sx={{ lineHeight: 1.8, color: theme.palette.text.secondary }}
+                    sx={{
+                      color: "#cccccc",
+                      lineHeight: 1.75,
+                    }}
                   >
                     {section.body}
                   </Typography>
@@ -105,17 +106,14 @@ const AboutMe = () => {
           ))}
         </Grid>
 
-        <Box mt={6} textAlign="center">
-          <Typography
-            variant="body1"
-            sx={{ mb: 2, color: theme.palette.text.secondary }}
-          >
+        <Box mt={8} textAlign="center">
+          <Typography sx={{ color: "#999", mb: 2 }}>
             Want to dive deeper? Check out my{" "}
             <MuiLink
               component={Link}
               to="/"
               underline="hover"
-              sx={{ color: theme.palette.secondary.light, fontWeight: "bold" }}
+              sx={{ color: "#ff6699", fontWeight: "bold" }}
             >
               projects
             </MuiLink>{" "}
@@ -124,7 +122,7 @@ const AboutMe = () => {
               href="https://github.com/adamel99"
               target="_blank"
               rel="noreferrer"
-              sx={{ color: theme.palette.secondary.light, fontWeight: "bold" }}
+              sx={{ color: "#ff6699", fontWeight: "bold" }}
             >
               GitHub profile!
             </MuiLink>
@@ -136,15 +134,15 @@ const AboutMe = () => {
             variant="contained"
             size="large"
             sx={{
-              mt: 2,
-              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-              color: theme.palette.common.white,
-              fontWeight: "bold",
-              boxShadow: theme.shadows[3],
-              px: 4,
+              mt: 3,
+              px: 5,
               py: 1.5,
+              fontWeight: 700,
+              borderRadius: 99,
+              background: "linear-gradient(135deg, #ff4081, #ff6699)",
+              boxShadow: "0 8px 30px rgba(255, 64, 129, 0.3)",
               "&:hover": {
-                background: `linear-gradient(45deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                background: "linear-gradient(135deg, #ff6699, #ff4081)",
               },
             }}
           >

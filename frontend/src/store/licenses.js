@@ -1,13 +1,13 @@
 import { csrfFetch } from "./csrf";
 
 // Action Types
-const GET_PRODUCT_LICENSES = "licenses/getProductLicenses";
+const GET_ALL_LICENSES = "licenses/getAllLicenses";
 const CREATE_LICENSE = "licenses/createLicense";
 const DELETE_LICENSE = "licenses/deleteLicense";
 
 // Action Creators
-const getProductLicenses = (licenses) => ({
-  type: GET_PRODUCT_LICENSES,
+const getAllLicenses = (licenses) => ({
+  type: GET_ALL_LICENSES,
   payload: licenses,
 });
 
@@ -23,23 +23,24 @@ const deleteLicense = (licenseId) => ({
 
 // Thunks
 
-// Get all licenses for a product
-export const getProductLicensesThunk = (productId) => async (dispatch) => {
+// Get all licenses (independent licenses, mostly for beats)
+export const getAllLicensesThunk = () => async (dispatch) => {
   try {
-    const res = await csrfFetch(`/api/products/${productId}/licenses`);
-    const data = await res.json();
-    dispatch(getProductLicenses(data.licenses));
-    return data.licenses;
+    const res = await csrfFetch(`/api/licenses`);
+    const data = await res.json(); // <- data is the array of licenses
+    dispatch(getAllLicenses(data)); // NOT data.licenses
+    return data;
   } catch (err) {
     console.error("Error fetching licenses:", err);
     return err;
   }
 };
 
-// Create a license for a product
-export const createLicenseThunk = (productId, licenseData) => async (dispatch) => {
+
+// Create a license (Admin only)
+export const createLicenseThunk = (licenseData) => async (dispatch) => {
   try {
-    const res = await csrfFetch(`/api/products/${productId}/licenses`, {
+    const res = await csrfFetch(`/api/licenses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(licenseData),
@@ -75,33 +76,33 @@ export const deleteLicenseThunk = (licenseId) => async (dispatch) => {
 
 // Reducer
 const initialState = {
-  productLicenses: {},
+  licenses: {}, // all licenses keyed by id
 };
 
 const licensesReducer = (state = initialState, action) => {
   switch (action.type) {
-    case GET_PRODUCT_LICENSES: {
+    case GET_ALL_LICENSES: {
       const licensesMap = {};
       action.payload.forEach((license) => {
         licensesMap[license.id] = license;
       });
-      return { ...state, productLicenses: licensesMap };
+      return { ...state, licenses: licensesMap };
     }
 
     case CREATE_LICENSE: {
       return {
         ...state,
-        productLicenses: {
-          ...state.productLicenses,
+        licenses: {
+          ...state.licenses,
           [action.payload.id]: action.payload,
         },
       };
     }
 
     case DELETE_LICENSE: {
-      const updatedLicenses = { ...state.productLicenses };
+      const updatedLicenses = { ...state.licenses };
       delete updatedLicenses[action.payload];
-      return { ...state, productLicenses: updatedLicenses };
+      return { ...state, licenses: updatedLicenses };
     }
 
     default:

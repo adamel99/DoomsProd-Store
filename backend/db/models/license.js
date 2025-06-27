@@ -4,19 +4,15 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class License extends Model {
     static associate(models) {
-      License.hasMany(models.Product, {
-        foreignKey: 'licenseId',
-        onDelete: 'SET NULL',   // ensure Sequelize knows about the behavior
-        hooks: true             // needed if you want Sequelize to manage the FK SET NULL in JS hooks
-      });
+      License.hasMany(models.CartItem, { foreignKey: 'licenseId' });
+      // No direct relation to products because licenses are global and assigned on beats
     }
   }
 
   License.init({
     name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
@@ -24,12 +20,14 @@ module.exports = (sequelize, DataTypes) => {
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    usageTerms: {
-      type: DataTypes.TEXT,
       allowNull: true,
-    }
+      defaultValue: '',
+    },
+    downloadLimit: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+    },
   }, {
     sequelize,
     modelName: 'License',

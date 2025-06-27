@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useModal } from "../../context/Modal";
 import * as sessionActions from "../../store/session";
+
 import {
   Card,
   CardContent,
@@ -10,9 +11,28 @@ import {
   Button,
   Grid,
   Alert,
+  useTheme,
+  Box
 } from "@mui/material";
 
+import { styled } from "@mui/material/styles";
+
+const NeonButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(4),
+  background: `linear-gradient(90deg, #00e5ff, ${theme.palette.primary.main})`,
+  color: theme.palette.text.primary,
+  fontWeight: 700,
+  boxShadow: `0 0 8px #00e5ffaa, 0 0 20px ${theme.palette.primary.main}aa`,
+  textTransform: "uppercase",
+  letterSpacing: "1.5px",
+  "&:hover": {
+    background: `linear-gradient(90deg, #00bcd4, ${theme.palette.primary.dark})`,
+    boxShadow: `0 0 14px #00bcd4cc, 0 0 30px ${theme.palette.primary.dark}cc`,
+  },
+}));
+
 function SignupFormModal() {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const { closeModal } = useModal();
 
@@ -53,127 +73,70 @@ function SignupFormModal() {
   };
 
   return (
-    <Card
-      sx={{
-        width: "100%",
-        maxWidth: 500,
-        borderRadius: 0,
-        p: 3,
-        background: "black",
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 8px 30px black",
-        border: "1px solid black",
-        margin: "0 auto",
-
-      }}
-    >
+    <Card>
       <CardContent>
         <Typography
           variant="h4"
           align="center"
           gutterBottom
-          sx={{ color: "#00e5ff", fontWeight: "bold" }}
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            letterSpacing: 2,
+          }}
         >
           Create Account
         </Typography>
 
-        <form onSubmit={handleSubmit} noValidate>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                InputLabelProps={{ style: { color: "#80deea" } }}
-              />
-              {errors.email && <Alert severity="error">{errors.email}</Alert>}
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                InputLabelProps={{ style: { color: "#80deea" } }}
-              />
-              {errors.username && <Alert severity="error">{errors.username}</Alert>}
-            </Grid>
-
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                required
-                label="First Name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                InputLabelProps={{ style: { color: "#80deea" } }}
-              />
-              {errors.firstName && <Alert severity="error">{errors.firstName}</Alert>}
-            </Grid>
-
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                required
-                label="Last Name"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                InputLabelProps={{ style: { color: "#80deea" } }}
-              />
-              {errors.lastName && <Alert severity="error">{errors.lastName}</Alert>}
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                type="password"
-                label="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                InputLabelProps={{ style: { color: "#80deea" } }}
-              />
-              {errors.password && <Alert severity="error">{errors.password}</Alert>}
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                type="password"
-                label="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                InputLabelProps={{ style: { color: "#80deea" } }}
-              />
-              {errors.confirmPassword && (
-                <Alert severity="error">{errors.confirmPassword}</Alert>
-              )}
-            </Grid>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={3}>
+            {[
+              { label: "Email", value: email, setter: setEmail, error: errors.email },
+              { label: "Username", value: username, setter: setUsername, error: errors.username },
+              { label: "First Name", value: firstName, setter: setFirstName, error: errors.firstName },
+              { label: "Last Name", value: lastName, setter: setLastName, error: errors.lastName },
+              { label: "Password", value: password, setter: setPassword, error: errors.password, type: "password" },
+              { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, error: errors.confirmPassword, type: "password" },
+            ].map(({ label, value, setter, error, type }, i) => (
+              <Grid item xs={label.includes("Name") ? 6 : 12} key={i}>
+                <TextField
+                  fullWidth
+                  required
+                  type={type || "text"}
+                  label={label}
+                  value={value}
+                  onChange={(e) => setter(e.target.value)}
+                  InputLabelProps={{ sx: { color: theme.palette.secondary.main } }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": { borderColor: "#333" },
+                      "&:hover fieldset": { borderColor: theme.palette.primary.main },
+                      "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
+                    },
+                    input: { color: theme.palette.text.primary },
+                  }}
+                />
+                {error && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      backgroundColor: "rgba(255,0,0,0.12)",
+                      color: theme.palette.error.main,
+                      mt: 1,
+                    }}
+                  >
+                    {error}
+                  </Alert>
+                )}
+              </Grid>
+            ))}
           </Grid>
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              mt: 4,
-              py: 1.5,
-              fontWeight: "bold",
-              background: "linear-gradient(90deg, #00e5ff, #ff69b4)",
-              color: "black",
-              '&:hover': {
-                background: "linear-gradient(90deg, #00bcd4, #ff4081)",
-              },
-            }}
-          >
+          <NeonButton type="submit" fullWidth>
             Sign Up
-          </Button>
-        </form>
+          </NeonButton>
+        </Box>
       </CardContent>
     </Card>
   );

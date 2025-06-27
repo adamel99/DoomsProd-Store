@@ -1,9 +1,9 @@
 import { csrfFetch } from "./csrf";
 
 // Action Types
-const GET_USER_HISTORY = "history/getUserHistory";
-const ADD_HISTORY_ENTRY = "history/addHistoryEntry";
-const DELETE_HISTORY_ENTRY = "history/deleteHistoryEntry";
+const GET_USER_HISTORY = "playbackHistory/getUserHistory";
+const ADD_HISTORY_ENTRY = "playbackHistory/addHistoryEntry";
+const DELETE_HISTORY_ENTRY = "playbackHistory/deleteHistoryEntry";
 
 // Action Creators
 const getUserHistory = (historyEntries) => ({
@@ -27,12 +27,13 @@ const deleteHistoryEntry = (entryId) => ({
 export const getUserHistoryThunk = (userId) => async (dispatch) => {
   try {
     const res = await csrfFetch(`/api/users/${userId}/history`);
+    if (!res.ok) throw new Error('Failed to fetch user history');
     const data = await res.json();
     dispatch(getUserHistory(data.history));
     return data.history;
   } catch (err) {
     console.error("Error fetching history:", err);
-    return err;
+    return null;
   }
 };
 
@@ -44,15 +45,13 @@ export const addHistoryEntryThunk = (userId, entryData) => async (dispatch) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(entryData),
     });
-
-    if (res.ok) {
-      const newEntry = await res.json();
-      dispatch(addHistoryEntry(newEntry));
-      return newEntry;
-    }
+    if (!res.ok) throw new Error('Failed to add history entry');
+    const newEntry = await res.json();
+    dispatch(addHistoryEntry(newEntry));
+    return newEntry;
   } catch (err) {
     console.error("Error adding history entry:", err);
-    return err;
+    return null;
   }
 };
 
@@ -62,23 +61,22 @@ export const deleteHistoryEntryThunk = (entryId) => async (dispatch) => {
     const res = await csrfFetch(`/api/history/${entryId}`, {
       method: "DELETE",
     });
-
-    if (res.ok) {
-      dispatch(deleteHistoryEntry(entryId));
-      return "Deleted successfully";
-    }
+    if (!res.ok) throw new Error('Failed to delete history entry');
+    dispatch(deleteHistoryEntry(entryId));
+    return "Deleted successfully";
   } catch (err) {
     console.error("Error deleting history entry:", err);
-    return err;
+    return null;
   }
 };
 
-// Reducer
+// Initial State
 const initialState = {
   userHistory: {},
 };
 
-const historyReducer = (state = initialState, action) => {
+// Reducer
+const playbackHistoryReducer = (state = initialState, action) => {
   switch (action.type) {
     case GET_USER_HISTORY: {
       const historyMap = {};
@@ -109,4 +107,4 @@ const historyReducer = (state = initialState, action) => {
   }
 };
 
-export default historyReducer;
+export default playbackHistoryReducer;

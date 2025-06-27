@@ -2,34 +2,42 @@
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {
-  options.schema = process.env.SCHEMA;
+  options.schema = process.env.SCHEMA;  // define schema in production
 }
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Licenses', {
+    options.tableName = 'CartItems';
+    return queryInterface.createTable('CartItems', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      name: {
-        type: Sequelize.STRING(50),
+      userId: {
         allowNull: false,
-        unique: true,
+        type: Sequelize.INTEGER,
+        references: { model: 'Users', key: 'id' },
+        onDelete: 'CASCADE',
       },
-      price: {
-        type: Sequelize.DECIMAL(10, 2),
+      cartId: {
         allowNull: false,
+        type: Sequelize.INTEGER,
+        references: { model: 'Carts', key: 'id' },
+        onDelete: 'CASCADE',
       },
-      description: {
-        type: Sequelize.TEXT,
+      productId: {
         allowNull: false,
+        type: Sequelize.INTEGER,
+        references: { model: 'Products', key: 'id' },
+        onDelete: 'CASCADE',
       },
-      usageTerms: {
-        type: Sequelize.TEXT,
+      licenseId: {
+        type: Sequelize.INTEGER,
         allowNull: true,
+        references: { model: 'Licenses', key: 'id' },
+        onDelete: 'SET NULL',
       },
       createdAt: {
         allowNull: false,
@@ -45,7 +53,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    options.tableName = 'Licenses';
+    options.tableName = 'CartItems';
     return queryInterface.dropTable(options);
-  },
+  }
 };

@@ -7,35 +7,41 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    return queryInterface.createTable('EmailLogs', {
+    options.tableName = 'OrderItems';
+
+    return queryInterface.createTable('OrderItems', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
+      orderId: {
         type: Sequelize.INTEGER,
-        allowNull: true, // allow null for system-generated emails without users
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL', // keep logs even if user is deleted
-      },
-      subject: {
-        type: Sequelize.STRING(255),
         allowNull: false,
+        references: { model: 'Orders', key: 'id' },
+        onDelete: 'CASCADE',
       },
-      body: {
-        type: Sequelize.TEXT,
+      productId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
+        references: { model: 'Products', key: 'id' },
+        onDelete: 'CASCADE',
       },
-      sentAt: {
-        type: Sequelize.DATE,
+      licenseId: {  // nullable for loop/drum kits without license
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: { model: 'Licenses', key: 'id' },
+        onDelete: 'SET NULL',
+      },
+      quantity: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: 1,
+      },
+      priceAtPurchase: { // capture price for audit & historical consistency
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -51,7 +57,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    options.tableName = 'EmailLogs';
+    options.tableName = 'OrderItems';
     return queryInterface.dropTable(options);
-  }
+  },
 };

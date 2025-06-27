@@ -7,6 +7,8 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
+    options.tableName = 'Orders';
+
     return queryInterface.createTable('Orders', {
       id: {
         allowNull: false,
@@ -17,22 +19,21 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
+        references: { model: 'Users', key: 'id' },
         onDelete: 'CASCADE',
-      },
-      orderStatus: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-        defaultValue: 'pending', // e.g., pending, completed, cancelled
       },
       totalPrice: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
-        defaultValue: 0.00,
+      },
+      status: {  // e.g. 'pending', 'completed', 'cancelled'
+        type: Sequelize.ENUM('pending', 'completed', 'cancelled'),
+        allowNull: false,
+        defaultValue: 'pending',
+      },
+      paymentIntentId: {  // Stripe payment intent ID for tracking
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
@@ -50,5 +51,5 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     options.tableName = 'Orders';
     return queryInterface.dropTable(options);
-  }
+  },
 };

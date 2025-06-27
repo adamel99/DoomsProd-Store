@@ -7,46 +7,43 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    return queryInterface.createTable('History', {
+    return queryInterface.createTable('Carts', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.INTEGER
       },
       userId: {
         type: Sequelize.INTEGER,
-        allowNull: true,  // if some history items are system-generated
+        allowNull: false,
+        unique: true, // one cart per user
         references: {
           model: 'Users',
-          key: 'id',
+          key: 'id'
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE'
       },
-      actionType: {
-        type: Sequelize.STRING(100),
+      total: {
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
-      },
-      actionDetails: {
-        type: Sequelize.TEXT,
-        allowNull: true,
+        defaultValue: 0.00
       },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-      },
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      }
     }, options);
   },
 
   down: async (queryInterface, Sequelize) => {
-    options.tableName = 'History';
+    options.tableName = 'Carts';
     return queryInterface.dropTable(options);
   }
 };

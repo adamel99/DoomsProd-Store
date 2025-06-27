@@ -11,9 +11,18 @@ const { environment } = require('./config');
 const isProduction = environment === 'production';
 
 app.use(morgan('dev'));
-
 app.use(cookieParser());
-app.use(express.json());
+
+// Conditional JSON parser middleware - skip parsing if multipart/form-data
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+  if (contentType.startsWith('multipart/form-data')) {
+    // Skip express.json() for multipart requests
+    return next();
+  }
+  // Parse JSON for other content types
+  express.json()(req, res, next);
+});
 
 // Security Middleware
 if (!isProduction) {
@@ -39,19 +48,9 @@ app.use(
   })
 );
 
+// Connect all the routes
+app.use(routes);
 
-// backend/app.js
-
-// ...
-
-app.use(routes); // Connect all the routes
-
-// backend/app.js
-// ...
-
-
-// backend/app.js
-// ...
 // Catch unhandled requests and forward to error handler.
 app.use((_req, _res, next) => {
   const err = new Error("The requested resource couldn't be found.");
@@ -61,15 +60,10 @@ app.use((_req, _res, next) => {
   next(err);
 });
 
-// backend/app.js
-// ...
 const { ValidationError } = require('sequelize');
-
-// ...
 
 // Process sequelize errors
 app.use((err, _req, _res, next) => {
-  // check if error is a Sequelize error:
   if (err instanceof ValidationError) {
     let errors = {};
     for (let error of err.errors) {
@@ -81,8 +75,6 @@ app.use((err, _req, _res, next) => {
   next(err);
 });
 
-// backend/app.js
-// ...
 // Error formatter
 app.use((err, _req, res, _next) => {
   res.status(err.status || 500);

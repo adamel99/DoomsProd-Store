@@ -5,12 +5,8 @@ module.exports = (sequelize, DataTypes) => {
   class Product extends Model {
     static associate(models) {
       Product.belongsTo(models.User, { foreignKey: 'userId' });
-
-      Product.belongsTo(models.License, {
-        foreignKey: 'licenseId',
-        onDelete: 'SET NULL',   // keep model consistent with DB FK behavior
-        hooks: true             // ensures Sequelize can manage this if you delete via model methods
-      });
+      Product.hasMany(models.CartItem, { foreignKey: 'productId' });
+      // Licenses are global, so no direct association here
     }
   }
 
@@ -19,25 +15,30 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    licenseId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,  // 🔑 match migration — allow null when license is deleted
-    },
     title: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING,
       allowNull: false,
     },
     description: {
       type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: '',
+    },
+    type: {
+      type: DataTypes.ENUM('beat', 'loop_kit', 'drum_kit'),
       allowNull: false,
     },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    audioUrl: {
+    youtubeLink: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
+    },
+    audioPreviewUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    price: { // nullable for beats, fixed for kits
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
     },
     imageUrl: {
       type: DataTypes.STRING,

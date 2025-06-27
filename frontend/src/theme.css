@@ -1,5 +1,5 @@
 /* Keyframes for the animated gradient shift */
-@keyframes gradientShift {
+/* @keyframes gradientShift {
     0% {
       background-position: 0% 50%;
     }
@@ -9,19 +9,19 @@
     100% {
       background-position: 0% 50%;
     }
-  }
+  } */
 
   /* Class to apply the animated gradient background */
-  .animatedGradientBackground {
+  /* .animatedGradientBackground {
     background: linear-gradient(270deg,
       #ff4081,       /* neon pink */
-      #00e5ff,       /* neon cyan */
-      #ff4081,       /* neon pink */
-      #00e5ff        /* neon cyan */
-    );
-    background-size: 400% 400%; /* makes the gradient larger for smooth animation */
-    animation: gradientShift 15s ease infinite;
+      /* #00e5ff,       neon cyan */
+      /* #ff4081,       neon pink */
+      /* #00e5ff        neon cyan */
+    /* ); */ 
+    /* background-size: 400% 400%; makes the gradient larger for smooth animation */
+    /* animation: gradientShift 15s ease infinite; */
     /* Optional extras to make it full screen or container filling */
-    min-height: 100vh;
-    width: 100%;
-  }
+    /* min-height: 100vh; */
+    /* width: 100%; */
+  /* } */
