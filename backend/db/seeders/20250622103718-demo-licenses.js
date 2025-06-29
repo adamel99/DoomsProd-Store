@@ -14,7 +14,7 @@ module.exports = {
       {
         id: 1,
         name: 'Basic',
-        price: 19.99,
+        price: 29.99,
         description: 'Basic license for personal use with limited downloads.',
         downloadLimit: 3,
         createdAt: new Date(),

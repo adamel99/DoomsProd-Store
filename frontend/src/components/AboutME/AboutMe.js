@@ -130,7 +130,7 @@ const AboutMe = () => {
 
           <Button
             component={Link}
-            to="/"
+            to="/products"
             variant="contained"
             size="large"
             sx={{

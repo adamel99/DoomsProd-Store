@@ -22,6 +22,7 @@ module.exports = {
         price: null, // beats have no fixed price here
         createdAt: new Date(),
         updatedAt: new Date(),
+        imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751052996784-artworks-KsVUwjGWb3HieLAD-6vW8bA-t500x500.jpg',
       },
       {
         id: 2,
@@ -34,6 +35,7 @@ module.exports = {
         price: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        imageUrl:'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg',
       },
       {
         id: 3,
@@ -46,6 +48,7 @@ module.exports = {
         price: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg'
       },
     ]);
   },

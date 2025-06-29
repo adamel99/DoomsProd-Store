@@ -135,11 +135,12 @@ const ProductCard = ({ customProduct }) => {
             sx={{
               width: "100%",
               height: 140,
-              objectFit: "contain",
+              objectFit: "cover", // <-- This ensures the image fills the container
               backgroundColor: "#1a1a1a",
               borderRadius: "8px 8px 0 0",
             }}
           />
+
 
           <CardContent sx={{ color: "#f5f5f5", px: 1, py: 1 }}>
             <Typography variant="subtitle2" fontWeight={600} noWrap>

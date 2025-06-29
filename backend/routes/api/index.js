@@ -7,6 +7,7 @@ const licensesRouter = require('./licenses.js');
 const playbackHistoryRouter = require('./playbackHistory.js');
 const cartsRouter = require('./cart.js');    // corrected folder/file name
 const cartItemsRouter = require('./cartItems');
+const paymentRouter = require('./payment')
 
 const { restoreUser, setTokenCookie, requireAuth } = require('../../utils/auth.js');
 const { User } = require('../../db/models');
@@ -22,6 +23,7 @@ router.use('/carts', cartsRouter);                // fix route path: '/carts' no
 router.use('/playbackHistory', playbackHistoryRouter);  // fix route path and name to '/playbackHistory'
 router.use('/licenses', licensesRouter);
 router.use('/cart-items', cartItemsRouter);
+router.use('/payment', paymentRouter);
 
 // Test route for debugging
 router.post('/test', (req, res) => {

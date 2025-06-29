@@ -35,12 +35,13 @@ export const getUserOrdersThunk = () => async (dispatch) => {
   }
 };
 
+// This thunk sends order data (e.g. totalPrice, items, paymentIntentId) to backend
 export const createOrderThunk = (orderData) => async (dispatch) => {
   try {
     const res = await csrfFetch(`/api/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(orderData),
+      body: JSON.stringify(orderData), // Make sure orderData contains all needed fields!
     });
 
     if (res.ok) {

@@ -10,12 +10,17 @@ import NewProduct from "./components/NewProduct/NewProduct";
 import CartPage from "./components/CartPage/CartPage";
 import UpdateProduct from "./components/UpdateProduct/UpdateProduct"
 import LicensesPage from "./components/LicenseSelector/LicenseSelector"
+import ProductDetail from "./components/ProductDetail/ProductDetail";
 // import OrdersPage from "./components/OrdersPage/OrdersPage";
 // import PlaybackHistoryPage from "./components/PlaybackHistoryPage/PlaybackHistoryPage";
 
 import LoginFormModal from "./components/LoginFormModal";
 import SignUpFormModal from "./components/SignUpFormModal";
 import AboutMe from "./components/AboutME/AboutMe";
+import Checkout from "./components/Checkout/Checkout";
+import CheckoutSuccess from "./components/CheckoutSuccess/CheckoutSuccess";
+import CheckoutCancel from "./components/CheckoutCancel/CheckoutCancel";
+
 
 // import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
@@ -37,7 +42,7 @@ function App() {
           <Route exact path="/" component={LandingPage} />
           <Route exact path="/products" component={ProductList} />
           <Route exact path="/products/new" component={NewProduct} />
-          <Route exact path="/products/:productId" component={ProductCard} />
+          <Route exact path="/products/:productId" component={ProductDetail} />
 
           <Route exact path="/cart" component={CartPage} />
           <Route exact path="/products/:productId/edit" component={UpdateProduct} />
@@ -49,6 +54,9 @@ function App() {
           <Route path="/signup" component={SignUpFormModal} />
 
           <Route exact path="/about" component={AboutMe} />
+          <Route exact path="/checkout" component={Checkout} />
+          <Route exact path="/checkout-success" component={CheckoutSuccess} />
+          <Route exact path="/checkout-cancel" component={CheckoutCancel} />
 
           {/* Optional 404 route */}
           <Route render={() => <Redirect to="/" />} />

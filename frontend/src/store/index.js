@@ -8,6 +8,7 @@ import licensesReducer from "./licenses";
 import playbackHistoryReducer from "./playbackHistory";
 import cartItemsReducer from "./cartItems"; // Add if you have cartItems slice
 
+
 const rootReducer = combineReducers({
   session: sessionReducer,
   products: productsReducer,

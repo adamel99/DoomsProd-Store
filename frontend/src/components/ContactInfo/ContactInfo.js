@@ -21,7 +21,7 @@ const ContactModal = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>
-        Contact the Producer
+        Contact Me
         <IconButton
           aria-label="close"
           onClick={onClose}
