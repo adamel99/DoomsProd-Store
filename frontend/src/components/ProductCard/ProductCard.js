@@ -176,7 +176,7 @@ const ProductCard = ({ customProduct }) => {
                 : price}
             </Typography>
 
-            {type === "beat" && (
+            {/* {type === "beat" && (
               <FormControl fullWidth size="small" sx={{ mt: 1 }}>
                 <InputLabel id="license-select-label">License</InputLabel>
                 <Select
@@ -195,7 +195,7 @@ const ProductCard = ({ customProduct }) => {
                   ))}
                 </Select>
               </FormControl>
-            )}
+            )} */}
 
             {addCartError && (
               <Typography color="error" sx={{ mt: 1, fontSize: "0.7rem" }}>

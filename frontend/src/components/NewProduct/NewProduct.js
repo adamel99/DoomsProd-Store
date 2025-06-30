@@ -19,7 +19,6 @@ const NewProduct = () => {
   const history = useHistory();
   const user = useSelector((state) => state.session.user);
 
-  // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -27,13 +26,22 @@ const NewProduct = () => {
   const [youtubeLink, setYoutubeLink] = useState("");
   const [genre, setGenre] = useState("");
   const [type, setType] = useState("");
-  const [imageFile, setImageFile] = useState(null);  // <-- Add this
+
+  const [imageFile, setImageFile] = useState(null);
+  const [downloadFile, setDownloadFile] = useState(null); // <-- NEW STATE
+
   const [errors, setErrors] = useState([]);
 
-  // Handle file input change
-  const handleFileChange = (e) => {
+  // Handle image file input
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImageFile(file);
+  };
+
+  // Handle download file input
+  const handleDownloadChange = (e) => {
+    const file = e.target.files[0];
+    setDownloadFile(file);
   };
 
   const handleSubmit = async (e) => {
@@ -42,25 +50,23 @@ const NewProduct = () => {
 
     try {
       const formData = new FormData();
-      formData.append("userId", user.id);
       formData.append("title", title);
       formData.append("description", description);
-      if (type !== "beat") {
-        formData.append("price", price);
-      }
+      formData.append("type", type);
       formData.append("audioPreviewUrl", audioPreviewUrl);
       formData.append("youtubeLink", youtubeLink);
       formData.append("genre", genre);
-      formData.append("type", type);
 
-      if (imageFile) {
-        formData.append("image", imageFile);
+      if (type !== "beat") {
+        formData.append("price", price);
       }
+
+      if (imageFile) formData.append("image", imageFile);
+      if (downloadFile) formData.append("downloadFile", downloadFile); // <-- NEW
 
       const newProduct = await dispatch(productActions.createProductThunk(formData));
 
       if (newProduct) {
-        // ✅ Immediately refresh the full list
         await dispatch(productActions.getAllProductsThunk());
         history.push("/products");
       }
@@ -68,7 +74,6 @@ const NewProduct = () => {
       setErrors(err.errors || ["Something went wrong"]);
     }
   };
-
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -79,13 +84,11 @@ const NewProduct = () => {
       <Box
         component="form"
         onSubmit={handleSubmit}
-        encType="multipart/form-data" // <-- important for file upload
+        encType="multipart/form-data"
         sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
         {errors.map((err, idx) => (
-          <Typography key={idx} color="error">
-            {err}
-          </Typography>
+          <Typography key={idx} color="error">{err}</Typography>
         ))}
 
         <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -123,16 +126,12 @@ const NewProduct = () => {
           placeholder="https://youtube.com/watch?v=..."
         />
 
-        {/* Remove the manual Image URL input */}
-        {/* Add file upload input instead */}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
+        <TextField
+          label="Genre"
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
           required
         />
-
-        <TextField label="Genre" value={genre} onChange={(e) => setGenre(e.target.value)} required />
 
         <FormControl fullWidth required>
           <InputLabel>Type</InputLabel>
@@ -141,7 +140,7 @@ const NewProduct = () => {
             label="Type"
             onChange={(e) => {
               setType(e.target.value);
-              if (e.target.value === "beat") setPrice(""); // reset price for beats
+              if (e.target.value === "beat") setPrice("");
             }}
           >
             <MenuItem value="beat">Beat</MenuItem>
@@ -149,6 +148,23 @@ const NewProduct = () => {
             <MenuItem value="drum_kit">Drum Kit</MenuItem>
           </Select>
         </FormControl>
+
+        {/* Upload image */}
+        <label>
+          Image Upload:
+          <input type="file" accept="image/*" onChange={handleImageChange} required />
+        </label>
+
+        {/* Upload downloadable file */}
+        <label>
+          Download File (.zip, .wav, .mp3):
+          <input
+            type="file"
+            accept=".zip,.wav,.mp3"
+            onChange={handleDownloadChange}
+            required
+          />
+        </label>
 
         <Button
           variant="contained"

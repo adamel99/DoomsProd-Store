@@ -44,6 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    downloadUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
   }, {
     sequelize,
     modelName: 'Product',

@@ -53,6 +53,10 @@ module.exports = {
           type: Sequelize.STRING,
           allowNull: true,
         },
+        downloadUrl: {
+          type: Sequelize.STRING,
+          allowNull: true, // Only needed for downloadable products
+        },
         createdAt: {
           allowNull: false,
           type: Sequelize.DATE,

@@ -82,43 +82,43 @@ const LandingPage = () => {
         <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%" }}>
           <g transform="translate(300,300)">
             <path
-              d="M120,-147.5C155.5,-112.2,184.2,-77.8,183.6,-44.5C183.1,-11.1,153.2,20.3,130.1,52.9C107.1,85.6,90.9,119.5,66.7,132.8C42.4,146.1,10.2,138.7,-23.7,143.6C-57.7,148.6,-93.5,165.8,-121.1,155.4C-148.6,145.1,-167.9,107.1,-172.1,70.7C-176.3,34.2,-165.4,-0.7,-149.2,-33.4C-132.9,-66.2,-111.4,-96.9,-83.8,-135.3C-56.3,-173.7,-22.7,-219.9,10.4,-232.5C43.6,-245.1,87.1,-224.1,120,-147.5Z"
-              fill="url(#grad1)"
+              d="M145.5,-143.5C181.5,-112.2,204.2,-77.8,203.6,-44.5C203.1,-11.1,179.2,20.3,160.1,52.9C141.1,85.6,126.9,119.5,96.7,132.8C66.4,146.1,20.2,138.7,-13.7,143.6C-47.7,148.6,-78.5,165.8,-101.1,155.4C-123.6,145.1,-137.9,107.1,-142.1,70.7C-146.3,34.2,-140.4,-0.7,-129.2,-33.4C-117.9,-66.2,-101.4,-96.9,-73.8,-135.3C-46.3,-173.7,-8.7,-219.9,24.4,-232.5C57.6,-245.1,109.1,-224.1,145.5,-143.5Z"
+              fill="url(#grad2)"
             />
           </g>
           <defs>
-            <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7b2ff7" />
-              <stop offset="100%" stopColor="#f107a3" />
+            <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#00c9ff" />
+              <stop offset="100%" stopColor="#92fe9d" />
             </linearGradient>
           </defs>
         </svg>
       </motion.div>
 
       {/* Hero Section */}
-      <Container maxWidth="xl" sx={{ py: 12, position: "relative", zIndex: 1 }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 8, md: 12 }, px: { xs: 3, md: 6 }, position: "relative", zIndex: 1 }}>
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Typography variant="h1" sx={{ fontWeight: 900, fontSize: "3rem" }}>
-              doomsprodmusic
+            <Typography variant="h1" sx={{ fontWeight: 900, fontSize: { xs: "2.2rem", md: "3rem" }, lineHeight: 1.1 }}>
+              idontevenknowhim
             </Typography>
-            <Typography variant="h6" sx={{ mt: 1, opacity: 0.8 }}>
+            <Typography variant="h6" sx={{ mt: 1, opacity: 0.8, fontSize: { xs: "1rem", md: "1.25rem" }, lineHeight: 1.4 }}>
               Industry-ready beats. Instant downloads.
             </Typography>
 
-            <Box component="form" onSubmit={onSearchSubmit} sx={{ display: "flex", mt: 4, background: "#111", borderRadius: "50px", overflow: "hidden" }}>
+            <Box component="form" onSubmit={onSearchSubmit} sx={{ display: "flex", mt: 4, background: "#111", borderRadius: "50px", overflow: "hidden", maxWidth: 600 }}>
               <InputBase
                 placeholder="Search beats, kits, loops..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ flex: 1, px: 3, color: "#fff" }}
+                sx={{ flex: 1, px: 3, py: 1.5, color: "#fff" }}
               />
               <IconButton type="submit" sx={{ color: "#fff", p: 2 }}>
                 <SearchIcon />
               </IconButton>
             </Box>
 
-            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap" }}>
+            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap", justifyContent: { xs: "center", md: "flex-start" } }}>
               <Button variant="contained" color="primary" onClick={() => setOpenContactModal(true)}>
                 CONTACT
               </Button>
@@ -132,6 +132,7 @@ const LandingPage = () => {
           </Grid>
         </Grid>
       </Container>
+
 
       {/* Feature Cards */}
       <Container sx={{ py: 10 }} maxWidth="lg">
@@ -309,7 +310,7 @@ const LandingPage = () => {
       {/* Final CTA */}
       <Box sx={{ py: 10, px: 4, textAlign: "center", background: "linear-gradient(135deg, #1a1a1a, #0f0f0f)" }}>
         <Typography variant="h4" fontWeight={900} color="primary.main" gutterBottom>
-          Ready to vibe?
+          Ready 2 Work?
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
           Browse exclusive beats or contact me to start your project today.

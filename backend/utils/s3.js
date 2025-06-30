@@ -37,11 +37,16 @@ const upload = multer({
       "image/png",
       "image/webp",
       "image/jpg",
+      "audio/mpeg",           // mp3
+      "audio/wav",            // wav
+      "application/zip",      // zip
+      "application/x-zip-compressed",
+      "application/octet-stream", // sometimes zip
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only JPEG, PNG, WEBP, JPG allowed."));
+      cb(new Error("Invalid file type. Only JPEG, PNG, WEBP, JPG, MP3, WAV, and ZIP allowed."));
     }
   },
 });

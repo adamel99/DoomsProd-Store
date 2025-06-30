@@ -1,11 +1,13 @@
 import { csrfFetch } from "./csrf";
 
+// Action Types
 const GET_ALL_PRODUCTS = "products/getAllProducts";
 const CREATE_PRODUCT = "products/createProduct";
 const GET_SINGLE_PRODUCT = "products/getSingleProduct";
 const DELETE_PRODUCT = "products/deleteProduct";
 const UPDATE_PRODUCT = "products/updateProduct";
 
+// Helper to read CSRF token cookie (used for FormData fetch)
 function getCookie(name) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
   if (match) return match[2];
@@ -39,11 +41,11 @@ const updateProduct = (product) => ({
 
 // Thunks
 
-export const getAllProductsThunk = () => async (dispatch, getState) => {
+// Fetch all products from backend
+export const getAllProductsThunk = () => async (dispatch) => {
   try {
     const res = await csrfFetch("/api/products");
     const data = await res.json();
-
     dispatch(getAllProducts(data.products));
     return data.products;
   } catch (err) {
@@ -52,6 +54,7 @@ export const getAllProductsThunk = () => async (dispatch, getState) => {
   }
 };
 
+// Fetch single product detail from backend by ID
 export const getSingleProductThunk = (productId) => async (dispatch) => {
   try {
     const res = await csrfFetch(`/api/products/${productId}`);
@@ -66,18 +69,17 @@ export const getSingleProductThunk = (productId) => async (dispatch) => {
   }
 };
 
-// products.js (redux thunk file)
-
+// Create new product, supports FormData (file upload) or JSON
 export const createProductThunk = (product) => async (dispatch) => {
   try {
     const isFormData = product instanceof FormData;
 
     if (isFormData) {
-      const csrfToken = getCookie('XSRF-TOKEN'); // adjust name if different
+      const csrfToken = getCookie("XSRF-TOKEN");
 
       const response = await fetch("/api/products", {
         method: "POST",
-        body: product,
+        body: product, // contains image etc.
         credentials: "include",
         headers: {
           "XSRF-TOKEN": csrfToken,
@@ -93,6 +95,7 @@ export const createProductThunk = (product) => async (dispatch) => {
       dispatch(createProduct(newProduct));
       return newProduct;
     } else {
+      // Non-FormData fallback
       const response = await csrfFetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -114,8 +117,7 @@ export const createProductThunk = (product) => async (dispatch) => {
   }
 };
 
-
-
+// Delete product by ID
 export const deleteProductThunk = (productId) => async (dispatch) => {
   try {
     const res = await csrfFetch(`/api/products/${productId}`, {
@@ -133,33 +135,44 @@ export const deleteProductThunk = (productId) => async (dispatch) => {
   }
 };
 
+// Update product by ID, supports FormData or JSON
 export const updateProductThunk = (productId, updatedData) => async (dispatch) => {
   try {
     const isFormData = updatedData instanceof FormData;
+    let response;
 
-    const res = await csrfFetch(`/api/products/${productId}`, {
-      method: "PUT",
-      ...(isFormData
-        ? { body: updatedData }
-        : {
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedData),
-          }),
-    });
+    if (isFormData) {
+      const csrfToken = getCookie("XSRF-TOKEN");
 
-    if (res.ok) {
-      const updatedProduct = await res.json();
-      dispatch(updateProduct(updatedProduct));
-      return updatedProduct;
+      response = await fetch(`/api/products/${productId}`, {
+        method: "PUT",
+        body: updatedData,
+        credentials: "include",
+        headers: {
+          "XSRF-TOKEN": csrfToken,
+        },
+      });
+    } else {
+      response = await csrfFetch(`/api/products/${productId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
     }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || "Failed to update product");
+    }
+
+    const updatedProduct = await response.json();
+    dispatch(updateProduct(updatedProduct));
+    return updatedProduct;
   } catch (err) {
     console.error("Failed to update product:", err);
     return null;
   }
 };
-
-
-
 
 // Initial State
 const initialState = { allProducts: {}, singleProduct: {} };
@@ -172,22 +185,20 @@ const productsReducer = (state = initialState, action) => {
       action.payload.forEach((product) => {
         productsById[product.id] = {
           ...product,
-          licenses: product.licenses || [] // safe default
+          licenses: product.licenses || [], // default empty licenses array
         };
       });
       return { ...state, allProducts: productsById };
     }
-
 
     case GET_SINGLE_PRODUCT:
       return {
         ...state,
         singleProduct: {
           ...action.payload,
-          licenses: action.payload.licenses || []
-        }
+          licenses: action.payload.licenses || [],
+        },
       };
-
 
     case CREATE_PRODUCT:
       return {
@@ -205,7 +216,6 @@ const productsReducer = (state = initialState, action) => {
     }
 
     case UPDATE_PRODUCT:
-      console.log("✅ UPDATE_PRODUCT reducer payload:", action.payload); // ADD THIS
       return {
         ...state,
         allProducts: {
@@ -213,15 +223,14 @@ const productsReducer = (state = initialState, action) => {
           [action.payload.id]: {
             ...state.allProducts[action.payload.id],
             ...action.payload,
-            licenses: action.payload.licenses || [] // always safe
+            licenses: action.payload.licenses || [],
           },
         },
         singleProduct: {
           ...action.payload,
-          licenses: action.payload.licenses || []
-        }
+          licenses: action.payload.licenses || [],
+        },
       };
-
 
     default:
       return state;
