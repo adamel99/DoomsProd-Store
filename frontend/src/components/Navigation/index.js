@@ -68,8 +68,31 @@ function Navigation({ isLoaded }) {
           backgroundColor: 'rgba(18, 18, 18, 0.85)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           zIndex: theme => theme.zIndex.drawer + 1,
+          position: 'relative',
         }}
       >
+        {/* Light glassmorphic blob behind navbar content */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-40%',
+            left: '-20%',
+            width: 320,
+            height: 320,
+            bgcolor: 'rgba(255, 255, 255, 0.12)',
+            filter: 'blur(100px)',
+            borderRadius: '50%',
+            zIndex: 0,
+            pointerEvents: 'none',
+            userSelect: 'none',
+            animation: 'pulseNav 18s ease-in-out infinite',
+            '@keyframes pulseNav': {
+              '0%,100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.1)' },
+            },
+          }}
+        />
+
         <Toolbar
           sx={{
             display: 'flex',
@@ -78,27 +101,39 @@ function Navigation({ isLoaded }) {
             px: { xs: 2, md: 4 },
             py: 1,
             minHeight: 64,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
-          {/* Logo */}
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              fontSize: '1.4rem',
-              color: 'white',
-              cursor: 'pointer',
-              userSelect: 'none',
-              '&:hover': { color: 'primary.main' },
-              transition: 'color 0.2s ease',
-            }}
-            onClick={() => history.push('/')}
-          >
-            DOOMSPROD
-          </Typography>
+          {/* Left side: Logo */}
+          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                fontSize: '1.5rem',
+                color: 'white',
+                cursor: 'pointer',
+                userSelect: 'none',
+                '&:hover': { color: 'primary.main' },
+                transition: 'color 0.2s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onClick={() => history.push('/')}
+            >
+              DOOMSPROD
+            </Typography>
+          </Box>
 
-          {/* Nav Links (Desktop) */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3 }}>
+          {/* Center: Nav Links */}
+          <Box
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              gap: 4,
+              flexGrow: 1,
+              justifyContent: 'center',
+            }}
+          >
             {[
               { path: '/products', label: 'Products' },
               { path: '/about', label: 'About' },
@@ -122,7 +157,7 @@ function Navigation({ isLoaded }) {
                     backgroundColor: 'transparent',
                   },
                   textTransform: 'none',
-                  padding: '6px 12px',
+                  padding: '6px 16px',
                   borderRadius: 1,
                 }}
               >
@@ -131,8 +166,15 @@ function Navigation({ isLoaded }) {
             ))}
           </Box>
 
-          {/* Right Section */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {/* Right side: Search + Cart + Auth */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexShrink: 0,
+            }}
+          >
             {/* Search */}
             <Box
               component="form"
@@ -142,9 +184,10 @@ function Navigation({ isLoaded }) {
                 alignItems: 'center',
                 borderRadius: 20,
                 backgroundColor: alpha('#fff', 0.1),
-                px: 1.5,
-                py: 0.5,
-                width: { sm: 160, md: 220 },
+                px: 2,
+                py: 0.6,
+                width: { sm: 180, md: 240 },
+                transition: 'background-color 0.2s ease',
                 '&:focus-within': {
                   backgroundColor: alpha('#fff', 0.15),
                 },
@@ -154,7 +197,7 @@ function Navigation({ isLoaded }) {
                 placeholder="Search…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ ml: 1, flex: 1, fontSize: '0.9rem', color: 'inherit' }}
+                sx={{ ml: 1, flex: 1, fontSize: '0.95rem', color: 'inherit' }}
               />
               <IconButton type="submit" sx={{ p: 0.5 }} color="primary" aria-label="search">
                 <SearchIcon />

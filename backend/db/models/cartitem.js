@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       CartItem.belongsTo(models.Product, { foreignKey: 'productId' });
       CartItem.belongsTo(models.License, { foreignKey: 'licenseId' });
     }
-  }
+  };
 
   CartItem.init({
     userId: {

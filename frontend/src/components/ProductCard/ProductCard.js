@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getSingleProductThunk, deleteProductThunk } from "../../store/products";
@@ -16,13 +16,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
-
-import YouTubePlayer from "../YouTubePlayer/YouTubePlayer";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
 
 const ADMIN_EMAIL = "adamelh1999@gmail.com";
 
@@ -41,6 +37,8 @@ const ProductCard = ({ customProduct }) => {
   const [addCartLoading, setAddCartLoading] = useState(false);
   const [addCartError, setAddCartError] = useState(null);
   const [addCartSuccess, setAddCartSuccess] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     if (isStandalone) dispatch(getSingleProductThunk(productId));
@@ -61,10 +59,9 @@ const ProductCard = ({ customProduct }) => {
     price,
     description,
     imageUrl,
-    audioUrl,
-    audioPreviewUrl,
+    downloadUrl: audioUrl, // ✅ Fixes the issue
     id,
-    type
+    type,
   } = displayedProduct;
 
   const isAdmin = currentUser?.email === ADMIN_EMAIL;
@@ -80,11 +77,6 @@ const ProductCard = ({ customProduct }) => {
     await dispatch(deleteProductThunk(id));
     setDeleteDialogOpen(false);
     history.push("/products");
-  };
-
-  const handleLicenseChange = (e) => {
-    setSelectedLicenseId(e.target.value);
-    setAddCartError(null);
   };
 
   const handleAddToCart = async () => {
@@ -103,6 +95,18 @@ const ProductCard = ({ customProduct }) => {
     } finally {
       setAddCartLoading(false);
     }
+  };
+
+  const toggleAudio = (e) => {
+    e.stopPropagation();
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -128,19 +132,60 @@ const ProductCard = ({ customProduct }) => {
             if (!isStandalone && (e.key === "Enter" || e.key === " ")) handleClick();
           }}
         >
-          <CardMedia
-            component="img"
-            image={imageUrl || audioUrl || "/placeholder.jpg"}
-            alt={`Product: ${title}`}
+          {/* Image + Play Button Overlay */}
+          <Box
             sx={{
+              position: "relative",
               width: "100%",
               height: 140,
-              objectFit: "cover", // <-- This ensures the image fills the container
-              backgroundColor: "#1a1a1a",
+              cursor: "pointer",
+              overflow: "hidden",
               borderRadius: "8px 8px 0 0",
+              backgroundColor: "#1a1a1a",
             }}
-          />
-
+            onClick={toggleAudio}
+          >
+            <CardMedia
+              component="img"
+              image={imageUrl || audioUrl || "/placeholder.jpg"}
+              alt={`Product: ${title}`}
+              sx={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+            {audioUrl && (
+              <>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    borderRadius: "50%",
+                    width: 40,
+                    height: 40,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {isPlaying ? (
+                    <PauseIcon sx={{ color: "#fff", fontSize: 24 }} />
+                  ) : (
+                    <PlayArrowIcon sx={{ color: "#fff", fontSize: 24 }} />
+                  )}
+                </Box>
+                <audio
+                  ref={audioRef}
+                  src={audioUrl}
+                  onEnded={() => setIsPlaying(false)}
+                />
+              </>
+            )}
+          </Box>
 
           <CardContent sx={{ color: "#f5f5f5", px: 1, py: 1 }}>
             <Typography variant="subtitle2" fontWeight={600} noWrap>
@@ -163,39 +208,9 @@ const ProductCard = ({ customProduct }) => {
               {description}
             </Typography>
 
-            {type === "beat" && audioPreviewUrl && isStandalone && (
-              <Box mt={1}>
-                <YouTubePlayer url={audioPreviewUrl} />
-              </Box>
-            )}
-
             <Typography variant="body2" color="primary" fontWeight={700} sx={{ mt: 0.5 }}>
-              Price: $
-              {type === "beat" && selectedLicenseId
-                ? licenses.find((l) => l.id === selectedLicenseId)?.price || "N/A"
-                : price}
+              Price: ${price}
             </Typography>
-
-            {/* {type === "beat" && (
-              <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                <InputLabel id="license-select-label">License</InputLabel>
-                <Select
-                  labelId="license-select-label"
-                  value={selectedLicenseId}
-                  label="License"
-                  onChange={handleLicenseChange}
-                >
-                  <MenuItem value="">
-                    <em>None</em>
-                  </MenuItem>
-                  {licenses.map((license) => (
-                    <MenuItem key={license.id} value={license.id}>
-                      {license.name} (${license.price})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )} */}
 
             {addCartError && (
               <Typography color="error" sx={{ mt: 1, fontSize: "0.7rem" }}>
@@ -212,7 +227,7 @@ const ProductCard = ({ customProduct }) => {
               <Button
                 variant="contained"
                 onClick={handleAddToCart}
-                disabled={addCartLoading || (type === "beat" && !selectedLicenseId)}
+                disabled={addCartLoading}
                 fullWidth
                 size="small"
                 sx={{

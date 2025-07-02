@@ -111,7 +111,7 @@ const AboutMe = () => {
             Want to dive deeper? Check out my{" "}
             <MuiLink
               component={Link}
-              to="/"
+              to="/products"
               underline="hover"
               sx={{ color: "#ff6699", fontWeight: "bold" }}
             >

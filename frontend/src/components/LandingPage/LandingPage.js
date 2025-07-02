@@ -1,4 +1,3 @@
-// LandingPage.js
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, NavLink } from "react-router-dom";
@@ -33,6 +32,12 @@ const iconMap = {
   "Licenses and Terms": <LibraryMusicIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />,
 };
 
+const routeMap = {
+  "Browse Beats": "/products",
+  "Meet the Creator": "/about",
+  "Licenses and Terms": "/licenses",
+};
+
 const testimonials = [
   {
     name: "Fivio Foreign - Dribble",
@@ -47,8 +52,9 @@ const LandingPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [openContactModal, setOpenContactModal] = useState(false);
 
-  const productsObj = useSelector((state) => state.products.allProducts || {});
-  const products = Object.values(productsObj);
+  const products = useSelector((state) =>
+    Object.values(state.products.allProducts || {})
+  );
 
   useEffect(() => {
     dispatch(getAllProductsThunk());
@@ -62,70 +68,146 @@ const LandingPage = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: "#000", color: "#fff", minHeight: "100vh", position: "relative" }}>
-      {/* SVG Blob Background */}
-      <motion.div
-        animate={{ y: [0, 15, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        style={{
+    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: "background.default", color: "text.primary", overflow: "hidden" }}>
+      {/* Background Canvas */}
+      <Box
+        sx={{
           position: "absolute",
-          top: "-120px",
-          right: "-180px",
+          inset: 0,
           zIndex: 0,
-          width: "1400px",
-          opacity: 0.5,
-          pointerEvents: "none",
-          filter: "blur(20px)",
-          mixBlendMode: "screen",
+          background: "radial-gradient(circle at top left, #0b0b0b, #000)",
         }}
-      >
-        <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%" }}>
-          <g transform="translate(300,300)">
-            <path
-              d="M145.5,-143.5C181.5,-112.2,204.2,-77.8,203.6,-44.5C203.1,-11.1,179.2,20.3,160.1,52.9C141.1,85.6,126.9,119.5,96.7,132.8C66.4,146.1,20.2,138.7,-13.7,143.6C-47.7,148.6,-78.5,165.8,-101.1,155.4C-123.6,145.1,-137.9,107.1,-142.1,70.7C-146.3,34.2,-140.4,-0.7,-129.2,-33.4C-117.9,-66.2,-101.4,-96.9,-73.8,-135.3C-46.3,-173.7,-8.7,-219.9,24.4,-232.5C57.6,-245.1,109.1,-224.1,145.5,-143.5Z"
-              fill="url(#grad2)"
-            />
-          </g>
-          <defs>
-            <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#00c9ff" />
-              <stop offset="100%" stopColor="#92fe9d" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </motion.div>
+      />
 
-      {/* Hero Section */}
-      <Container maxWidth="xl" sx={{ py: { xs: 8, md: 12 }, px: { xs: 3, md: 6 }, position: "relative", zIndex: 1 }}>
+      {/* Glassmorphic Blobs */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-150px",
+          left: "-100px",
+          width: 500,
+          height: 500,
+          bgcolor: "rgba(255,51,102,0.15)",
+          filter: "blur(180px)",
+          borderRadius: "50%",
+          zIndex: 1,
+          animation: "pulse 12s ease-in-out infinite",
+          "@keyframes pulse": {
+            "0%,100%": { transform: "scale(1)" },
+            "50%": { transform: "scale(1.05)" },
+          },
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: "-100px",
+          right: "-100px",
+          width: 500,
+          height: 500,
+          bgcolor: "rgba(146, 254, 157, 0.1)",
+          filter: "blur(120px)",
+          borderRadius: "50%",
+          zIndex: 0,
+          animation: "pulse2 20s ease-in-out infinite",
+          "@keyframes pulse2": {
+            "0%,100%": { transform: "scale(1)" },
+            "50%": { transform: "scale(1.05)" },
+          },
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          top: "30%",
+          left: "35%",
+          width: 300,
+          height: 300,
+          bgcolor: "rgba(255, 64, 129, 0.08)",
+          filter: "blur(120px)",
+          borderRadius: "50%",
+          zIndex: 0,
+          animation: "pulse3 24s ease-in-out infinite",
+          "@keyframes pulse3": {
+            "0%,100%": { transform: "scale(1)" },
+            "50%": { transform: "scale(1.08)" },
+          },
+        }}
+      />
+      {/* Existing blobs here... */}
+
+{/* New blob 1 */}
+<Box
+  sx={{
+    position: "absolute",
+    top: "10%",
+    right: "-150px",
+    width: 400,
+    height: 400,
+    bgcolor: "rgba(0, 255, 255, 0.1)", // cyan-ish glass
+    filter: "blur(140px)",
+    borderRadius: "50%",
+    zIndex: 0,
+    animation: "pulse4 18s ease-in-out infinite",
+    "@keyframes pulse4": {
+      "0%,100%": { transform: "scale(1)" },
+      "50%": { transform: "scale(1.07)" },
+    },
+  }}
+/>
+
+{/* New blob 2 */}
+<Box
+  sx={{
+    position: "absolute",
+    bottom: "20%",
+    left: "-130px",
+    width: 350,
+    height: 350,
+    bgcolor: "rgba(255, 165, 0, 0.12)", // soft orange glass
+    filter: "blur(100px)",
+    borderRadius: "50%",
+    zIndex: 0,
+    animation: "pulse5 22s ease-in-out infinite",
+    "@keyframes pulse5": {
+      "0%,100%": { transform: "scale(1)" },
+      "50%": { transform: "scale(1.06)" },
+    },
+  }}
+/>
+
+
+      {/* All content layered at zIndex 2 */}
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: { xs: 8, md: 12 }, px: { xs: 3, md: 6 } }}>
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Typography variant="h1" sx={{ fontWeight: 900, fontSize: { xs: "2.2rem", md: "3rem" }, lineHeight: 1.1 }}>
+            <Typography variant="h1" gutterBottom>
               idontevenknowhim
             </Typography>
-            <Typography variant="h6" sx={{ mt: 1, opacity: 0.8, fontSize: { xs: "1rem", md: "1.25rem" }, lineHeight: 1.4 }}>
-              Industry-ready beats. Instant downloads.
+            <Typography variant="body1" sx={{ opacity: 0.8 }}>
+              Industry‑ready beats. Instant downloads.
             </Typography>
 
-            <Box component="form" onSubmit={onSearchSubmit} sx={{ display: "flex", mt: 4, background: "#111", borderRadius: "50px", overflow: "hidden", maxWidth: 600 }}>
+            <Box component="form" onSubmit={onSearchSubmit} sx={{ display: "flex", mt: 4 }}>
               <InputBase
                 placeholder="Search beats, kits, loops..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ flex: 1, px: 3, py: 1.5, color: "#fff" }}
+                fullWidth
               />
-              <IconButton type="submit" sx={{ color: "#fff", p: 2 }}>
+              <IconButton type="submit">
                 <SearchIcon />
               </IconButton>
             </Box>
 
-            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap", justifyContent: { xs: "center", md: "flex-start" } }}>
+            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap" }}>
               <Button variant="contained" color="primary" onClick={() => setOpenContactModal(true)}>
-                CONTACT
+                Contact
               </Button>
-              <Button variant="outlined" href="https://www.youtube.com/@DoomsProduction" sx={{ color: "#fff", borderColor: "#444" }} target="_blank">
+              <Button variant="outlined" href="https://www.youtube.com/@DoomsProduction" target="_blank">
                 YouTube
               </Button>
-              <Button variant="outlined" onClick={() => window.scrollTo({ top: 1000, behavior: 'smooth' })} sx={{ borderRadius: "50px", color: "#ff4081", borderColor: "#ff4081" }}>
+              <Button variant="outlined" onClick={() => window.scrollTo({ top: 1000, behavior: "smooth" })}>
                 Explore Beats
               </Button>
             </Box>
@@ -133,51 +215,23 @@ const LandingPage = () => {
         </Grid>
       </Container>
 
-
-      {/* Feature Cards */}
-      <Container sx={{ py: 10 }} maxWidth="lg">
+      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2, py: 10 }}>
         <Grid container spacing={6} justifyContent="center">
           {["Browse Beats", "Meet the Creator", "Licenses and Terms"].map((title) => (
             <Grid item xs={12} md={4} key={title}>
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                <NavLink
-                  to={
-                    title === "Browse Beats"
-                      ? "/products"
-                      : title === "Meet the Creator"
-                      ? "/about"
-                      : "/licenses"
-                  }
-                  style={{ textDecoration: "none" }}
-                >
-                  <Paper
-                    elevation={10}
-                    sx={{
-                      p: 6,
-                      borderRadius: "24px",
-                      background: "rgba(255, 255, 255, 0.03)",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
-                      backdropFilter: "blur(20px)",
-                      textAlign: "center",
-                      color: "text.primary",
-                      boxShadow: `0 12px 40px #ff408122`,
-                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                      "&:hover": {
-                        transform: "translateY(-8px)",
-                        boxShadow: `0 16px 48px #ff408155`,
-                      },
-                    }}
-                  >
+                <NavLink to={routeMap[title]} style={{ textDecoration: "none" }}>
+                  <Paper elevation={3} sx={{ p: 5 }}>
                     {iconMap[title]}
                     <Typography variant="h5" gutterBottom>
                       {title}
                     </Typography>
-                    <Typography color="text.secondary">
+                    <Typography variant="body1" color="text.secondary">
                       {title === "Browse Beats"
-                        ? "Exclusive beats across genres. Preview, license, and download instantly."
+                        ? "Exclusive beats across genres. Preview instantly."
                         : title === "Meet the Creator"
-                        ? "Learn about the artist behind the beats and the vision behind the sound."
-                        : "Explore licensing options and pick what fits your project needs."}
+                          ? "Learn about the artist and vision."
+                          : "Explore licencing options."}
                     </Typography>
                   </Paper>
                 </NavLink>
@@ -187,145 +241,98 @@ const LandingPage = () => {
         </Grid>
       </Container>
 
-      {/* Latest Products */}
-      <Container sx={{ py: 8 }}>
-        <Typography variant="h4" sx={{ mb: 6, fontWeight: 900, color: "primary.main", textAlign: "center", textTransform: "uppercase", letterSpacing: 1.5 }}>
+      <Container sx={{ position: "relative", zIndex: 2, py: 8 }}>
+        <Typography variant="h5" textAlign="center" gutterBottom>
           Latest Products
         </Typography>
-
         <Grid container spacing={4} justifyContent="center">
-          {products
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 3)
-            .map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
-                <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-                  <Paper
-                    elevation={10}
-                    sx={{
-                      borderRadius: 4,
-                      overflow: "hidden",
-                      background: "linear-gradient(145deg, #1a1a1a, #0f0f0f)",
-                      boxShadow: "0 12px 40px rgba(255, 64, 129, 0.15)",
-                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                      "&:hover": {
-                        transform: "translateY(-6px)",
-                        boxShadow: "0 20px 50px rgba(255, 64, 129, 0.3)",
-                      },
-                    }}
-                  >
-                    <Box sx={{ width: "100%", height: 200, overflow: "hidden" }}>
-                      {product.audioPreviewUrl ? (
-                        <iframe
-                          width="100%"
-                          height="200"
-                          src={`https://www.youtube.com/embed/${getYouTubeId(product.audioPreviewUrl)}?rel=0&controls=1`}
-                          title={product.title}
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      ) : (
-                        <Box component="img" src="/default-image.png" alt={product.title} sx={{ width: "100%", height: 200, objectFit: "cover" }} />
-                      )}
-                    </Box>
-                    <Box sx={{ p: 3 }}>
-                      <Typography variant="h6" fontWeight={700} sx={{ mb: 1, color: "#fff" }}>
-                        {product.title}
-                      </Typography>
-                      <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-                        {product.description?.slice(0, 80)}...
-                      </Typography>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        onClick={() => history.push(`/products/${product.id}`)}
-                        sx={{
-                          background: "linear-gradient(135deg, #ff4081, #ff6699)",
-                          fontWeight: 700,
-                          borderRadius: "50px",
-                          "&:hover": {
-                            background: "linear-gradient(135deg, #ff6699, #ff4081)",
-                          },
-                        }}
-                      >
-                        View Product
-                      </Button>
-                    </Box>
-                  </Paper>
-                </motion.div>
-              </Grid>
-            ))}
+          {products.slice(0, 3).map((product) => (
+            <Grid item xs={12} sm={6} md={4} key={product.id}>
+              <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                <Paper elevation={2} sx={{ p: 3 }}>
+                  {product.audioPreviewUrl ? (
+                    <iframe
+                      width="100%"
+                      height="200"
+                      src={`https://www.youtube.com/embed/${getYouTubeId(product.audioPreviewUrl)}?rel=0&controls=1`}
+                      title={product.title}
+                      frameBorder="0"
+                      allow="autoplay; encrypted-media"
+                    />
+                  ) : (
+                    <Box component="img" src="/default-image.png" alt={product.title} sx={{ width: "100%", height: 200, objectFit: "cover" }} />
+                  )}
+                  <Typography variant="body1" sx={{ mt: 2, fontWeight: 600 }}>
+                    {product.title}
+                  </Typography>
+                  <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={() => history.push(`/products/${product.id}`)}>
+                    View Product
+                  </Button>
+                </Paper>
+              </motion.div>
+            </Grid>
+          ))}
         </Grid>
       </Container>
 
-      {/* Testimonials */}
-      <Container sx={{ py: 10 }}>
-        <Typography
-          variant="h4"
-          fontWeight={900}
-          textAlign="center"
-          color="primary.main"
-          gutterBottom
-        >
+      <Container sx={{ position: "relative", zIndex: 2, py: 10 }}>
+        <Typography variant="h5" textAlign="center" gutterBottom>
           Trusted by Creators Worldwide
         </Typography>
-        <Grid container spacing={6} justifyContent="center">
-          {testimonials.map(({ name, quote, videoUrl }) => (
-            <Grid item xs={12} md={6} key={name}>
-              <Paper
-                elevation={6}
-                sx={{
-                  p: 3,
-                  backgroundColor: "rgba(255,255,255,0.05)",
-                  borderRadius: 4,
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  maxWidth: "600px",
-                  margin: "0 auto",
-                }}
-              >
-                <Typography variant="body1" fontStyle="italic" gutterBottom>
-                  “{quote}”
+        <Grid container spacing={4} justifyContent="center">
+          {testimonials.map(({ name, quote, videoUrl }, index) => (
+            <Grid item xs={12} md={6} key={index}>
+              <Paper elevation={3} sx={{ p: 4 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
+                  {name}
                 </Typography>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  — {name}
+                <Typography variant="body2" sx={{ mb: 2, fontStyle: "italic" }}>
+                  "{quote}"
                 </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <iframe
-                    width="100%"
-                    height="200"
-                    src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?rel=0&controls=1`}
-                    title={name}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </Box>
+                {videoUrl && (
+                  <Box
+                    sx={{
+                      position: "relative",
+                      paddingTop: "56.25%", // 16:9 aspect ratio
+                      borderRadius: 2,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <iframe
+                      src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?rel=0&controls=1`}
+                      title={`Testimonial video by ${name}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+                  </Box>
+                )}
               </Paper>
             </Grid>
           ))}
         </Grid>
       </Container>
 
-      {/* Final CTA */}
-      <Box sx={{ py: 10, px: 4, textAlign: "center", background: "linear-gradient(135deg, #1a1a1a, #0f0f0f)" }}>
-        <Typography variant="h4" fontWeight={900} color="primary.main" gutterBottom>
+
+      <Box sx={{ position: "relative", zIndex: 2, py: 10, textAlign: "center", borderTop: "1px solid #222" }}>
+        <Typography variant="h5" gutterBottom>
           Ready 2 Work?
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>
-          Browse exclusive beats or contact me to start your project today.
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
-          <Button variant="contained" color="primary" onClick={() => history.push("/products")} sx={{ fontWeight: 700, borderRadius: "50px" }}>
-            Explore Beats
-          </Button>
-          <Button variant="outlined" sx={{ color: "#fff", borderColor: "#ff4081", fontWeight: 700, borderRadius: "50px", "&:hover": { backgroundColor: "#ff408120" } }} onClick={() => setOpenContactModal(true)}>
-            Contact Me
-          </Button>
-        </Box>
+        <Button variant="contained" color="primary" sx={{ mx: 1 }} onClick={() => history.push("/products")}>
+          Explore Beats
+        </Button>
+        <Button variant="outlined" sx={{ mx: 1 }} onClick={() => setOpenContactModal(true)}>
+          Contact Me
+        </Button>
       </Box>
 
-      {/* Contact Modal */}
       <ContactModal open={openContactModal} onClose={() => setOpenContactModal(false)} />
     </Box>
   );
