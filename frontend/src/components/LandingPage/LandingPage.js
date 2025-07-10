@@ -1,35 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory, NavLink } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import {
   Box,
   Button,
   Typography,
   Container,
   Grid,
-  Paper,
   IconButton,
   InputBase,
+  useTheme,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import SearchIcon from "@mui/icons-material/Search";
 import HeadphonesIcon from "@mui/icons-material/Headphones";
 import PersonIcon from "@mui/icons-material/Person";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
 import { getAllProductsThunk } from "../../store/products";
 import ContactModal from "../ContactInfo/ContactInfo";
+import NeumorphicCard from "../NeumorphicCard/NeumorphicCard";
 
-function getYouTubeId(url) {
+const getYouTubeId = (url) => {
   const match = url.match(
     /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^\s&?/]+)/i
   );
   return match ? match[1] : null;
-}
-
-const iconMap = {
-  "Browse Beats": <HeadphonesIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />,
-  "Meet the Creator": <PersonIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />,
-  "Licenses and Terms": <LibraryMusicIcon sx={{ fontSize: 40, mb: 1, color: "primary.main" }} />,
 };
 
 const routeMap = {
@@ -43,10 +40,11 @@ const testimonials = [
     name: "Fivio Foreign - Dribble",
     quote: "They aint never even seen no sh*t like this before",
     videoUrl: "https://www.youtube.com/watch?v=sBsax2S2G9s&list=RDsBsax2S2G9s&start_radio=1",
-  }
+  },
 ];
 
 const LandingPage = () => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const history = useHistory();
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,118 +65,101 @@ const LandingPage = () => {
     }
   };
 
+  const iconMap = {
+    "Browse Beats": <HeadphonesIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />,
+    "Meet the Creator": <PersonIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />,
+    "Licenses and Terms": <LibraryMusicIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />,
+  };
+
+  const [playingProductId, setPlayingProductId] = useState(null);
+  const audioRefs = useRef({}); // store audio elements by product id
+
+  const toggleAudio = (e, productId) => {
+    e.stopPropagation();
+
+    const currentAudio = audioRefs.current[productId];
+
+    if (!currentAudio) return;
+
+    if (playingProductId && playingProductId !== productId) {
+      // Pause previously playing audio
+      const prevAudio = audioRefs.current[playingProductId];
+      if (prevAudio) prevAudio.pause();
+    }
+
+    if (currentAudio.paused) {
+      currentAudio.play();
+      setPlayingProductId(productId);
+    } else {
+      currentAudio.pause();
+      setPlayingProductId(null);
+    }
+  };
+
+  const handleAudioEnded = (productId) => {
+    if (playingProductId === productId) {
+      setPlayingProductId(null);
+    }
+  };
+
   return (
-    <Box sx={{ position: "relative", minHeight: "100vh", bgcolor: "background.default", color: "text.primary", overflow: "hidden" }}>
-      {/* Background Canvas */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          background: "radial-gradient(circle at top left, #0b0b0b, #000)",
-        }}
-      />
+    <Box
+      sx={{
+        position: "relative",
+        minHeight: "100vh",
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        overflowX: "hidden",
+        width: "100vw",
+        maxWidth: "100%",
+      }}
+    >
+      {/* Background blob */}
+      <Box sx={{
+        position: "absolute",
+        top: "-150px",
+        left: "-100px",
+        width: 500,
+        height: 500,
+        bgcolor: "rgba(255, 80, 120, 0.3)",
+        filter: "blur(180px)",
+        borderRadius: "50%",
+        zIndex: 1,
+      }} />
 
-      {/* Glassmorphic Blobs */}
+      {/* Hero section */}
       <Box
-        sx={{
-          position: "absolute",
-          top: "-150px",
-          left: "-100px",
-          width: 500,
-          height: 500,
-          bgcolor: "rgba(255,51,102,0.15)",
-          filter: "blur(180px)",
-          borderRadius: "50%",
-          zIndex: 1,
-          animation: "pulse 12s ease-in-out infinite",
-          "@keyframes pulse": {
-            "0%,100%": { transform: "scale(1)" },
-            "50%": { transform: "scale(1.05)" },
-          },
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "-100px",
-          right: "-100px",
-          width: 500,
-          height: 500,
-          bgcolor: "rgba(146, 254, 157, 0.1)",
-          filter: "blur(120px)",
-          borderRadius: "50%",
-          zIndex: 0,
-          animation: "pulse2 20s ease-in-out infinite",
-          "@keyframes pulse2": {
-            "0%,100%": { transform: "scale(1)" },
-            "50%": { transform: "scale(1.05)" },
-          },
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          top: "30%",
-          left: "35%",
-          width: 300,
-          height: 300,
-          bgcolor: "rgba(255, 64, 129, 0.08)",
-          filter: "blur(120px)",
-          borderRadius: "50%",
-          zIndex: 0,
-          animation: "pulse3 24s ease-in-out infinite",
-          "@keyframes pulse3": {
-            "0%,100%": { transform: "scale(1)" },
-            "50%": { transform: "scale(1.08)" },
-          },
-        }}
-      />
-      {/* Existing blobs here... */}
-
-{/* New blob 1 */}
-<Box
+  component="svg"
+  viewBox="0 0 800 800"
+  preserveAspectRatio="none"
   sx={{
     position: "absolute",
-    top: "10%",
-    right: "-150px",
-    width: 400,
-    height: 400,
-    bgcolor: "rgba(0, 255, 255, 0.1)", // cyan-ish glass
-    filter: "blur(140px)",
-    borderRadius: "50%",
-    zIndex: 0,
-    animation: "pulse4 18s ease-in-out infinite",
-    "@keyframes pulse4": {
-      "0%,100%": { transform: "scale(1)" },
-      "50%": { transform: "scale(1.07)" },
-    },
+    top: -200,
+    right: -200,
+    zIndex: 1,
+    opacity: 0.15,
+    transform: "scale(1.2)",
   }}
-/>
-
-{/* New blob 2 */}
-<Box
-  sx={{
-    position: "absolute",
-    bottom: "20%",
-    left: "-130px",
-    width: 350,
-    height: 350,
-    bgcolor: "rgba(255, 165, 0, 0.12)", // soft orange glass
-    filter: "blur(100px)",
-    borderRadius: "50%",
-    zIndex: 0,
-    animation: "pulse5 22s ease-in-out infinite",
-    "@keyframes pulse5": {
-      "0%,100%": { transform: "scale(1)" },
-      "50%": { transform: "scale(1.06)" },
-    },
-  }}
-/>
+>
+  <path
+    fill={theme.palette.primary.main}
+    d="M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z"
+  >
+    <animate
+      attributeName="d"
+      dur="10s"
+      repeatCount="indefinite"
+      values="
+        M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z;
+        M580,500Q500,600,400,600Q300,600,250,525Q200,450,150,375Q100,300,160,230Q220,160,320,150Q420,140,490,200Q560,260,590,330Q620,400,580,500Z;
+        M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z
+      "
+    />
+  </path>
+</Box>
 
 
-      {/* All content layered at zIndex 2 */}
-      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: { xs: 8, md: 12 }, px: { xs: 3, md: 6 } }}>
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: 4, px: 1 }}>
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
             <Typography variant="h1" gutterBottom>
@@ -194,6 +175,13 @@ const LandingPage = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 fullWidth
+                sx={{
+                  bgcolor: "transparent",
+                  px: 2,
+                  py: 1,
+                  borderRadius: theme.shape.borderRadius,
+                  mr: 1,
+                }}
               />
               <IconButton type="submit">
                 <SearchIcon />
@@ -215,113 +203,206 @@ const LandingPage = () => {
         </Grid>
       </Container>
 
-      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2, py: 10 }}>
+      {/* Feature Cards */}
+      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2, py: 5 }}>
         <Grid container spacing={6} justifyContent="center">
-          {["Browse Beats", "Meet the Creator", "Licenses and Terms"].map((title) => (
-            <Grid item xs={12} md={4} key={title}>
+          {Object.keys(routeMap).map((title) => (
+            <Grid item xs={12} md={6} lg={4} key={title}>
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                <NavLink to={routeMap[title]} style={{ textDecoration: "none" }}>
-                  <Paper elevation={3} sx={{ p: 5 }}>
-                    {iconMap[title]}
-                    <Typography variant="h5" gutterBottom>
-                      {title}
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
-                      {title === "Browse Beats"
-                        ? "Exclusive beats across genres. Preview instantly."
-                        : title === "Meet the Creator"
-                          ? "Learn about the artist and vision."
-                          : "Explore licencing options."}
-                    </Typography>
-                  </Paper>
-                </NavLink>
+                <NeumorphicCard
+                  onClick={() => history.push(routeMap[title])}
+                  sx={{
+                    minHeight: 110,
+                    minWidth: 200,      // bigger height than default
+                    px: 4,               // more horizontal padding
+                    py: 3,               // more vertical padding
+                    cursor: 'pointer',
+                  }}
+                >
+                  {iconMap[title]}
+                  <Typography variant="h6" sx={{ mt: 1, color: theme.palette.text.primary }}>
+                    {title}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, textAlign: 'center' }}>
+                    {title === "Browse Beats"
+                      ? "Exclusive beats across genres. Preview instantly."
+                      : title === "Meet the Creator"
+                        ? "Learn about the artist and vision."
+                        : "Explore licensing options."}
+                  </Typography>
+                </NeumorphicCard>
               </motion.div>
             </Grid>
           ))}
         </Grid>
       </Container>
 
+      {/* Latest Products */}
       <Container sx={{ position: "relative", zIndex: 2, py: 8 }}>
-        <Typography variant="h5" textAlign="center" gutterBottom>
+        <Typography variant="h3" textAlign="center" gutterBottom>
           Latest Products
         </Typography>
         <Grid container spacing={4} justifyContent="center">
           {products.slice(0, 3).map((product) => (
-            <Grid item xs={12} sm={6} md={4} key={product.id}>
-              <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                <Paper elevation={2} sx={{ p: 3 }}>
-                  {product.audioPreviewUrl ? (
-                    <iframe
-                      width="100%"
-                      height="200"
-                      src={`https://www.youtube.com/embed/${getYouTubeId(product.audioPreviewUrl)}?rel=0&controls=1`}
-                      title={product.title}
-                      frameBorder="0"
-                      allow="autoplay; encrypted-media"
+            <Grid item xs={12} sm={6} md={6} lg={4} key={product.id}>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <NeumorphicCard
+                  onClick={() => history.push(`/products/${product.id}`)}
+                  sx={{
+                    px: 4,
+                    py: 3,
+                    borderRadius: 2,
+                    minHeight: 420,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    boxShadow: `8px 8px 16px #0c0c0c, -8px -8px 16px transparent`,
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                >
+
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: 200,
+                      height: 200,
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      mb: 2,
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={product.imageUrl || "/placeholder.jpg"}
+                      alt={product.title}
+                      sx={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 2 }}
                     />
-                  ) : (
-                    <Box component="img" src="/default-image.png" alt={product.title} sx={{ width: "100%", height: 200, objectFit: "cover" }} />
-                  )}
-                  <Typography variant="body1" sx={{ mt: 2, fontWeight: 600 }}>
+                    {product.downloadUrl && (
+                      <>
+                        <IconButton
+                          onClick={(e) => toggleAudio(e, product.id)}
+                          sx={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            backgroundColor: "rgba(0,0,0,0.6)",
+                            color: "#fff",
+                            width: 60,
+                            height: 60,
+                            "&:hover": {
+                              backgroundColor: "rgba(0,0,0,0.8)",
+                            },
+                          }}
+                        >
+                          {playingProductId === product.id ? (
+                            <PauseIcon sx={{ fontSize: 40 }} />
+                          ) : (
+                            <PlayArrowIcon sx={{ fontSize: 40 }} />
+                          )}
+                        </IconButton>
+                        <audio
+                          ref={(el) => (audioRefs.current[product.id] = el)}
+                          src={product.downloadUrl}
+                          onEnded={() => handleAudioEnded(product.id)}
+                        />
+                      </>
+                    )}
+                  </Box>
+
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      textAlign: "center",
+                      color: theme.palette.text.primary,
+                      mb: 1,
+                      fontSize: "1.25rem",
+                    }}
+                  >
                     {product.title}
                   </Typography>
-                  <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={() => history.push(`/products/${product.id}`)}>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    sx={{
+                      py: 2,
+                      fontSize: "1rem",
+                      bgcolor: theme.palette.primary.main,
+                      color: theme.palette.background.main,
+                      boxShadow: `0 0 10px ${theme.palette.primary.main}`,
+                    }}
+                  >
                     View Product
                   </Button>
-                </Paper>
+                </NeumorphicCard>
               </motion.div>
             </Grid>
           ))}
         </Grid>
       </Container>
 
-      <Container sx={{ position: "relative", zIndex: 2, py: 10 }}>
-        <Typography variant="h5" textAlign="center" gutterBottom>
+      {/* Testimonials */}
+      <Container sx={{ py: 10 }}>
+        <Typography variant="h3" textAlign="center" gutterBottom>
           Trusted by Creators Worldwide
         </Typography>
         <Grid container spacing={4} justifyContent="center">
           {testimonials.map(({ name, quote, videoUrl }, index) => (
-            <Grid item xs={12} md={6} key={index}>
-              <Paper elevation={3} sx={{ p: 4 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
+            <Grid item xs={12} md={8} key={index}>
+              <NeumorphicCard sx={{ p: 4 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: "bold",
+                    mb: 1,
+                    textAlign: "center",
+                    color: theme.palette.primary.main,
+                  }}
+                >
                   {name}
                 </Typography>
-                <Typography variant="body2" sx={{ mb: 2, fontStyle: "italic" }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 2,
+                    fontStyle: "italic",
+                    textAlign: "center",
+                    color: theme.palette.text.secondary,
+                  }}
+                >
                   "{quote}"
                 </Typography>
                 {videoUrl && (
-                  <Box
-                    sx={{
-                      position: "relative",
-                      paddingTop: "56.25%", // 16:9 aspect ratio
-                      borderRadius: 2,
-                      overflow: "hidden",
-                    }}
-                  >
+                  <Box sx={{ mt: 2, borderRadius: 2, overflow: "hidden" }}>
                     <iframe
+                      width="100%"
+                      height="360"
                       src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?rel=0&controls=1`}
                       title={`Testimonial video by ${name}`}
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                      }}
+                      style={{ borderRadius: "12px" }}
                     />
                   </Box>
                 )}
-              </Paper>
+              </NeumorphicCard>
             </Grid>
           ))}
         </Grid>
       </Container>
 
-
-      <Box sx={{ position: "relative", zIndex: 2, py: 10, textAlign: "center", borderTop: "1px solid #222" }}>
+      {/* Final CTA */}
+      <Box sx={{ py: 10, textAlign: "center", borderTop: "1px solid #222" }}>
         <Typography variant="h5" gutterBottom>
           Ready 2 Work?
         </Typography>
@@ -330,6 +411,42 @@ const LandingPage = () => {
         </Button>
         <Button variant="outlined" sx={{ mx: 1 }} onClick={() => setOpenContactModal(true)}>
           Contact Me
+        </Button>
+      </Box>
+
+      {/* Fixed CTA */}
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 10,
+          bgcolor: theme.palette.background.paper,
+          borderRadius: 4,
+          px: 3,
+          py: 2,
+          boxShadow: `4px 4px 12px #080808, -4px -4px 12px #181818`,
+          backdropFilter: "blur(12px)",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+        }}
+      >
+        <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+          Let’s make something great
+        </Typography>
+        <Button
+          size="small"
+          variant="contained"
+          sx={{
+            bgcolor: theme.palette.primary.main,
+            color: theme.palette.background.default,
+            textTransform: "none",
+            boxShadow: `0 0 8px ${theme.palette.primary.main}`,
+          }}
+          onClick={() => history.push("/products")}
+        >
+          Explore Beats
         </Button>
       </Box>
 

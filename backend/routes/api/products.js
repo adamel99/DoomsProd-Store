@@ -3,6 +3,7 @@ const { Product, License } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
 const router = express.Router();
 const upload = require('../../utils/s3'); // uses multer + AWS S3
+const { Op } = require("sequelize");
 
 // Helper to fetch licenses
 const getLicenses = () => {
@@ -14,7 +15,20 @@ const getLicenses = () => {
 // GET /api/products - Get all products
 router.get('/', async (req, res, next) => {
   try {
+    const { Op } = require("sequelize");
+    const search = req.query.search?.toLowerCase();
+
+    const where = search
+      ? {
+          [Op.or]: [
+            { title: { [Op.iLike]: `%${search}%` } },
+            { description: { [Op.iLike]: `%${search}%` } },
+          ],
+        }
+      : {};
+
     const products = await Product.findAll({
+      where,
       order: [['createdAt', 'DESC']],
     });
 
@@ -40,6 +54,7 @@ router.get('/', async (req, res, next) => {
     next(error);
   }
 });
+
 
 // GET /api/products/:productId
 router.get('/:productId', async (req, res, next) => {

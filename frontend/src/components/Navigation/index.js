@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useHistory } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-
 import {
   AppBar,
   Toolbar,
@@ -15,6 +14,7 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 import SearchIcon from '@mui/icons-material/Search';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -29,19 +29,31 @@ import LoginFormModal from '../LoginFormModal';
 function Navigation({ isLoaded }) {
   const dispatch = useDispatch();
   const history = useHistory();
+  const theme = useTheme();
 
-  const sessionUser = useSelector(state => state.session.user);
-  const cartItems = useSelector(state => state.cartItems.allItems || {});
+  const sessionUser = useSelector((state) => state.session.user);
+  const cartItems = useSelector((state) => state.cartItems.allItems || {});
   const cartCount = Object.keys(cartItems).length;
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
-  const onSearchSubmit = e => {
+  useEffect(() => {
+    if (showSearch) {
+      const timeout = setTimeout(() => {
+        document.querySelector('input[placeholder="Search…"]')?.focus();
+      }, 150);
+      return () => clearTimeout(timeout);
+    }
+  }, [showSearch]);
+
+  const onSearchSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       history.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      setShowSearch(false);
     }
   };
 
@@ -64,32 +76,42 @@ function Navigation({ isLoaded }) {
         color="transparent"
         elevation={0}
         sx={{
-          backdropFilter: 'blur(12px)',
-          backgroundColor: 'rgba(18, 18, 18, 0.85)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          zIndex: theme => theme.zIndex.drawer + 1,
+          backdropFilter: 'blur(6px)',
+          backgroundColor: alpha(theme.palette.background.paper, 0.85),
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+          zIndex: theme.zIndex.drawer + 1,
           position: 'relative',
         }}
       >
-        {/* Light glassmorphic blob behind navbar content */}
+        {/* Subtle static glow blobs */}
         <Box
           sx={{
             position: 'absolute',
-            top: '-40%',
-            left: '-20%',
-            width: 320,
-            height: 320,
-            bgcolor: 'rgba(255, 255, 255, 0.12)',
-            filter: 'blur(100px)',
+            top: '-20%',
+            left: '-10%',
+            width: 200,
+            height: 200,
+            background: `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.08)} 0%, transparent 70%)`,
             borderRadius: '50%',
+            filter: 'blur(50px)',
+            willChange: 'transform, opacity',
             zIndex: 0,
-            pointerEvents: 'none',
-            userSelect: 'none',
-            animation: 'pulseNav 18s ease-in-out infinite',
-            '@keyframes pulseNav': {
-              '0%,100%': { transform: 'scale(1)' },
-              '50%': { transform: 'scale(1.1)' },
-            },
+            display: { xs: 'none', md: 'block' },
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-30%',
+            right: '-10%',
+            width: 240,
+            height: 240,
+            background: `radial-gradient(circle, ${alpha(theme.palette.secondary.main, 0.06)} 0%, transparent 70%)`,
+            borderRadius: '50%',
+            filter: 'blur(50px)',
+            willChange: 'transform, opacity',
+            zIndex: 0,
+            display: { xs: 'none', md: 'block' },
           }}
         />
 
@@ -99,39 +121,39 @@ function Navigation({ isLoaded }) {
             justifyContent: 'space-between',
             alignItems: 'center',
             px: { xs: 2, md: 4 },
-            py: 1,
-            minHeight: 64,
+            py: 0.5,
+            minHeight: 56,
             position: 'relative',
             zIndex: 1,
           }}
         >
-          {/* Left side: Logo */}
+          {/* Logo */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                fontSize: '1.5rem',
-                color: 'white',
-                cursor: 'pointer',
-                userSelect: 'none',
-                '&:hover': { color: 'primary.main' },
-                transition: 'color 0.2s ease',
-                whiteSpace: 'nowrap',
-              }}
+              variant="h5"
               onClick={() => history.push('/')}
+              sx={{
+                fontWeight: 800,
+                fontSize: '1.7rem',
+                letterSpacing: 1.5,
+                color: theme.palette.text.primary,
+                cursor: 'pointer',
+                '&:hover': { color: theme.palette.primary.light },
+                transition: 'color 0.15s ease',
+              }}
             >
-              DOOMSPROD
+              doomsprod
             </Typography>
           </Box>
 
-          {/* Center: Nav Links */}
+          {/* Nav Links */}
           <Box
             sx={{
               display: { xs: 'none', md: 'flex' },
-              gap: 4,
-              flexGrow: 1,
+              gap: 2,
+              flexGrow: 2,
               justifyContent: 'center',
+
             }}
           >
             {[
@@ -146,19 +168,23 @@ function Navigation({ isLoaded }) {
                 variant="text"
                 color="inherit"
                 sx={{
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  color: 'white',
-                  '&.active': {
-                    color: 'primary.main',
-                  },
-                  '&:hover': {
-                    color: 'primary.main',
-                    backgroundColor: 'transparent',
-                  },
+                  fontWeight: 900,
+                  fontSize: '1.5rem',
+                  color: theme.palette.text.primary,
+                  position: 'relative',
                   textTransform: 'none',
-                  padding: '6px 16px',
-                  borderRadius: 1,
+                  padding: '6px 12px',
+                  borderRadius: '12px',
+                  transition: 'all 0.2s ease',
+                  '&:hover::after': {
+                    opacity: 1,
+                  },
+                  '&.active': {
+                    color: theme.palette.primary.light,
+                    '&::after': {
+                      opacity: 1,
+                    },
+                  },
                 }}
               >
                 {label}
@@ -166,61 +192,83 @@ function Navigation({ isLoaded }) {
             ))}
           </Box>
 
-          {/* Right side: Search + Cart + Auth */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              flexShrink: 0,
-            }}
-          >
+          {/* Right Side */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, flexShrink: 0 }}>
             {/* Search */}
-            <Box
-              component="form"
-              onSubmit={onSearchSubmit}
-              sx={{
-                display: { xs: 'none', sm: 'flex' },
-                alignItems: 'center',
-                borderRadius: 20,
-                backgroundColor: alpha('#fff', 0.1),
-                px: 2,
-                py: 0.6,
-                width: { sm: 180, md: 240 },
-                transition: 'background-color 0.2s ease',
-                '&:focus-within': {
-                  backgroundColor: alpha('#fff', 0.15),
-                },
-              }}
-            >
-              <InputBase
-                placeholder="Search…"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{ ml: 1, flex: 1, fontSize: '0.95rem', color: 'inherit' }}
-              />
-              <IconButton type="submit" sx={{ p: 0.5 }} color="primary" aria-label="search">
+            {showSearch ? (
+              <Box
+                component="form"
+                onSubmit={onSearchSubmit}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  borderRadius: 20,
+                  backgroundColor: alpha(theme.palette.common.white, 0.12),
+                  px: 1.5,
+                  py: 0.4,
+                  width: { xs: 150, sm: 200 },
+                  transition: 'width 0.3s ease',
+                }}
+              >
+                <InputBase
+                  placeholder="Search…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{
+                    ml: 1,
+                    flex: 1,
+                    fontSize: '0.9rem',
+                    color: theme.palette.text.primary,
+                    pr: 1,
+                  }}
+                />
+                <IconButton
+                  onClick={() => setShowSearch(false)}
+                  sx={{
+                    p: 0.5,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  <SearchIcon />
+                </IconButton>
+              </Box>
+            ) : (
+              <IconButton
+                onClick={() => setShowSearch(true)}
+                sx={{
+                  ml: 1,
+                  color: theme.palette.primary.main,
+                }}
+              >
                 <SearchIcon />
               </IconButton>
-            </Box>
+            )}
 
             {/* Cart */}
             <NavLink to="/cart" style={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton color="primary" aria-label="cart">
+              <IconButton sx={{ color: theme.palette.primary.main }} aria-label="cart">
                 <Badge badgeContent={cartCount} color="secondary" invisible={cartCount === 0}>
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>
             </NavLink>
 
-            {/* Auth / User */}
+            {/* Auth */}
             {isLoaded && sessionUser ? (
               <>
                 <ProfileButton user={sessionUser} />
                 <Button
-                  color="secondary"
                   onClick={handleLogout}
-                  sx={{ fontWeight: 600, textTransform: 'none' }}
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    px: 2,
+                    py: 0.6,
+                    textTransform: 'none',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    borderRadius: 20,
+                    color: theme.palette.common.white,
+                  }}
                 >
                   Logout
                 </Button>
@@ -232,12 +280,11 @@ function Navigation({ isLoaded }) {
               </>
             )}
 
-            {/* Hamburger for Mobile */}
+            {/* Hamburger Menu */}
             <IconButton
               edge="end"
-              color="inherit"
               onClick={handleMenuOpen}
-              sx={{ display: { xs: 'flex', md: 'none' } }}
+              sx={{ display: { xs: 'flex', md: 'none' }, color: theme.palette.text.primary }}
               aria-label="open menu"
             >
               <MenuIcon />
@@ -246,7 +293,7 @@ function Navigation({ isLoaded }) {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Dropdown */}
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -255,8 +302,8 @@ function Navigation({ isLoaded }) {
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         PaperProps={{
           sx: {
-            backgroundColor: '#121212',
-            color: 'white',
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
             borderRadius: 1,
           },
         }}

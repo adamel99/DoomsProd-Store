@@ -14,7 +14,7 @@ import {
   useMediaQuery,
   IconButton,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { useTheme, alpha } from "@mui/material/styles";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getSingleProductThunk, deleteProductThunk } from "../../store/products";
@@ -115,15 +115,15 @@ const ProductDetailPage = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#0d0d0d",
+        backgroundColor: theme.palette.background.default,
         py: 8,
-        color: "#fff",
+        color: theme.palette.text.primary,
         minHeight: "100vh",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Glassmorphic Blobs */}
+      {/* Background Blobs */}
       <Box
         sx={{
           position: "absolute",
@@ -131,7 +131,7 @@ const ProductDetailPage = () => {
           left: "-100px",
           width: 500,
           height: 500,
-          bgcolor: "rgba(255,51,102,0.15)",
+          bgcolor: alpha(theme.palette.primary.main, 0.15),
           filter: "blur(180px)",
           borderRadius: "50%",
           zIndex: 0,
@@ -149,7 +149,7 @@ const ProductDetailPage = () => {
           right: "-100px",
           width: 500,
           height: 500,
-          bgcolor: "rgba(146, 254, 157, 0.1)",
+          bgcolor: alpha(theme.palette.success.main, 0.1),
           filter: "blur(120px)",
           borderRadius: "50%",
           zIndex: 0,
@@ -167,7 +167,7 @@ const ProductDetailPage = () => {
           left: "35%",
           width: 300,
           height: 300,
-          bgcolor: "rgba(255, 64, 129, 0.08)",
+          bgcolor: alpha(theme.palette.primary.main, 0.08),
           filter: "blur(120px)",
           borderRadius: "50%",
           zIndex: 0,
@@ -179,7 +179,7 @@ const ProductDetailPage = () => {
         }}
       />
 
-      {/* Content wrapper with higher zIndex */}
+      {/* Main Content */}
       <Box sx={{ position: "relative", zIndex: 2 }}>
         <Container maxWidth="lg">
           <Grid container spacing={6}>
@@ -191,9 +191,9 @@ const ProductDetailPage = () => {
                   position: "relative",
                   borderRadius: 4,
                   overflow: "hidden",
-                  border: "1px solid #222",
-                  background: "linear-gradient(to bottom, #111, #000)",
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
+                  border: `1px solid ${theme.palette.divider}`,
+                  background: theme.palette.background.paper,
+                  boxShadow: theme.shadows[10],
                   cursor: downloadUrl ? "pointer" : "default",
                   transition: "transform 0.3s ease",
                   "&:hover": downloadUrl ? { transform: "scale(1.01)" } : undefined,
@@ -204,11 +204,7 @@ const ProductDetailPage = () => {
                   component="img"
                   src={imageUrl || "/placeholder.jpg"}
                   alt={title}
-                  sx={{
-                    width: "100%",
-                    height: 350,
-                    objectFit: "cover",
-                  }}
+                  sx={{ width: "100%", height: 350, objectFit: "cover" }}
                 />
                 {downloadUrl && (
                   <IconButton
@@ -217,11 +213,13 @@ const ProductDetailPage = () => {
                       top: "50%",
                       left: "50%",
                       transform: "translate(-50%, -50%)",
-                      backgroundColor: "rgba(0, 0, 0, 0.6)",
-                      color: "#fff",
+                      backgroundColor: alpha(theme.palette.background.paper, 0.6),
+                      color: theme.palette.text.primary,
                       width: 60,
                       height: 60,
-                      "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+                      "&:hover": {
+                        backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                      },
                     }}
                   >
                     {isPlaying ? (
@@ -232,39 +230,33 @@ const ProductDetailPage = () => {
                   </IconButton>
                 )}
                 {downloadUrl && (
-                  <audio
-                    ref={audioRef}
-                    src={downloadUrl}
-                    onEnded={() => setIsPlaying(false)}
-                  />
+                  <audio ref={audioRef} src={downloadUrl} onEnded={() => setIsPlaying(false)} />
                 )}
               </Paper>
             </Grid>
 
-            {/* Right: Description and info */}
+            {/* Right: Info */}
             <Grid item xs={12} md={8}>
-              <Typography
-                variant="h3"
-                fontWeight={900}
-                sx={{ fontSize: "2.5rem", mb: 2 }}
-              >
+              <Typography variant="h3" fontWeight={900} sx={{ mb: 2 }}>
                 {title}
               </Typography>
-              <Divider sx={{ borderColor: "#333", mb: 2 }} />
-              <Typography
-                variant="body1"
-                sx={{ color: "#ccc", whiteSpace: "pre-line", mb: 3 }}
-              >
+              <Divider sx={{ borderColor: theme.palette.divider, mb: 2 }} />
+              <Typography variant="body1" sx={{ color: theme.palette.text.secondary, whiteSpace: "pre-line", mb: 3 }}>
                 {description}
               </Typography>
 
               {type === "beat" && (
                 <FormControl fullWidth sx={{ mb: 3 }}>
-                  <InputLabel sx={{ color: "#ccc" }}>Select License</InputLabel>
+                  <InputLabel sx={{ color: theme.palette.text.secondary }}>
+                    Select License
+                  </InputLabel>
                   <Select
                     value={selectedLicenseId}
                     onChange={handleLicenseChange}
-                    sx={{ color: "#fff", backgroundColor: "#1a1a1a" }}
+                    sx={{
+                      color: theme.palette.text.primary,
+                      backgroundColor: theme.palette.background.paper,
+                    }}
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -283,7 +275,7 @@ const ProductDetailPage = () => {
                 fontWeight={700}
                 sx={{
                   mt: 1,
-                  color: "primary.main",
+                  color: theme.palette.primary.main,
                   fontSize: isMobile ? "1.4rem" : "1.8rem",
                 }}
               >
@@ -319,7 +311,6 @@ const ProductDetailPage = () => {
                 Add to Cart
               </Button>
 
-              {/* Admin Controls */}
               {isAdmin && (
                 <Box mt={5} display="flex" gap={2}>
                   <Button
@@ -346,7 +337,6 @@ const ProductDetailPage = () => {
             </Grid>
           </Grid>
 
-          {/* YouTube Preview */}
           {youtubeLink && (
             <Box mt={10}>
               <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
@@ -359,7 +349,7 @@ const ProductDetailPage = () => {
                   height: 0,
                   overflow: "hidden",
                   borderRadius: 4,
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+                  boxShadow: theme.shadows[8],
                 }}
               >
                 <iframe

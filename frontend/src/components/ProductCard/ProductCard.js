@@ -1,28 +1,34 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getSingleProductThunk, deleteProductThunk } from "../../store/products";
+import {
+  getSingleProductThunk,
+  deleteProductThunk,
+} from "../../store/products";
 import { getAllLicensesThunk } from "../../store/licenses";
 import { addToCartThunk } from "../../store/cartItems";
+
 import {
-  Card,
+  Box,
   CardMedia,
   CardContent,
   Typography,
   Button,
-  Box,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
+  useTheme,
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
+import NeumorphicCard from "../NeumorphicCard/NeumorphicCard";
 
 const ADMIN_EMAIL = "adamelh1999@gmail.com";
 
 const ProductCard = ({ customProduct }) => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const { productId } = useParams();
   const history = useHistory();
@@ -30,7 +36,9 @@ const ProductCard = ({ customProduct }) => {
   const isStandalone = !!productId;
   const product = useSelector((state) => state.products.singleProduct);
   const currentUser = useSelector((state) => state.session.user);
-  const licenses = useSelector((state) => Object.values(state.licenses.licenses || {}));
+  const licenses = useSelector((state) =>
+    Object.values(state.licenses.licenses || {})
+  );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedLicenseId, setSelectedLicenseId] = useState("");
@@ -59,7 +67,7 @@ const ProductCard = ({ customProduct }) => {
     price,
     description,
     imageUrl,
-    downloadUrl: audioUrl, // ✅ Fixes the issue
+    downloadUrl: audioUrl,
     id,
     type,
   } = displayedProduct;
@@ -111,153 +119,163 @@ const ProductCard = ({ customProduct }) => {
 
   return (
     <>
-      <Box sx={{ backgroundColor: "#0d0d0d", py: isStandalone ? 6 : 2, minHeight: isStandalone ? "100vh" : "auto" }}>
-        <Card
+      <Box sx={{ py: isStandalone ? 6 : 4, minHeight: isStandalone ? "100vh" : "auto" }}>
+        <Box sx={{ position: "relative", zIndex: 2 }}>
+        <NeumorphicCard
+  sx={{
+    maxWidth: isStandalone ? 300 : 250,
+    height: 340,
+    width: "100%",
+    margin: isStandalone ? `${theme.spacing(4)} auto` : undefined,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    cursor: !isStandalone ? "pointer" : "default",
+    borderRadius: "20px",
+    backdropFilter: "blur(8px)",
+    transition: "transform 0.3s ease",
+    // "&:hover": {
+    //   transform: "scale(1.03)",
+    //   boxShadow: `0 8px 20px ${theme.palette.primary.main}33`,
+    // },
+  }}
+  onClick={handleClick}
+>
+  {/* Image Section */}
+  <Box
+    sx={{
+      position: "relative",
+      width: "100%",
+      height: "50%",
+      flexShrink: 0,
+      overflow: "hidden",
+      backgroundColor: theme.palette.background.default,
+    }}
+    onClick={toggleAudio}
+  >
+    <CardMedia
+      component="img"
+      image={imageUrl || audioUrl || "/placeholder.jpg"}
+      alt={`Product: ${title}`}
+      sx={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+      }}
+    />
+    {audioUrl && (
+      <>
+        <Box
           sx={{
-            maxWidth: isStandalone ? 300 : 180,
-            width: "100%",
-            margin: isStandalone ? "2rem auto" : undefined,
-            cursor: !isStandalone ? "pointer" : "default",
-            borderRadius: 2,
-            background: "rgba(255, 255, 255, 0.04)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            boxShadow: "0 6px 20px rgba(255, 64, 129, 0.15)",
-            transition: "transform 0.2s ease",
-            "&:hover": !isStandalone ? { transform: "scale(1.04)", boxShadow: "0 10px 25px rgba(255, 64, 129, 0.3)" } : {},
-          }}
-          onClick={handleClick}
-          role={!isStandalone ? "button" : undefined}
-          tabIndex={!isStandalone ? 0 : undefined}
-          onKeyPress={(e) => {
-            if (!isStandalone && (e.key === "Enter" || e.key === " ")) handleClick();
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "transparent",
+            borderRadius: "50%",
+            width: 40,
+            height: 40,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          {/* Image + Play Button Overlay */}
-          <Box
-            sx={{
-              position: "relative",
-              width: "100%",
-              height: 140,
-              cursor: "pointer",
-              overflow: "hidden",
-              borderRadius: "8px 8px 0 0",
-              backgroundColor: "#1a1a1a",
-            }}
-            onClick={toggleAudio}
-          >
-            <CardMedia
-              component="img"
-              image={imageUrl || audioUrl || "/placeholder.jpg"}
-              alt={`Product: ${title}`}
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-            {audioUrl && (
-              <>
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    borderRadius: "50%",
-                    width: 40,
-                    height: 40,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  {isPlaying ? (
-                    <PauseIcon sx={{ color: "#fff", fontSize: 24 }} />
-                  ) : (
-                    <PlayArrowIcon sx={{ color: "#fff", fontSize: 24 }} />
-                  )}
-                </Box>
-                <audio
-                  ref={audioRef}
-                  src={audioUrl}
-                  onEnded={() => setIsPlaying(false)}
-                />
-              </>
-            )}
-          </Box>
+          {isPlaying ? (
+            <PauseIcon sx={{ color: "#fff", fontSize: 30 }} />
+          ) : (
+            <PlayArrowIcon sx={{ color: "#fff", fontSize: 30 }} />
+          )}
+        </Box>
+        <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />
+      </>
+    )}
+  </Box>
 
-          <CardContent sx={{ color: "#f5f5f5", px: 1, py: 1 }}>
-            <Typography variant="subtitle2" fontWeight={600} noWrap>
-              {title}
-            </Typography>
+  {/* Content Section */}
+  <CardContent
+    sx={{
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      padding: theme.spacing(1.2),
+    }}
+  >
+    <Box>
+      <Typography variant="subtitle1" fontWeight={700} sx={{ fontSize: "1.05rem" }} noWrap>
+        {title}
+      </Typography>
 
-            <Typography
-              variant="caption"
-              sx={{
-                color: "text.secondary",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                minHeight: 30,
-                fontSize: "0.7rem",
-              }}
-            >
-              {description}
-            </Typography>
+      <Typography
+        sx={{
+          color: theme.palette.text.secondary,
+          fontSize: "0.8rem",
+          mt: 0.5,
+          lineHeight: 1.4,
+          maxHeight: 36,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+        }}
+      >
+        {description}
+      </Typography>
 
-            <Typography variant="body2" color="primary" fontWeight={700} sx={{ mt: 0.5 }}>
-              Price: ${price}
-            </Typography>
+      <Typography
+        variant="body1"
+        color="primary"
+        fontWeight={700}
+        sx={{ mt: 0.75, fontSize: "0.95rem" }}
+      >
+        ${price}
+      </Typography>
+    </Box>
 
-            {addCartError && (
-              <Typography color="error" sx={{ mt: 1, fontSize: "0.7rem" }}>
-                {addCartError}
-              </Typography>
-            )}
-            {addCartSuccess && (
-              <Typography color="success.main" sx={{ mt: 1, fontSize: "0.7rem" }}>
-                Added to cart!
-              </Typography>
-            )}
+    {addCartError && (
+      <Typography color="error" sx={{ mt: 0.5, fontSize: "0.7rem" }}>
+        {addCartError}
+      </Typography>
+    )}
+    {addCartSuccess && (
+      <Typography color="success.main" sx={{ mt: 0.5, fontSize: "0.7rem" }}>
+        Added to cart!
+      </Typography>
+    )}
 
-            <Box mt={1}>
-              <Button
-                variant="contained"
-                onClick={handleAddToCart}
-                disabled={addCartLoading}
-                fullWidth
-                size="small"
-                sx={{
-                  fontSize: "0.75rem",
-                  py: 0.5,
-                  borderRadius: 20,
-                  fontWeight: 600,
-                  background: "linear-gradient(135deg, #ff4081, #ff6699)",
-                  boxShadow: "0 5px 20px rgba(255, 64, 129, 0.25)",
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #ff6699, #ff4081)",
-                  },
-                }}
-              >
-                {addCartLoading ? "Adding..." : "Add to Cart"}
-              </Button>
-            </Box>
+    <Button
+      variant="contained"
+      onClick={handleAddToCart}
+      disabled={addCartLoading}
+      fullWidth
+      sx={{
+        mt: 1,
+        fontSize: "0.85rem",
+        fontWeight: 600,
+        py: 1,
+        borderRadius: "999px",
+        background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+        boxShadow: `0 4px 12px ${theme.palette.primary.main}55`,
+      }}
+    >
+      {addCartLoading ? "Adding..." : "Add to Cart"}
+    </Button>
 
-            {isAdmin && isStandalone && (
-              <Box mt={2} display="flex" gap={1} justifyContent="center">
-                <Button variant="contained" onClick={handleUpdate} size="small">
-                  Update
-                </Button>
-                <Button variant="outlined" color="secondary" onClick={handleDelete} size="small">
-                  Delete
-                </Button>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
+    {isAdmin && isStandalone && (
+      <Box mt={1} display="flex" gap={1} justifyContent="center">
+        <Button variant="contained" onClick={handleUpdate} size="small">
+          Update
+        </Button>
+        <Button variant="outlined" color="secondary" onClick={handleDelete} size="small">
+          Delete
+        </Button>
+      </Box>
+    )}
+  </CardContent>
+</NeumorphicCard>
+
+        </Box>
       </Box>
 
       <Dialog open={deleteDialogOpen} onClose={cancelDelete}>
