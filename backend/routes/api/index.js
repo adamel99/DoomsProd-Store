@@ -5,25 +5,26 @@ const productsRouter = require('./products.js');
 const ordersRouter = require('./orders.js');
 const licensesRouter = require('./licenses.js');
 const playbackHistoryRouter = require('./playbackHistory.js');
-const cartsRouter = require('./cart.js');    // corrected folder/file name
+const cartsRouter = require('./cart.js');
 const cartItemsRouter = require('./cartItems');
-const paymentRouter = require('./payment')
+const paymentRouter = require('./payment');
+const webhookRouter = require('./webhook'); // ADD THIS LINE
 
 const { restoreUser, setTokenCookie, requireAuth } = require('../../utils/auth.js');
 const { User } = require('../../db/models');
 
-// Connect restoreUser middleware to the API router
 router.use(restoreUser);
 
 router.use('/session', sessionRouter);
 router.use('/users', usersRouter);
 router.use('/products', productsRouter);
 router.use('/orders', ordersRouter);
-router.use('/carts', cartsRouter);                // fix route path: '/carts' not './carts'
-router.use('/playbackHistory', playbackHistoryRouter);  // fix route path and name to '/playbackHistory'
+router.use('/carts', cartsRouter);
+router.use('/playbackHistory', playbackHistoryRouter);
 router.use('/licenses', licensesRouter);
 router.use('/cart-items', cartItemsRouter);
 router.use('/payment', paymentRouter);
+router.use('/webhook', webhookRouter);  // ADD THIS LINE
 
 // Test route for debugging
 router.post('/test', (req, res) => {

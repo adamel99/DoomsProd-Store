@@ -3,58 +3,76 @@ require('express-async-errors');
 const morgan = require('morgan');
 const cors = require('cors');
 const csurf = require('csurf');
-const routes = require('./routes');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const app = express();
+const bodyParser = require('body-parser'); // For raw body parsing
+const routes = require('./routes');
 const { environment } = require('./config');
 const isProduction = environment === 'production';
+
+const app = express();
 
 app.use(morgan('dev'));
 app.use(cookieParser());
 
-// Conditional JSON parser middleware - skip parsing if multipart/form-data
+// ---------------------
+// Stripe webhook raw parser middleware
+// This MUST come BEFORE JSON parser and CSRF middleware,
+// and only applies to the webhook route
+app.use('/api/webhook', bodyParser.raw({ type: 'application/json' }));
+
+// ---------------------
+// Conditional JSON parser middleware - skip parsing if multipart/form-data OR Stripe webhook
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || '';
-  if (contentType.startsWith('multipart/form-data')) {
-    // Skip express.json() for multipart requests
+  if (
+    contentType.startsWith('multipart/form-data') ||
+    req.originalUrl === '/api/webhook'
+  ) {
     return next();
   }
-  // Parse JSON for other content types
   express.json()(req, res, next);
 });
 
+// ---------------------
 // Security Middleware
 if (!isProduction) {
   // enable cors only in development
   app.use(cors());
 }
 
-// helmet helps set a variety of headers to better secure your app
 app.use(
   helmet.crossOriginResourcePolicy({
-    policy: "cross-origin"
+    policy: 'cross-origin',
   })
 );
 
-// Set the _csrf token and create req.csrfToken method
-app.use(
+// ---------------------
+// CSRF Middleware - skip on Stripe webhook route
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/webhook') {
+    return next();
+  }
   csurf({
     cookie: {
       secure: isProduction,
-      sameSite: isProduction && "Lax",
-      httpOnly: true
-    }
-  })
-);
+      sameSite: isProduction && 'Lax',
+      httpOnly: true,
+    },
+  })(req, res, next);
+});
 
-// Connect all the routes
+// ---------------------
+// Mount your routes
 app.use(routes);
+
+// ---------------------
+// Error handling (unchanged)
 
 // Catch unhandled requests and forward to error handler.
 app.use((_req, _res, next) => {
   const err = new Error("The requested resource couldn't be found.");
-  err.title = "Resource Not Found";
+  err.title = 'Resource Not Found';
   err.errors = { message: "The requested resource couldn't be found." };
   err.status = 404;
   next(err);
@@ -83,7 +101,7 @@ app.use((err, _req, res, _next) => {
     title: err.title || 'Server Error',
     message: err.message,
     errors: err.errors,
-    stack: isProduction ? null : err.stack
+    stack: isProduction ? null : err.stack,
   });
 });
 

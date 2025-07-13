@@ -1,55 +1,37 @@
 import React from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { csrfFetch } from "../../store/csrf"; // adjust path if needed
+import { csrfFetch } from "../../store/csrf";
 
-// Load Stripe with your publishable key
 const publishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-console.log("Loaded Stripe Key:", publishableKey);
 const stripePromise = loadStripe(publishableKey);
 
 const StripeCheckoutButton = ({ cartItems, userId }) => {
   const handleCheckout = async () => {
-    if (!publishableKey) {
-      console.error("Stripe public key is missing!");
-      return;
-    }
-
     try {
-      // Ensure CSRF token is restored and set in cookies
-      await csrfFetch("/api/csrf/restore", { credentials: "include" });
+      console.log("✅ Sending cartItems directly:", cartItems);
 
-      // Send request to backend to create Stripe checkout session
+      // Check if any cart items are missing downloadUrl (warn but proceed)
+      const missingDownloadUrls = cartItems.filter((item) => !item.downloadUrl);
+      if (missingDownloadUrls.length > 0) {
+        console.warn("❌ Some cart items are missing download URLs:", missingDownloadUrls);
+      }
+
+      await csrfFetch("/api/csrf/restore");
+
       const response = await csrfFetch("/api/payment/create-session", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cartItems, userId }),
-        credentials: "include", // send cookies for auth
       });
 
       const data = await response.json();
-
-      if (!data.sessionId) {
-        console.error("No sessionId returned:", data);
-        alert("Checkout session creation failed.");
-        return;
-      }
+      if (!data.sessionId) throw new Error("No sessionId received");
 
       const stripe = await stripePromise;
-
-      // IMPORTANT: Only pass sessionId here; do NOT pass other options
-      const result = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (result.error) {
-        console.error("Stripe redirect error:", result.error.message);
-        alert("Checkout failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Stripe checkout error:", error);
-      alert("An unexpected error occurred. Please try again.");
+      await stripe.redirectToCheckout({ sessionId: data.sessionId });
+    } catch (err) {
+      console.error("❌ Stripe Checkout failed:", err);
+      alert("Something went wrong. Please try again.");
     }
   };
 

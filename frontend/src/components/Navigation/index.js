@@ -134,7 +134,7 @@ function Navigation({ isLoaded }) {
               onClick={() => history.push('/')}
               sx={{
                 fontWeight: 800,
-                fontSize: '1.7rem',
+                fontSize: '1.9rem',
                 letterSpacing: 1.5,
                 color: theme.palette.text.primary,
                 cursor: 'pointer',

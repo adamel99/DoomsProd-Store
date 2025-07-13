@@ -33,10 +33,18 @@ const ProductList = () => {
   const isAdmin = sessionUser?.role === "admin" || sessionUser?.email === "adamelh1999@gmail.com";
 
   const filteredProducts = useMemo(() => {
-    return allProductsArray.filter((product) =>
-      product.title?.toLowerCase().includes(searchTerm)
-    );
+    return allProductsArray.filter((product) => {
+      const title = product.title?.toLowerCase() || "";
+      const description = product.description?.toLowerCase() || "";
+      const genre = product.genre?.toLowerCase() || "";
+      return (
+        title.includes(searchTerm) ||
+        description.includes(searchTerm) ||
+        genre.includes(searchTerm)
+      );
+    });
   }, [allProductsArray, searchTerm]);
+
 
   return (
     <Box

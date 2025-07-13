@@ -360,7 +360,7 @@ const LandingPage = () => {
             <Grid item xs={12} md={8} key={index}>
               <NeumorphicCard sx={{ p: 4 }}>
                 <Typography
-                  variant="subtitle1"
+                  variant="h5"
                   sx={{
                     fontWeight: "bold",
                     mb: 1,
@@ -371,7 +371,7 @@ const LandingPage = () => {
                   {name}
                 </Typography>
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   sx={{
                     mb: 2,
                     fontStyle: "italic",

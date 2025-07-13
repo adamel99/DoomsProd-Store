@@ -4,25 +4,25 @@ import StripeCheckoutButton from "../StripeCheckoutButton/StripeCheckoutButton";
 import { Box, Typography } from "@mui/material";
 
 const Checkout = () => {
-    const user = useSelector((state) => state.session.user);
-    const cartItems = useSelector((state) =>
-      Object.values(state.cartItems?.allItems || {})
-    );
+  const user = useSelector((state) => state.session.user);
+  const cartItems = useSelector((state) =>
+    Object.values(state.cartItems?.allItems || {})
+  );
 
-    console.log("Cart items in Checkout:", cartItems);
+  console.log("Cart items in Checkout:", cartItems);
 
-    const formattedCartItems = cartItems.map((item) => ({
-      productName: item.Product?.title || "Untitled",
-      licenseType: item.License?.name || "Standard",
-      price:
-        parseFloat(item?.License?.price) ||
-        parseFloat(item?.Product?.price) ||
-        0,
-      type: item.Product?.type || "Unknown",
-      image: item.Product?.imageUrl || "/default-image.png",
-    }));
+  const formattedCartItems = cartItems.map((item) => ({
+    productName: item.productName || "Untitled",
+    licenseType: item.licenseType || "Standard",
+    price: parseFloat(item.price) || 0,
+    type: item.type || "Unknown",
+    image: item.imageUrl || "/default-image.png",
+    downloadUrl: item.downloadUrl || "",
+  }));
 
-    console.log("Formatted items:", formattedCartItems);
+
+
+  console.log("Formatted items:", formattedCartItems);
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#141313", minHeight: "100vh", color: "#fff" }}>

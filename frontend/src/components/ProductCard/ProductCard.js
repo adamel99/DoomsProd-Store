@@ -124,7 +124,7 @@ const ProductCard = ({ customProduct }) => {
         <NeumorphicCard
   sx={{
     maxWidth: isStandalone ? 300 : 250,
-    height: 340,
+    height: "80%",
     width: "100%",
     margin: isStandalone ? `${theme.spacing(4)} auto` : undefined,
     display: "flex",
@@ -202,7 +202,7 @@ const ProductCard = ({ customProduct }) => {
     }}
   >
     <Box>
-      <Typography variant="subtitle1" fontWeight={700} sx={{ fontSize: "1.05rem" }} noWrap>
+      <Typography variant="subtitle1" fontWeight={700} sx={{ fontSize: "1.5rem" }} noWrap>
         {title}
       </Typography>
 

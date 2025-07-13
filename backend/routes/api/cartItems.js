@@ -3,7 +3,31 @@ const router = express.Router();
 const { Cart, CartItem, Product, License } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
 
-// GET /api/cart-items - Get all cart items
+// Helper to format cart items consistently
+function formatCartItem(item) {
+  const product = item.Product || {};
+  const license = item.License || {};
+
+  // Price: prefer license price if available, else product price, else 0
+  const price =
+    license.price !== undefined && license.price !== null
+      ? license.price
+      : product.price || 0;
+
+  return {
+    id: item.id,
+    productId: item.productId,
+    licenseId: item.licenseId,
+    productName: product.title || 'Unknown Product',
+    licenseType: license.name || license.type || 'Standard',
+    price,
+    type: product.type || 'unknown',
+    imageUrl: product.imageUrl || null,
+    downloadUrl: product.downloadUrl || null,
+  };
+}
+
+// GET /api/cart-items - Get all cart items for logged in user
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     // Auto-create cart if it doesn't exist
@@ -16,17 +40,39 @@ router.get('/', requireAuth, async (req, res, next) => {
       where: { cartId: cart.id },
       include: [
         { model: Product },
-        { model: License }
-      ]
+        { model: License },
+      ],
     });
 
-    return res.json({ items });
+    console.log(`🔍 Fetched raw cart items (count: ${items.length}):`);
+    items.forEach((item, idx) => {
+      console.log(`  Item ${idx + 1}:`, {
+        id: item.id,
+        productId: item.productId,
+        licenseId: item.licenseId,
+        productDownloadUrl: item.Product?.downloadUrl,
+      });
+    });
+
+    const formattedItems = items.map(formatCartItem);
+
+    console.log(`✅ Formatted cart items with downloadUrl:`);
+    formattedItems.forEach((item, idx) => {
+      console.log(`  Item ${idx + 1}:`, {
+        id: item.id,
+        productName: item.productName,
+        downloadUrl: item.downloadUrl,
+      });
+    });
+
+    return res.json({ items: formattedItems });
   } catch (err) {
+    console.error('❌ Error fetching cart items:', err);
     next(err);
   }
 });
 
-// POST /api/cart-items - Add item (no quantity logic)
+// POST /api/cart-items - Add item to cart
 router.post('/', requireAuth, async (req, res, next) => {
   try {
     const { productId, licenseId } = req.body;
@@ -45,8 +91,8 @@ router.post('/', requireAuth, async (req, res, next) => {
       where: {
         cartId: cart.id,
         productId,
-        licenseId: licenseId || null
-      }
+        licenseId: licenseId || null,
+      },
     });
 
     if (existingItem) {
@@ -57,23 +103,32 @@ router.post('/', requireAuth, async (req, res, next) => {
       userId: req.user.id,
       cartId: cart.id,
       productId,
-      licenseId: licenseId || null
+      licenseId: licenseId || null,
     });
 
     const fullItem = await CartItem.findByPk(newItem.id, {
       include: [
         { model: Product },
-        { model: License }
-      ]
+        { model: License },
+      ],
     });
 
-    return res.status(201).json({ item: fullItem });
+    const formattedSingleItem = formatCartItem(fullItem);
+
+    console.log('➕ Added cart item:', {
+      id: formattedSingleItem.id,
+      productName: formattedSingleItem.productName,
+      downloadUrl: formattedSingleItem.downloadUrl,
+    });
+
+    return res.status(201).json({ item: formattedSingleItem });
   } catch (err) {
+    console.error('❌ Error adding cart item:', err);
     next(err);
   }
 });
 
-// PUT /api/cart-items/:id - Update item (license only)
+// PUT /api/cart-items/:id - Update cart item (e.g., license change)
 router.put('/:id', requireAuth, async (req, res, next) => {
   try {
     const { licenseId } = req.body;
@@ -93,17 +148,26 @@ router.put('/:id', requireAuth, async (req, res, next) => {
     const updatedItem = await CartItem.findByPk(item.id, {
       include: [
         { model: Product },
-        { model: License }
-      ]
+        { model: License },
+      ],
     });
 
-    return res.json({ item: updatedItem });
+    const formattedUpdatedItem = formatCartItem(updatedItem);
+
+    console.log('✏️ Updated cart item:', {
+      id: formattedUpdatedItem.id,
+      productName: formattedUpdatedItem.productName,
+      downloadUrl: formattedUpdatedItem.downloadUrl,
+    });
+
+    return res.json({ item: formattedUpdatedItem });
   } catch (err) {
+    console.error('❌ Error updating cart item:', err);
     next(err);
   }
 });
 
-// DELETE /api/cart-items/:id - Remove item
+// DELETE /api/cart-items/:id - Remove item from cart
 router.delete('/:id', requireAuth, async (req, res, next) => {
   try {
     const item = await CartItem.findByPk(req.params.id);
@@ -113,8 +177,12 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     if (!cart) return res.status(403).json({ message: 'Unauthorized' });
 
     await item.destroy();
+
+    console.log('🗑️ Deleted cart item with id:', item.id);
+
     return res.json({ message: 'Item deleted' });
   } catch (err) {
+    console.error('❌ Error deleting cart item:', err);
     next(err);
   }
 });
