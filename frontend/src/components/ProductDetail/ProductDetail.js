@@ -59,11 +59,16 @@ const ProductDetailPage = () => {
     description,
     imageUrl,
     youtubeLink,
-    downloadUrl,
+    downloadUrls,
     type,
     price,
     id,
   } = product;
+
+  // Correctly extract the MP3 URL from the downloadUrls array
+  const audioUrl = Array.isArray(downloadUrls)
+    ? downloadUrls.find((file) => file.type === "mp3")?.url || ""
+    : "";
 
   const isAdmin = currentUser?.email === ADMIN_EMAIL;
 
@@ -194,11 +199,12 @@ const ProductDetailPage = () => {
                   border: `1px solid ${theme.palette.divider}`,
                   background: theme.palette.background.paper,
                   boxShadow: theme.shadows[10],
-                  cursor: downloadUrl ? "pointer" : "default",
+                  cursor: audioUrl ? "pointer" : "default",
                   transition: "transform 0.3s ease",
-                  "&:hover": downloadUrl ? { transform: "scale(1.01)" } : undefined,
+                  userSelect: "none",
                 }}
-                onClick={toggleAudio}
+                onClick={audioUrl ? toggleAudio : undefined}
+                aria-label={isPlaying ? "Pause preview" : "Play preview"}
               >
                 <Box
                   component="img"
@@ -206,31 +212,41 @@ const ProductDetailPage = () => {
                   alt={title}
                   sx={{ width: "100%", height: 350, objectFit: "cover" }}
                 />
-                {downloadUrl && (
-                  <IconButton
-                    sx={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      backgroundColor: alpha(theme.palette.background.paper, 0.6),
-                      color: theme.palette.text.primary,
-                      width: 60,
-                      height: 60,
-                      "&:hover": {
-                        backgroundColor: alpha(theme.palette.background.paper, 0.8),
-                      },
-                    }}
-                  >
-                    {isPlaying ? (
-                      <PauseIcon sx={{ fontSize: 40 }} />
-                    ) : (
-                      <PlayArrowIcon sx={{ fontSize: 40 }} />
-                    )}
-                  </IconButton>
-                )}
-                {downloadUrl && (
-                  <audio ref={audioRef} src={downloadUrl} onEnded={() => setIsPlaying(false)} />
+                {audioUrl && (
+                  <>
+                    <IconButton
+                      sx={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        backgroundColor: alpha(theme.palette.background.paper, 0.6),
+                        color: theme.palette.text.primary,
+                        width: 60,
+                        height: 60,
+                        "&:hover": {
+                          backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                        },
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleAudio();
+                      }}
+                      aria-label={isPlaying ? "Pause preview" : "Play preview"}
+                    >
+                      {isPlaying ? (
+                        <PauseIcon sx={{ fontSize: 40 }} />
+                      ) : (
+                        <PlayArrowIcon sx={{ fontSize: 40 }} />
+                      )}
+                    </IconButton>
+                    <audio
+                      ref={audioRef}
+                      src={audioUrl}
+                      onEnded={() => setIsPlaying(false)}
+                      preload="auto"
+                    />
+                  </>
                 )}
               </Paper>
             </Grid>
@@ -241,7 +257,10 @@ const ProductDetailPage = () => {
                 {title}
               </Typography>
               <Divider sx={{ borderColor: theme.palette.divider, mb: 2 }} />
-              <Typography variant="body1" sx={{ color: theme.palette.text.secondary, whiteSpace: "pre-line", mb: 3 }}>
+              <Typography
+                variant="body1"
+                sx={{ color: theme.palette.text.secondary, whiteSpace: "pre-line", mb: 3 }}
+              >
                 {description}
               </Typography>
 

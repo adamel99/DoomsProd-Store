@@ -19,11 +19,15 @@ module.exports = {
         type: 'beat',
         youtubeLink: 'https://youtu.be/OZXyymz8psk',
         audioPreviewUrl: 'https://youtu.be/OZXyymz8psk',
-        price: null, // beats have no fixed price here
+        price: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751052996784-artworks-KsVUwjGWb3HieLAD-6vW8bA-t500x500.jpg',
-        downloadUrl: 'https://your-s3-bucket.s3.amazonaws.com/breath-pack.zip',
+        downloadUrls: JSON.stringify({
+          zip: 'https://your-s3-bucket.s3.amazonaws.com/breath-pack.zip',
+          mp3: 'https://your-s3-bucket.s3.amazonaws.com/breath-pack.mp3',
+          wav: 'https://your-s3-bucket.s3.amazonaws.com/breath-pack.wav',
+        }),
       },
       {
         id: 2,
@@ -36,8 +40,12 @@ module.exports = {
         price: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        imageUrl:'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg',
-        downloadUrl: 'https://your-s3-bucket.s3.amazonaws.com/breath-pack.zip',
+        imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg',
+        downloadUrls: JSON.stringify({
+          zip: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.zip',
+          mp3: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.mp3' ,
+          wav: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.wav' ,
+        }),
       },
       {
         id: 3,
@@ -51,7 +59,11 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date(),
         imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg',
-        downloadUrl: 'https://your-s3-bucket.s3.amazonaws.com/breath-pack.zip',
+        downloadUrls: JSON.stringify({
+          zip: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.zip' ,
+          mp3: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.mp3' ,
+          wav: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.wav' ,
+        }),
       },
     ]);
   },

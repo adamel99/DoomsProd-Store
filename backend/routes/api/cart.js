@@ -15,7 +15,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const items = await CartItem.findAll({
       where: { cartId: cart.id },
       include: [
-        { model: Product, attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl'] },
+        { model: Product, attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'downloadUrls', 'imageUrl'] },
         { model: License, attributes: ['id', 'name', 'price'] }
       ]
     });

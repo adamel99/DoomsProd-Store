@@ -9,20 +9,30 @@ const Checkout = () => {
     Object.values(state.cartItems?.allItems || {})
   );
 
-  console.log("Cart items in Checkout:", cartItems);
+  // Parse downloadUrls safely to array
+  const formattedCartItems = cartItems.map((item) => {
+    let downloadUrls = [];
 
-  const formattedCartItems = cartItems.map((item) => ({
-    productName: item.productName || "Untitled",
-    licenseType: item.licenseType || "Standard",
-    price: parseFloat(item.price) || 0,
-    type: item.type || "Unknown",
-    image: item.imageUrl || "/default-image.png",
-    downloadUrl: item.downloadUrl || "",
-  }));
+    try {
+      if (Array.isArray(item.downloadUrls)) {
+        downloadUrls = item.downloadUrls;
+      } else if (typeof item.downloadUrls === "string") {
+        downloadUrls = JSON.parse(item.downloadUrls);
+      }
+    } catch (e) {
+      console.warn("Failed to parse downloadUrls for item", item.id, e);
+      downloadUrls = [];
+    }
 
-
-
-  console.log("Formatted items:", formattedCartItems);
+    return {
+      productName: item.productName || "Untitled",
+      licenseType: item.licenseType || "Standard",
+      price: parseFloat(item.price) || 0,
+      type: item.type || "Unknown",
+      image: item.imageUrl || "/default-image.png",
+      downloadUrls,
+    };
+  });
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#141313", minHeight: "100vh", color: "#fff" }}>
@@ -66,9 +76,7 @@ const Checkout = () => {
       <Box sx={{ mt: 4, textAlign: "right" }}>
         <Typography variant="h5" sx={{ color: "#fff" }}>
           Total: $
-          {formattedCartItems
-            .reduce((acc, item) => acc + item.price, 0)
-            .toFixed(2)}
+          {formattedCartItems.reduce((acc, item) => acc + item.price, 0).toFixed(2)}
         </Typography>
       </Box>
 

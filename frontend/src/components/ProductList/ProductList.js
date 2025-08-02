@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 const useQuery = () => new URLSearchParams(useLocation().search);
 
 const ProductList = () => {
-  const theme = useTheme(); // <-- use theme here
+  const theme = useTheme();
   const dispatch = useDispatch();
   const history = useHistory();
   const query = useQuery();
@@ -30,7 +30,9 @@ const ProductList = () => {
   }, [dispatch]);
 
   const allProductsArray = Object.values(allProducts || {});
-  const isAdmin = sessionUser?.role === "admin" || sessionUser?.email === "adamelh1999@gmail.com";
+  const isAdmin =
+    sessionUser?.role === "admin" ||
+    sessionUser?.email === "adamelh1999@gmail.com";
 
   const filteredProducts = useMemo(() => {
     return allProductsArray.filter((product) => {
@@ -44,7 +46,6 @@ const ProductList = () => {
       );
     });
   }, [allProductsArray, searchTerm]);
-
 
   return (
     <Box
@@ -65,7 +66,7 @@ const ProductList = () => {
           left: "-100px",
           width: 500,
           height: 500,
-          bgcolor: theme.palette.primary.main + "33", // Slightly transparent primary color
+          bgcolor: theme.palette.primary.main + "33",
           filter: "blur(180px)",
           borderRadius: "50%",
           zIndex: 0,
@@ -107,7 +108,6 @@ const ProductList = () => {
         </path>
       </Box>
 
-
       {/* Main content */}
       <Box sx={{ position: "relative", zIndex: 2 }}>
         <Container maxWidth="xl">
@@ -133,12 +133,12 @@ const ProductList = () => {
                 variant="contained"
                 onClick={() => history.push("/products/new")}
                 sx={{
-                  px: theme.spacing(6.25), // 5 * 8px = 40px
-                  py: theme.spacing(1.875), // 1.5 * 8px = 12px
+                  px: theme.spacing(6.25),
+                  py: theme.spacing(1.875),
                   borderRadius: theme.shape.borderRadius * 6,
                   fontWeight: 700,
                   background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
-                  boxShadow: `0 8px 30px ${theme.palette.primary.main}4D`, // 30% opacity
+                  boxShadow: `0 8px 30px ${theme.palette.primary.main}4D`,
                   "&:hover": {
                     background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
                   },
@@ -154,6 +154,7 @@ const ProductList = () => {
               container
               spacing={4}
               justifyContent="center"
+              columns={{ xs: 4, sm: 8, md: 12 }}
               component={motion.div}
               initial="hidden"
               animate="visible"
@@ -168,12 +169,8 @@ const ProductList = () => {
             >
               {filteredProducts.map((product) => (
                 <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  md={4}
-                  lg={3}
                   key={product.id}
+                  columnSpan={{ xs: 4, sm: 4, md: 3 }}
                   component={motion.div}
                   variants={{
                     hidden: { opacity: 0, y: 30 },

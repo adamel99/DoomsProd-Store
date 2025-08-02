@@ -1,4 +1,4 @@
-// utils/upload.js
+// utils/s3.js
 const { S3Client } = require("@aws-sdk/client-s3");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
@@ -25,6 +25,7 @@ const upload = multer({
     },
     key: (req, file, cb) => {
       const uniqueFileName = `${Date.now()}-${file.originalname}`;
+      console.log("Uploading to S3 key:", uniqueFileName); // 👈 should match what S3 shows
       cb(null, `products/${uniqueFileName}`);
     },
   }),

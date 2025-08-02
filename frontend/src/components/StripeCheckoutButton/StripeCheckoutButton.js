@@ -8,15 +8,14 @@ const stripePromise = loadStripe(publishableKey);
 const StripeCheckoutButton = ({ cartItems, userId }) => {
   const handleCheckout = async () => {
     try {
-      console.log("✅ Sending cartItems directly:", cartItems);
-
-      // Check if any cart items are missing downloadUrl (warn but proceed)
-      const missingDownloadUrls = cartItems.filter((item) => !item.downloadUrl);
-      if (missingDownloadUrls.length > 0) {
-        console.warn("❌ Some cart items are missing download URLs:", missingDownloadUrls);
+      if (!cartItems.length) {
+        alert("Your cart is empty.");
+        return;
       }
 
       await csrfFetch("/api/csrf/restore");
+
+      console.log("Sending cartItems to create-session:", cartItems);
 
       const response = await csrfFetch("/api/payment/create-session", {
         method: "POST",

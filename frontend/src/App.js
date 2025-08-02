@@ -20,6 +20,7 @@ import AboutMe from "./components/AboutME/AboutMe";
 import Checkout from "./components/Checkout/Checkout";
 import CheckoutSuccess from "./components/CheckoutSuccess/CheckoutSuccess";
 import CheckoutCancel from "./components/CheckoutCancel/CheckoutCancel";
+import DownloadPage from "./components/Downloads/DownloadPage";
 
 
 // import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
@@ -57,6 +58,7 @@ function App() {
           <Route exact path="/checkout" component={Checkout} />
           <Route exact path="/checkout-success" component={CheckoutSuccess} />
           <Route exact path="/checkout-cancel" component={CheckoutCancel} />
+          <Route exact path="/downloads/:sessionId" component={DownloadPage} />
 
           {/* Optional 404 route */}
           <Route render={() => <Redirect to="/" />} />

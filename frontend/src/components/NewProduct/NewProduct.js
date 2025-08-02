@@ -28,7 +28,11 @@ const NewProduct = () => {
   const [type, setType] = useState("");
 
   const [imageFile, setImageFile] = useState(null);
-  const [downloadFile, setDownloadFile] = useState(null); // <-- NEW STATE
+
+  // Separate file states for each downloadable file type:
+  const [zipFile, setZipFile] = useState(null);
+  const [mp3File, setMp3File] = useState(null);
+  const [wavFile, setWavFile] = useState(null);
 
   const [errors, setErrors] = useState([]);
 
@@ -38,11 +42,10 @@ const NewProduct = () => {
     setImageFile(file);
   };
 
-  // Handle download file input
-  const handleDownloadChange = (e) => {
-    const file = e.target.files[0];
-    setDownloadFile(file);
-  };
+  // Handle each download file input change
+  const handleZipFileChange = (e) => setZipFile(e.target.files[0]);
+  const handleMp3FileChange = (e) => setMp3File(e.target.files[0]);
+  const handleWavFileChange = (e) => setWavFile(e.target.files[0]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,7 +65,9 @@ const NewProduct = () => {
       }
 
       if (imageFile) formData.append("image", imageFile);
-      if (downloadFile) formData.append("downloadFile", downloadFile); // <-- NEW
+      if (zipFile) formData.append("zipFile", zipFile);
+      if (mp3File) formData.append("mp3File", mp3File);
+      if (wavFile) formData.append("wavFile", wavFile);
 
       const newProduct = await dispatch(productActions.createProductThunk(formData));
 
@@ -88,7 +93,9 @@ const NewProduct = () => {
         sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
         {errors.map((err, idx) => (
-          <Typography key={idx} color="error">{err}</Typography>
+          <Typography key={idx} color="error">
+            {err}
+          </Typography>
         ))}
 
         <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -126,12 +133,7 @@ const NewProduct = () => {
           placeholder="https://youtube.com/watch?v=..."
         />
 
-        <TextField
-          label="Genre"
-          value={genre}
-          onChange={(e) => setGenre(e.target.value)}
-          required
-        />
+        <TextField label="Genre" value={genre} onChange={(e) => setGenre(e.target.value)} required />
 
         <FormControl fullWidth required>
           <InputLabel>Type</InputLabel>
@@ -155,15 +157,22 @@ const NewProduct = () => {
           <input type="file" accept="image/*" onChange={handleImageChange} required />
         </label>
 
-        {/* Upload downloadable file */}
+        {/* Upload ZIP file */}
         <label>
-          Download File (.zip, .wav, .mp3):
-          <input
-            type="file"
-            accept=".zip,.wav,.mp3"
-            onChange={handleDownloadChange}
-            required
-          />
+          ZIP File:
+          <input type="file" accept=".zip" onChange={handleZipFileChange} required />
+        </label>
+
+        {/* Upload MP3 file */}
+        <label>
+          MP3 File:
+          <input type="file" accept=".mp3" onChange={handleMp3FileChange} required />
+        </label>
+
+        {/* Upload WAV file */}
+        <label>
+          WAV File:
+          <input type="file" accept=".wav" onChange={handleWavFileChange} required />
         </label>
 
         <Button

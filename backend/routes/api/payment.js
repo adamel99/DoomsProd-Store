@@ -8,26 +8,47 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 router.post('/create-session', requireAuth, async (req, res, next) => {
   try {
     const { cartItems } = req.body;
-
-    console.log("Received cartItems:", cartItems); // ⬅️ Add this
+    console.log("🛒 Incoming cartItems:", cartItems);
 
     if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ message: 'Cart is empty' });
+      return res.status(400).json({ message: 'Cart is empty.' });
     }
 
-    // ✅ Log their download URLs
-    const downloadUrls = cartItems.map(item => item.downloadUrl);
-    console.log("Download URLs from cartItems:", downloadUrls);
+    // Extract file keys from downloadUrls
+    const allFileKeys = cartItems.flatMap(item => {
+      let downloadUrls = [];
 
-    // 🔧 Build comma-separated fileKeys
-    const fileKeys = downloadUrls
-      .filter(url => typeof url === 'string' && url.trim() !== '')
-      .join(',');
+      try {
+        if (typeof item.downloadUrls === 'string') {
+          downloadUrls = JSON.parse(item.downloadUrls);
+        } else if (Array.isArray(item.downloadUrls)) {
+          downloadUrls = item.downloadUrls;
+        }
+      } catch (err) {
+        console.error('⚠️ Failed to parse downloadUrls:', err);
+        return [];
+      }
 
-    console.log("Final fileKeys string to be added to metadata:", fileKeys); // ⬅️ Add this
+      return downloadUrls.map(urlObj => {
+        if (!urlObj?.url) return null;
+        try {
+          const url = new URL(urlObj.url);
+          const rawKey = url.pathname.slice(1); // Remove leading "/"
+          const key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+          console.log("🔑 Extracted key:", key);
+          return key;
+        } catch (err) {
+          console.error('❌ Invalid URL in downloadUrls:', urlObj.url, err);
+          return null;
+        }
+      }).filter(Boolean);
+    });
+
+    if (allFileKeys.length === 0) {
+      console.warn("⚠️ No downloadable file keys found.");
+    }
 
     const session = await stripe.checkout.sessions.create({
-
       payment_method_types: ['card'],
       line_items: cartItems.map(item => ({
         price_data: {
@@ -45,23 +66,19 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
       cancel_url: `${process.env.FRONTEND_URL}/checkout-cancel`,
       metadata: {
         userId: req.user.id.toString(),
-        fileKeys: fileKeys || '',
+        fileKeys: JSON.stringify(allFileKeys), // Save safely as stringified array
       },
       customer_email: req.user.email,
     });
 
-    console.log("✅ Created Stripe session with metadata:", session.metadata);
-
-
-    console.log("Created Stripe session:", session.id, session.metadata); // ⬅️ Check metadata here
+    console.log("✅ Stripe session created:", session.id);
+    console.log("📦 Session metadata:", session.metadata);
 
     return res.json({ sessionId: session.id });
   } catch (error) {
-    console.error('❌ Error creating Stripe session:', error);
-    next(error);
+    console.error('🔥 Stripe session creation error:', error);
+    return res.status(500).json({ message: 'Failed to create Stripe checkout session.' });
   }
 });
-
-
 
 module.exports = router;

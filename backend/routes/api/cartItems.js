@@ -3,34 +3,34 @@ const router = express.Router();
 const { Cart, CartItem, Product, License } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
 
-// Helper to format cart items consistently
 function formatCartItem(item) {
   const product = item.Product || {};
   const license = item.License || {};
 
-  // Price: prefer license price if available, else product price, else 0
   const price =
     license.price !== undefined && license.price !== null
       ? license.price
       : product.price || 0;
 
+  // ✅ FIX: Directly use the array
+  const downloadUrls = product.downloadUrls || [];
+
   return {
     id: item.id,
     productId: item.productId,
     licenseId: item.licenseId,
-    productName: product.title || 'Unknown Product',
-    licenseType: license.name || license.type || 'Standard',
+    productName: product.title || "Unknown Product",
+    licenseType: license.name || license.type || "Standard",
     price,
-    type: product.type || 'unknown',
+    type: product.type || "unknown",
     imageUrl: product.imageUrl || null,
-    downloadUrl: product.downloadUrl || null,
+    downloadUrls,
   };
 }
 
-// GET /api/cart-items - Get all cart items for logged in user
+// GET /api/cart-items
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    // Auto-create cart if it doesn't exist
     let cart = await Cart.findOne({ where: { userId: req.user.id } });
     if (!cart) {
       cart = await Cart.create({ userId: req.user.id });
@@ -39,39 +39,24 @@ router.get('/', requireAuth, async (req, res, next) => {
     const items = await CartItem.findAll({
       where: { cartId: cart.id },
       include: [
-        { model: Product },
-        { model: License },
+        {
+          model: Product,
+          attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'downloadUrls', 'imageUrl'],
+        },
+        { model: License, attributes: ['id', 'name', 'price'] },
       ],
     });
 
-    console.log(`🔍 Fetched raw cart items (count: ${items.length}):`);
-    items.forEach((item, idx) => {
-      console.log(`  Item ${idx + 1}:`, {
-        id: item.id,
-        productId: item.productId,
-        licenseId: item.licenseId,
-        productDownloadUrl: item.Product?.downloadUrl,
-      });
-    });
+    // Debug log: output raw downloadUrls from product
+    console.log("Cart items raw downloadUrls:", items.map(i => i.Product.downloadUrls));
 
     const formattedItems = items.map(formatCartItem);
 
-    console.log(`✅ Formatted cart items with downloadUrl:`);
-    formattedItems.forEach((item, idx) => {
-      console.log(`  Item ${idx + 1}:`, {
-        id: item.id,
-        productName: item.productName,
-        downloadUrl: item.downloadUrl,
-      });
-    });
-
     return res.json({ items: formattedItems });
   } catch (err) {
-    console.error('❌ Error fetching cart items:', err);
     next(err);
   }
 });
-
 // POST /api/cart-items - Add item to cart
 router.post('/', requireAuth, async (req, res, next) => {
   try {
@@ -118,7 +103,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     console.log('➕ Added cart item:', {
       id: formattedSingleItem.id,
       productName: formattedSingleItem.productName,
-      downloadUrl: formattedSingleItem.downloadUrl,
+      downloadUrls: formattedSingleItem.downloadUrls,
     });
 
     return res.status(201).json({ item: formattedSingleItem });
@@ -157,7 +142,7 @@ router.put('/:id', requireAuth, async (req, res, next) => {
     console.log('✏️ Updated cart item:', {
       id: formattedUpdatedItem.id,
       productName: formattedUpdatedItem.productName,
-      downloadUrl: formattedUpdatedItem.downloadUrl,
+      downloadUrls: formattedUpdatedItem.downloadUrls,
     });
 
     return res.json({ item: formattedUpdatedItem });

@@ -8,7 +8,8 @@ const playbackHistoryRouter = require('./playbackHistory.js');
 const cartsRouter = require('./cart.js');
 const cartItemsRouter = require('./cartItems');
 const paymentRouter = require('./payment');
-const webhookRouter = require('./webhook'); // ADD THIS LINE
+const webhookRouter = require('./webhook');
+const downloadRouter = require('./downloads'); // <-- ADD THIS
 
 const { restoreUser, setTokenCookie, requireAuth } = require('../../utils/auth.js');
 const { User } = require('../../db/models');
@@ -24,7 +25,8 @@ router.use('/playbackHistory', playbackHistoryRouter);
 router.use('/licenses', licensesRouter);
 router.use('/cart-items', cartItemsRouter);
 router.use('/payment', paymentRouter);
-router.use('/webhook', webhookRouter);  // ADD THIS LINE
+router.use('/webhook', webhookRouter);
+router.use('/downloads', downloadRouter); // <-- ADD THIS
 
 // Test route for debugging
 router.post('/test', (req, res) => {
