@@ -9,6 +9,11 @@ import {
   Select,
   InputLabel,
   FormControl,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Link,
 } from "@mui/material";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,17 +27,15 @@ const UpdateProductPage = () => {
   const product = useSelector((state) => state.products.singleProduct);
   const currentUser = useSelector((state) => state.session.user);
 
-  // Form state for text fields
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     type: "beat",
     price: "",
     audioPreviewUrl: "",
-    youtubeLink: "", // optional, could be same as audioPreviewUrl
+    youtubeLink: "",
   });
 
-  // State for file inputs
   const [imageFile, setImageFile] = useState(null);
   const [zipFile, setZipFile] = useState(null);
   const [mp3File, setMp3File] = useState(null);
@@ -49,10 +52,10 @@ const UpdateProductPage = () => {
         description: product.description || "",
         type: product.type || "beat",
         price: product.price || "",
-        audioPreviewUrl: product.youtubeLink || "", // assuming backend uses youtubeLink
+        audioPreviewUrl: product.youtubeLink || "",
         youtubeLink: product.youtubeLink || "",
       });
-      // Optionally clear file inputs on product load
+
       setImageFile(null);
       setZipFile(null);
       setMp3File(null);
@@ -69,7 +72,6 @@ const UpdateProductPage = () => {
     }));
   };
 
-  // File input handlers
   const handleImageChange = (e) => setImageFile(e.target.files[0]);
   const handleZipFileChange = (e) => setZipFile(e.target.files[0]);
   const handleMp3FileChange = (e) => setMp3File(e.target.files[0]);
@@ -78,30 +80,22 @@ const UpdateProductPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Build FormData since we have files
     const dataToSend = new FormData();
-
     dataToSend.append("title", formData.title);
     dataToSend.append("description", formData.description);
     dataToSend.append("type", formData.type);
-
     if (formData.type !== "beat") {
       dataToSend.append("price", formData.price);
     } else {
-      dataToSend.append("price", ""); // or null - backend expects no price for beats
+      dataToSend.append("price", "");
     }
-
-    // Send youtubeLink as backend expects it
     dataToSend.append("youtubeLink", formData.audioPreviewUrl);
-
-    // Append files only if new ones selected
     if (imageFile) dataToSend.append("image", imageFile);
     if (zipFile) dataToSend.append("zipFile", zipFile);
     if (mp3File) dataToSend.append("mp3File", mp3File);
     if (wavFile) dataToSend.append("wavFile", wavFile);
 
     const updatedProduct = await dispatch(updateProductThunk(productId, dataToSend));
-
     if (updatedProduct) {
       history.push(`/products/${productId}`);
     }
@@ -111,101 +105,160 @@ const UpdateProductPage = () => {
 
   return (
     <Box sx={{ backgroundColor: "#0d0d0d", minHeight: "100vh", py: 10 }}>
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <Typography variant="h4" fontWeight={800} textAlign="center" color="primary.main" gutterBottom>
           Update Product
         </Typography>
 
+        {/* File previews */}
+        {product && (
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            {product.imageUrl && (
+              <Grid item xs={12} sm={6}>
+                <Card>
+                  <CardMedia component="img" height="200" image={product.imageUrl} alt="Current product image" />
+                  <CardContent>
+                    <Typography variant="subtitle1" textAlign="center">Current Image</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+
+            {product.downloadUrls?.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <Card sx={{ p: 2 }}>
+                  <Typography variant="subtitle1">Current Files:</Typography>
+                  {product.downloadUrls.map((file, i) => (
+                    <Link
+                      key={i}
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener"
+                      underline="hover"
+                      display="block"
+                      sx={{ color: "#90caf9" }}
+                    >
+                      {file.type.toUpperCase()} File
+                    </Link>
+                  ))}
+                </Card>
+              </Grid>
+            )}
+          </Grid>
+        )}
+
+        {/* Form */}
         <form onSubmit={handleSubmit} encType="multipart/form-data">
-          <TextField
-            fullWidth
-            label="Title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-            required
-          />
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-          />
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel>Type</InputLabel>
-            <Select name="type" value={formData.type} label="Type" onChange={handleChange} required>
-              <MenuItem value="beat">Beat</MenuItem>
-              <MenuItem value="loop_kit">Loop Kit</MenuItem>
-              <MenuItem value="drum_kit">Drum Kit</MenuItem>
-            </Select>
-          </FormControl>
-          {formData.type !== "beat" && (
-            <TextField
-              fullWidth
-              type="number"
-              label="Price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              sx={{ mb: 3 }}
-              required
-            />
-          )}
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Title" name="title" value={formData.title} onChange={handleChange} required />
+            </Grid>
 
-          <TextField
-            fullWidth
-            label="YouTube Audio Preview URL"
-            name="audioPreviewUrl"
-            value={formData.audioPreviewUrl}
-            onChange={handleChange}
-            sx={{ mb: 3 }}
-            required
-          />
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                label="Description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+              />
+            </Grid>
 
-          {/* File Inputs */}
-          <label>
-            Image Upload:
-            <input type="file" accept="image/*" onChange={handleImageChange} />
-          </label>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Type</InputLabel>
+                <Select name="type" value={formData.type} label="Type" onChange={handleChange}>
+                  <MenuItem value="beat">Beat</MenuItem>
+                  <MenuItem value="loop_kit">Loop Kit</MenuItem>
+                  <MenuItem value="drum_kit">Drum Kit</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <label>
-            ZIP File:
-            <input type="file" accept=".zip" onChange={handleZipFileChange} />
-          </label>
+            {formData.type !== "beat" && (
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Price"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+            )}
 
-          <label>
-            MP3 File:
-            <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
-          </label>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="YouTube Audio Preview URL"
+                name="audioPreviewUrl"
+                value={formData.audioPreviewUrl}
+                onChange={handleChange}
+              />
+            </Grid>
 
-          <label>
-            WAV File:
-            <input type="file" accept=".wav" onChange={handleWavFileChange} />
-          </label>
+            <Grid item xs={12}>
+  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+    Replace Files (optional)
+  </Typography>
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              py: 1.5,
-              fontWeight: 700,
-              borderRadius: "30px",
-              background: "linear-gradient(135deg, #ff4081, #ff6699)",
-              boxShadow: "0 8px 30px rgba(255, 64, 129, 0.3)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #ff6699, #ff4081)",
-              },
-              mt: 3,
-            }}
-          >
-            Update Product
-          </Button>
+  <Box sx={{ display: "grid", gap: 2 }}>
+    <Box>
+      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+        Replace Image File:
+      </Typography>
+      <input type="file" accept="image/*" onChange={handleImageChange} />
+    </Box>
+
+    <Box>
+      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+        Replace ZIP File:
+      </Typography>
+      <input type="file" accept=".zip" onChange={handleZipFileChange} />
+    </Box>
+
+    <Box>
+      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+        Replace MP3 File:
+      </Typography>
+      <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
+    </Box>
+
+    <Box>
+      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+        Replace WAV File:
+      </Typography>
+      <input type="file" accept=".wav" onChange={handleWavFileChange} />
+    </Box>
+  </Box>
+</Grid>
+
+
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{
+                  py: 1.5,
+                  fontWeight: 700,
+                  borderRadius: "30px",
+                  background: "linear-gradient(135deg, #ff4081, #ff6699)",
+                  boxShadow: "0 8px 30px rgba(255, 64, 129, 0.3)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #ff6699, #ff4081)",
+                  },
+                  mt: 2,
+                }}
+              >
+                Update Product
+              </Button>
+            </Grid>
+          </Grid>
         </form>
       </Container>
     </Box>

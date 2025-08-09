@@ -35,7 +35,7 @@ const theme = createTheme({
     fontFamily: `"Bebas Neue", "Helvetica", "Arial", sans-serif`,
     h1: {
       fontWeight: 800,
-      fontSize: "4.5rem",
+      fontSize: "6rem",
       lineHeight: 1.1,
       color: "#F6F4F3",
     },

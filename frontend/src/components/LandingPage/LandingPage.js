@@ -158,7 +158,7 @@ const LandingPage = () => {
         </path>
       </Box>
 
-      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: 4, px: 1 }}>
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: 4}}>
         <Grid container spacing={6} alignItems="center" columns={12}>
           <Grid xs={12} md={6}>
             <Typography variant="h1" gutterBottom>
@@ -204,37 +204,53 @@ const LandingPage = () => {
 
       {/* Feature Cards */}
       <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2, py: 5 }}>
-        <Grid container spacing={6} justifyContent="center" columns={12}>
-          {Object.keys(routeMap).map((title) => (
-            <Grid xs={12} md={6} lg={4} key={title}>
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                <NeumorphicCard
-                  onClick={() => history.push(routeMap[title])}
-                  sx={{
-                    minHeight: 110,
-                    minWidth: 200,
-                    px: 4,
-                    py: 3,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {iconMap[title]}
-                  <Typography variant="h6" sx={{ mt: 1, color: theme.palette.text.primary }}>
-                    {title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, textAlign: 'center' }}>
-                    {title === "Browse Beats"
-                      ? "Exclusive beats across genres. Preview instantly."
-                      : title === "Meet the Creator"
-                        ? "Learn about the artist and vision."
-                        : "Explore licensing options."}
-                  </Typography>
-                </NeumorphicCard>
-              </motion.div>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
+  <Grid container spacing={6} justifyContent="center" columns={12}>
+    {Object.keys(routeMap).map((title) => (
+      <Grid item xs={12} sm={6} md={6} lg={4} key={title}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <NeumorphicCard
+            onClick={() => history.push(routeMap[title])}
+            sx={{
+              height: 200, // increased height
+              width: 400, // full width of grid cell
+              px: 5,
+              py: 4,
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center',
+            }}
+          >
+            {iconMap[title]}
+            <Typography
+              variant="h5" // larger title
+              sx={{ mt: 2, color: theme.palette.text.primary }}
+            >
+              {title}
+            </Typography>
+            <Typography
+              variant="body1" // larger body text
+              sx={{ color: theme.palette.text.secondary, mt: 1 }}
+            >
+              {title === "Browse Beats"
+                ? "Exclusive beats across genres. Preview instantly."
+                : title === "Meet the Creator"
+                  ? "Learn about the artist and vision."
+                  : "Explore licensing options."}
+            </Typography>
+          </NeumorphicCard>
+        </motion.div>
+      </Grid>
+    ))}
+  </Grid>
+</Container>
+
 
       {/* Latest Products */}
       <Container sx={{ position: "relative", zIndex: 2, py: 8 }}>

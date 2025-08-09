@@ -5,7 +5,6 @@ module.exports = (sequelize, DataTypes) => {
   class License extends Model {
     static associate(models) {
       License.hasMany(models.CartItem, { foreignKey: 'licenseId' });
-      // No direct relation to products because licenses are global and assigned on beats
     }
   }
 
