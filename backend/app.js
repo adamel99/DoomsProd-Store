@@ -5,7 +5,7 @@ const cors = require('cors');
 const csurf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser'); // For raw body parsing
+const bodyParser = require('body-parser');
 const routes = require('./routes');
 const { environment } = require('./config');
 const isProduction = environment === 'production';
@@ -15,14 +15,10 @@ const app = express();
 app.use(morgan('dev'));
 app.use(cookieParser());
 
-// ---------------------
-// Stripe webhook raw parser middleware
-// This MUST come BEFORE JSON parser and CSRF middleware,
-// and only applies to the webhook route
+// Stripe webhook raw parser
 app.use('/api/webhook', bodyParser.raw({ type: 'application/json' }));
 
-// ---------------------
-// Conditional JSON parser middleware - skip parsing if multipart/form-data OR Stripe webhook
+// Conditional JSON parser
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || '';
   if (
@@ -34,10 +30,8 @@ app.use((req, res, next) => {
   express.json()(req, res, next);
 });
 
-// ---------------------
-// Security Middleware
+// Security
 if (!isProduction) {
-  // enable cors only in development
   app.use(cors());
 }
 
@@ -47,12 +41,9 @@ app.use(
   })
 );
 
-// ---------------------
-// CSRF Middleware - skip on Stripe webhook route
+// CSRF
 app.use((req, res, next) => {
-  if (req.originalUrl === '/api/webhook') {
-    return next();
-  }
+  if (req.originalUrl === '/api/webhook') return next();
   csurf({
     cookie: {
       secure: isProduction,
@@ -62,14 +53,10 @@ app.use((req, res, next) => {
   })(req, res, next);
 });
 
-// ---------------------
-// Mount your routes
+// Routes
 app.use(routes);
 
-// ---------------------
-// Error handling (unchanged)
-
-// Catch unhandled requests and forward to error handler.
+// Error handling
 app.use((_req, _res, next) => {
   const err = new Error("The requested resource couldn't be found.");
   err.title = 'Resource Not Found';
@@ -80,7 +67,6 @@ app.use((_req, _res, next) => {
 
 const { ValidationError } = require('sequelize');
 
-// Process sequelize errors
 app.use((err, _req, _res, next) => {
   if (err instanceof ValidationError) {
     let errors = {};
@@ -93,7 +79,6 @@ app.use((err, _req, _res, next) => {
   next(err);
 });
 
-// Error formatter
 app.use((err, _req, res, _next) => {
   res.status(err.status || 500);
   console.error(err);
