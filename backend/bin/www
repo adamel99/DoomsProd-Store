@@ -1,20 +1,29 @@
 #!/usr/bin/env node
 // backend/bin/www
 
-// Import environment variables
 require('dotenv').config();
 const { port } = require('../config');
 const app = require('../app');
 const db = require('../db/models');
 
-db.sequelize
-  .authenticate()
-  .then(() => {
-    console.log('Database connection success! Sequelize is ready...');
-    app.listen(port, () => console.log(`Listening on port ${port}...`));
-  })
-  .catch((err) => {
-    console.error('Database connection failure.');
-    console.error(err);
-    process.exit(1); // Exit with failure if DB fails
-  });
+// Ensure we always listen on the correct port for Render
+const PORT = process.env.PORT || port || 8000;
+
+// Start server immediately so Render detects it
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server started. Listening on port ${PORT}...`);
+
+  // Attempt DB connection in the background
+  console.log('Attempting database connection...');
+  db.sequelize.authenticate()
+    .then(() => {
+      console.log('✅ Database connection successful. Sequelize is ready...');
+    })
+    .catch((err) => {
+      console.error('❌ Database connection failed at startup:');
+      console.error(err);
+      console.error(
+        'The server is still running, but DB queries will fail until the connection is fixed.'
+      );
+    });
+});
