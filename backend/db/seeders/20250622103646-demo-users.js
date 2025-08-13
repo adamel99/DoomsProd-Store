@@ -19,7 +19,6 @@ module.exports = {
         lastName: "User",
         totalPurchases: 0,
         rewardDiscount: 0.00,
-        isSubscribedToEmails: true,
         role: 'user',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -33,7 +32,6 @@ module.exports = {
         lastName: "User",
         totalPurchases: 0,
         rewardDiscount: 0.00,
-        isSubscribedToEmails: true,
         role: 'user',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -47,7 +45,6 @@ module.exports = {
         lastName: "Prod",
         totalPurchases: 0,
         rewardDiscount: 0.00,
-        isSubscribedToEmails: true,
         role: 'admin',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -63,5 +60,3 @@ module.exports = {
     }, {});
   }
 };
-
-
