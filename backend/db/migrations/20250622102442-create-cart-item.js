@@ -2,7 +2,7 @@
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {
-  options.schema = process.env.SCHEMA;  // define schema in production
+  options.schema = process.env.SCHEMA;
 }
 
 module.exports = {
@@ -17,25 +17,49 @@ module.exports = {
       userId: {
         allowNull: false,
         type: Sequelize.INTEGER,
-        references: { model: 'Users', key: 'id' },
+        references: {
+          model: {
+            tableName: 'Users',
+            schema: options.schema || undefined
+          },
+          key: 'id'
+        },
         onDelete: 'CASCADE',
       },
       cartId: {
         allowNull: false,
         type: Sequelize.INTEGER,
-        references: { model: 'Carts', key: 'id' },
+        references: {
+          model: {
+            tableName: 'Carts',
+            schema: options.schema || undefined
+          },
+          key: 'id'
+        },
         onDelete: 'CASCADE',
       },
       productId: {
         allowNull: false,
         type: Sequelize.INTEGER,
-        references: { model: 'Products', key: 'id' },
+        references: {
+          model: {
+            tableName: 'Products',
+            schema: options.schema || undefined
+          },
+          key: 'id'
+        },
         onDelete: 'CASCADE',
       },
       licenseId: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        references: { model: 'Licenses', key: 'id' },
+        references: {
+          model: {
+            tableName: 'Licenses',
+            schema: options.schema || undefined
+          },
+          key: 'id'
+        },
         onDelete: 'SET NULL',
       },
       createdAt: {
