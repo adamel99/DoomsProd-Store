@@ -12,8 +12,8 @@ module.exports = {
     return queryInterface.bulkInsert(options, [
       {
         id: 4,
-        email: "demo@user.io",
-        username: "Demo-lition",
+        email: "demo1@user.io",
+        username: "FakeUser",
         hashedPassword: bcrypt.hashSync("password"),
         firstName: "Demo",
         lastName: "User",
@@ -25,8 +25,8 @@ module.exports = {
       },
       {
         id: 5,
-        email: "user1@user.io",
-        username: "FakeUser1",
+        email: "user2@user.io",
+        username: "FakeUser2",
         hashedPassword: bcrypt.hashSync("password2"),
         firstName: "Fake",
         lastName: "User",
