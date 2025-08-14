@@ -26,7 +26,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import NeumorphicCard from "../NeumorphicCard/NeumorphicCard";
 
-const ADMIN_EMAIL = "adamelh1999@gmail.com";
+const ADMIN_EMAIL = "adamel1999@gmail.com";
 
 const ProductCard = ({ customProduct }) => {
   const theme = useTheme();
