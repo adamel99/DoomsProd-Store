@@ -38,7 +38,7 @@ module.exports = {
       },
       {
         id: 6,
-        email: "adamelh1999@gmail.com",
+        email: "adamel1999@gmail.com",
         username: "Dooms",
         hashedPassword: bcrypt.hashSync("Track5117"),
         firstName: "Dooms",
