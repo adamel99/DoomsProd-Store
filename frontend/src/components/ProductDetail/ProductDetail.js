@@ -23,7 +23,7 @@ import { addToCartThunk } from "../../store/cartItems";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 
-const ADMIN_EMAIL = "adamel1999@gmail.com";
+const ADMIN_EMAIL = "adamelh1999@gmail.com";
 
 const ProductDetailPage = () => {
   const dispatch = useDispatch();
