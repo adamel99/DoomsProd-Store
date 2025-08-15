@@ -39,7 +39,8 @@ const testimonials = [
   {
     name: "Fivio Foreign - Dribble",
     quote: "They aint never even seen no sh*t like this before",
-    videoUrl: "https://www.youtube.com/watch?v=sBsax2S2G9s&list=RDsBsax2S2G9s&start_radio=1",
+    videoUrl:
+      "https://www.youtube.com/watch?v=sBsax2S2G9s&list=RDsBsax2S2G9s&start_radio=1",
   },
 ];
 
@@ -66,9 +67,21 @@ const LandingPage = () => {
   };
 
   const iconMap = {
-    "Browse Beats": <HeadphonesIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />,
-    "Meet the Creator": <PersonIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />,
-    "Licenses and Terms": <LibraryMusicIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />,
+    "Browse Beats": (
+      <HeadphonesIcon
+        sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }}
+      />
+    ),
+    "Meet the Creator": (
+      <PersonIcon
+        sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }}
+      />
+    ),
+    "Licenses and Terms": (
+      <LibraryMusicIcon
+        sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }}
+      />
+    ),
   };
 
   const [playingProductId, setPlayingProductId] = useState(null);
@@ -78,14 +91,12 @@ const LandingPage = () => {
     e.stopPropagation();
 
     const currentAudio = audioRefs.current[productId];
-
     if (!currentAudio) return;
 
-    if (playingProductId && playingProductId !== productId) {
-      // Pause previously playing audio
-      const prevAudio = audioRefs.current[playingProductId];
-      if (prevAudio) prevAudio.pause();
-    }
+    // Pause any other audio
+    Object.entries(audioRefs.current).forEach(([id, audio]) => {
+      if (id !== productId.toString() && !audio.paused) audio.pause();
+    });
 
     if (currentAudio.paused) {
       currentAudio.play();
@@ -97,10 +108,13 @@ const LandingPage = () => {
   };
 
   const handleAudioEnded = (productId) => {
-    if (playingProductId === productId) {
-      setPlayingProductId(null);
-    }
+    if (playingProductId === productId) setPlayingProductId(null);
   };
+
+  // Get 3 latest products (sorted by createdAt descending)
+  const latestProducts = [...products]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
 
   return (
     <Box
@@ -115,17 +129,19 @@ const LandingPage = () => {
       }}
     >
       {/* Background blob */}
-      <Box sx={{
-        position: "absolute",
-        top: "-150px",
-        left: "-100px",
-        width: 500,
-        height: 500,
-        bgcolor: "rgba(255, 80, 120, 0.3)",
-        filter: "blur(180px)",
-        borderRadius: "50%",
-        zIndex: 1,
-      }} />
+      <Box
+        sx={{
+          position: "absolute",
+          top: "-150px",
+          left: "-100px",
+          width: 500,
+          height: 500,
+          bgcolor: "rgba(255, 80, 120, 0.3)",
+          filter: "blur(180px)",
+          borderRadius: "50%",
+          zIndex: 1,
+        }}
+      />
 
       {/* Hero section */}
       <Box
@@ -158,7 +174,7 @@ const LandingPage = () => {
         </path>
       </Box>
 
-      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: 4}}>
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: 4 }}>
         <Grid container spacing={6} alignItems="center" columns={12}>
           <Grid xs={12} md={6}>
             <Typography variant="h1" gutterBottom>
@@ -204,53 +220,46 @@ const LandingPage = () => {
 
       {/* Feature Cards */}
       <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2, py: 5 }}>
-  <Grid container spacing={6} justifyContent="center" columns={12}>
-    {Object.keys(routeMap).map((title) => (
-      <Grid item xs={12} sm={6} md={6} lg={4} key={title}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <NeumorphicCard
-            onClick={() => history.push(routeMap[title])}
-            sx={{
-              height: 200, // increased height
-              width: 400, // full width of grid cell
-              px: 5,
-              py: 4,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              textAlign: 'center',
-            }}
-          >
-            {iconMap[title]}
-            <Typography
-              variant="h5" // larger title
-              sx={{ mt: 2, color: theme.palette.text.primary }}
-            >
-              {title}
-            </Typography>
-            <Typography
-              variant="body1" // larger body text
-              sx={{ color: theme.palette.text.secondary, mt: 1 }}
-            >
-              {title === "Browse Beats"
-                ? "Exclusive beats across genres. Preview instantly."
-                : title === "Meet the Creator"
-                  ? "Learn about the artist and vision."
-                  : "Explore licensing options."}
-            </Typography>
-          </NeumorphicCard>
-        </motion.div>
-      </Grid>
-    ))}
-  </Grid>
-</Container>
-
+        <Grid container spacing={6} justifyContent="center" columns={12}>
+          {Object.keys(routeMap).map((title) => (
+            <Grid item xs={12} sm={6} md={6} lg={4} key={title}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <NeumorphicCard
+                  onClick={() => history.push(routeMap[title])}
+                  sx={{
+                    height: 200,
+                    width: 400,
+                    px: 5,
+                    py: 4,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                  }}
+                >
+                  {iconMap[title]}
+                  <Typography variant="h5" sx={{ mt: 2, color: theme.palette.text.primary }}>
+                    {title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mt: 1 }}>
+                    {title === "Browse Beats"
+                      ? "Exclusive beats across genres. Preview instantly."
+                      : title === "Meet the Creator"
+                        ? "Learn about the artist and vision."
+                        : "Explore licensing options."}
+                  </Typography>
+                </NeumorphicCard>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
 
       {/* Latest Products */}
       <Container sx={{ position: "relative", zIndex: 2, py: 8 }}>
@@ -258,7 +267,7 @@ const LandingPage = () => {
           Latest Products
         </Typography>
         <Grid container spacing={4} justifyContent="center" columns={12}>
-          {products.slice(0, 3).map((product) => (
+          {latestProducts.map((product) => (
             <Grid xs={12} sm={6} md={6} lg={4} key={product.id}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -281,7 +290,6 @@ const LandingPage = () => {
                     transition: "all 0.3s ease-in-out",
                   }}
                 >
-
                   <Box
                     sx={{
                       position: "relative",
@@ -311,9 +319,7 @@ const LandingPage = () => {
                             color: "#fff",
                             width: 60,
                             height: 60,
-                            "&:hover": {
-                              backgroundColor: "rgba(0,0,0,0.8)",
-                            },
+                            "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
                           }}
                         >
                           {playingProductId === product.id ? (
@@ -324,7 +330,7 @@ const LandingPage = () => {
                         </IconButton>
                         <audio
                           ref={(el) => (audioRefs.current[product.id] = el)}
-                          src={product.downloadUrls}
+                          src={Array.isArray(product.downloadUrls) ? product.downloadUrls[0] : product.downloadUrls}
                           onEnded={() => handleAudioEnded(product.id)}
                         />
                       </>

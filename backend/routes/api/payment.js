@@ -5,7 +5,8 @@ const { requireAuth } = require('../../utils/auth');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-router.post('/create-session', requireAuth, async (req, res, next) => {
+// Production-safe version
+router.post('/create-session', async (req, res, next) => {
   try {
     const { cartItems } = req.body;
     console.log("🛒 Incoming cartItems:", cartItems);
@@ -14,10 +15,24 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
       return res.status(400).json({ message: 'Cart is empty.' });
     }
 
+    // Optional: use requireAuth if you want to enforce login
+    let userId = null;
+    let userEmail = null;
+
+    try {
+      // If logged in, requireAuth sets req.user
+      await requireAuth(req, res, () => {});
+      if (req.user) {
+        userId = req.user.id.toString();
+        userEmail = req.user.email;
+      }
+    } catch (err) {
+      console.warn("⚠️ User not authenticated, proceeding without user info.");
+    }
+
     // Extract file keys from downloadUrls
     const allFileKeys = cartItems.flatMap(item => {
       let downloadUrls = [];
-
       try {
         if (typeof item.downloadUrls === 'string') {
           downloadUrls = JSON.parse(item.downloadUrls);
@@ -26,7 +41,6 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
         }
       } catch (err) {
         console.error('⚠️ Failed to parse downloadUrls:', err);
-        return [];
       }
 
       return downloadUrls.map(urlObj => {
@@ -34,9 +48,7 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
         try {
           const url = new URL(urlObj.url);
           const rawKey = url.pathname.slice(1); // Remove leading "/"
-          const key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
-          console.log("🔑 Extracted key:", key);
-          return key;
+          return decodeURIComponent(rawKey.replace(/\+/g, ' '));
         } catch (err) {
           console.error('❌ Invalid URL in downloadUrls:', urlObj.url, err);
           return null;
@@ -54,10 +66,10 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: item.productName,
-            description: `License: ${item.licenseType}`,
+            name: item.productName || 'Untitled',
+            description: `License: ${item.licenseType || 'Standard'}`,
           },
-          unit_amount: Math.round(item.price * 100),
+          unit_amount: Math.round((item.price || 0) * 100),
         },
         quantity: 1,
       })),
@@ -65,10 +77,10 @@ router.post('/create-session', requireAuth, async (req, res, next) => {
       success_url: `${process.env.FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/checkout-cancel`,
       metadata: {
-        userId: req.user.id.toString(),
-        fileKeys: JSON.stringify(allFileKeys), // Save safely as stringified array
+        userId: userId || 'guest',
+        fileKeys: JSON.stringify(allFileKeys),
       },
-      customer_email: req.user.email,
+      customer_email: userEmail || undefined, // Stripe will allow no email
     });
 
     console.log("✅ Stripe session created:", session.id);
