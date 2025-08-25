@@ -73,7 +73,6 @@ const ProductCard = ({ customProduct }) => {
     type,
   } = displayedProduct;
 
-  // Extract mp3 URL from downloadUrls array:
   const audioUrl = Array.isArray(downloadUrls)
     ? downloadUrls.find((file) => file.type === "mp3")?.url || ""
     : "";
@@ -112,9 +111,8 @@ const ProductCard = ({ customProduct }) => {
   };
 
   const toggleAudio = (e) => {
-    e.stopPropagation(); // Prevent card click navigation when toggling audio
+    e.stopPropagation();
     if (!audioRef.current) return;
-
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -129,10 +127,9 @@ const ProductCard = ({ customProduct }) => {
         <Box sx={{ position: "relative", zIndex: 2 }}>
           <NeumorphicCard
             sx={{
-              maxWidth: isStandalone ? 300 : 250,
-              height: "80%",
               width: "100%",
-              margin: isStandalone ? `${theme.spacing(4)} auto` : undefined,
+              maxWidth: { xs: "100%", sm: 350, md: 400 }, // responsive
+              margin: isStandalone ? `${theme.spacing(4)} auto` : "auto",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -143,12 +140,12 @@ const ProductCard = ({ customProduct }) => {
             }}
             onClick={handleClick}
           >
-            {/* Image + Audio Player */}
+            {/* Image + Audio */}
             <Box
               sx={{
                 position: "relative",
                 width: "100%",
-                height: "50%",
+                height: { xs: 180, sm: 220, md: 260 }, // responsive heights
                 flexShrink: 0,
                 overflow: "hidden",
                 backgroundColor: theme.palette.background.default,
@@ -159,11 +156,7 @@ const ProductCard = ({ customProduct }) => {
                 component="img"
                 image={imageUrl || "/placeholder.jpg"}
                 alt={`Product: ${title}`}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
+                sx={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
               {audioUrl && (
                 <>
@@ -194,7 +187,7 @@ const ProductCard = ({ customProduct }) => {
               )}
             </Box>
 
-            {/* Content Section */}
+            {/* Content */}
             <CardContent
               sx={{
                 flex: 1,
@@ -208,7 +201,7 @@ const ProductCard = ({ customProduct }) => {
                 <Typography
                   variant="subtitle1"
                   fontWeight={700}
-                  sx={{ fontSize: "1.5rem" }}
+                  sx={{ fontSize: { xs: "1.1rem", sm: "1.3rem", md: "1.5rem" } }}
                   noWrap
                 >
                   {title}
@@ -217,7 +210,7 @@ const ProductCard = ({ customProduct }) => {
                 <Typography
                   sx={{
                     color: theme.palette.text.secondary,
-                    fontSize: "0.8rem",
+                    fontSize: { xs: "0.75rem", sm: "0.8rem" },
                     mt: 0.5,
                     lineHeight: 1.4,
                     maxHeight: 36,
@@ -247,10 +240,7 @@ const ProductCard = ({ customProduct }) => {
                 </Typography>
               )}
               {addCartSuccess && (
-                <Typography
-                  color="success.main"
-                  sx={{ mt: 0.5, fontSize: "0.7rem" }}
-                >
+                <Typography color="success.main" sx={{ mt: 0.5, fontSize: "0.7rem" }}>
                   Added to cart!
                 </Typography>
               )}
@@ -297,17 +287,12 @@ const ProductCard = ({ customProduct }) => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the product "{title}"? This action
-            cannot be undone.
+            Are you sure you want to delete the product "{title}"? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelDelete} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={confirmDelete} color="secondary" autoFocus>
-            Delete
-          </Button>
+          <Button onClick={cancelDelete} color="primary">Cancel</Button>
+          <Button onClick={confirmDelete} color="secondary" autoFocus>Delete</Button>
         </DialogActions>
       </Dialog>
     </>

@@ -58,7 +58,7 @@ const ProductList = () => {
         overflow: "hidden",
       }}
     >
-      {/* Blurry Neon Blobs */}
+      {/* Background Blobs */}
       <Box
         sx={{
           position: "absolute",
@@ -100,15 +100,15 @@ const ProductList = () => {
             dur="10s"
             repeatCount="indefinite"
             values="
-        M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z;
-        M580,500Q500,600,400,600Q300,600,250,525Q200,450,150,375Q100,300,160,230Q220,160,320,150Q420,140,490,200Q560,260,590,330Q620,400,580,500Z;
-        M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z
-      "
+              M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z;
+              M580,500Q500,600,400,600Q300,600,250,525Q200,450,150,375Q100,300,160,230Q220,160,320,150Q420,140,490,200Q560,260,590,330Q620,400,580,500Z;
+              M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z
+            "
           />
         </path>
       </Box>
 
-      {/* Main content */}
+      {/* Main */}
       <Box sx={{ position: "relative", zIndex: 2 }}>
         <Container maxWidth="xl">
           <Typography
@@ -122,6 +122,7 @@ const ProductList = () => {
               mb: theme.spacing(6),
               letterSpacing: "-0.5px",
               textShadow: `0 0 12px ${theme.palette.primary.main}80`,
+              fontSize: { xs: "2rem", sm: "3rem", md: "4rem" },
             }}
           >
             {searchTerm ? `Search Results for "${searchTerm}"` : "PRODUCTS"}
@@ -154,23 +155,22 @@ const ProductList = () => {
               container
               spacing={4}
               justifyContent="center"
-              columns={{ xs: 4, sm: 8, md: 12 }}
               component={motion.div}
               initial="hidden"
               animate="visible"
               variants={{
                 hidden: {},
-                visible: {
-                  transition: {
-                    staggerChildren: 0.08,
-                  },
-                },
+                visible: { transition: { staggerChildren: 0.08 } },
               }}
             >
               {filteredProducts.map((product) => (
                 <Grid
+                  item
+                  xs={12}  // 1 per row on phones
+                  sm={6}   // 2 per row on tablets
+                  md={4}   // 3 per row on desktops
+                  lg={3}   // 4 per row on big screens
                   key={product.id}
-                  columnSpan={{ xs: 4, sm: 4, md: 3 }}
                   component={motion.div}
                   variants={{
                     hidden: { opacity: 0, y: 30 },

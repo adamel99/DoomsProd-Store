@@ -24,7 +24,7 @@ import NeumorphicCard from "../NeumorphicCard/NeumorphicCard";
 
 const getYouTubeId = (url) => {
   const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^\s&?/]+)/i
+    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^\s&?\/]+)/i
   );
   return match ? match[1] : null;
 };
@@ -68,32 +68,24 @@ const LandingPage = () => {
 
   const iconMap = {
     "Browse Beats": (
-      <HeadphonesIcon
-        sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }}
-      />
+      <HeadphonesIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />
     ),
     "Meet the Creator": (
-      <PersonIcon
-        sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }}
-      />
+      <PersonIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />
     ),
     "Licenses and Terms": (
-      <LibraryMusicIcon
-        sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }}
-      />
+      <LibraryMusicIcon sx={{ fontSize: 40, mb: 1, color: theme.palette.primary.main }} />
     ),
   };
 
   const [playingProductId, setPlayingProductId] = useState(null);
-  const audioRefs = useRef({}); // store audio elements by product id
+  const audioRefs = useRef({});
 
   const toggleAudio = (e, productId) => {
     e.stopPropagation();
-
     const currentAudio = audioRefs.current[productId];
     if (!currentAudio) return;
 
-    // Pause any other audio
     Object.entries(audioRefs.current).forEach(([id, audio]) => {
       if (id !== productId.toString() && !audio.paused) audio.pause();
     });
@@ -111,7 +103,6 @@ const LandingPage = () => {
     if (playingProductId === productId) setPlayingProductId(null);
   };
 
-  // Get 3 latest products (sorted by createdAt descending)
   const latestProducts = [...products]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 3);
@@ -124,18 +115,17 @@ const LandingPage = () => {
         backgroundColor: theme.palette.background.default,
         color: theme.palette.text.primary,
         overflowX: "hidden",
-        width: "100vw",
-        maxWidth: "100%",
+        width: "100%",
       }}
     >
       {/* Background blob */}
       <Box
         sx={{
           position: "absolute",
-          top: "-150px",
-          left: "-100px",
-          width: 500,
-          height: 500,
+          top: { xs: "-100px", md: "-150px" },
+          left: { xs: "-50px", md: "-100px" },
+          width: { xs: 250, sm: 350, md: 500 },
+          height: { xs: 250, sm: 350, md: 500 },
           bgcolor: "rgba(255, 80, 120, 0.3)",
           filter: "blur(180px)",
           borderRadius: "50%",
@@ -143,47 +133,25 @@ const LandingPage = () => {
         }}
       />
 
-      {/* Hero section */}
-      <Box
-        component="svg"
-        viewBox="0 0 800 800"
-        preserveAspectRatio="none"
-        sx={{
-          position: "absolute",
-          top: -200,
-          right: -200,
-          zIndex: 1,
-          opacity: 0.15,
-          transform: "scale(1.2)",
-        }}
-      >
-        <path
-          fill={theme.palette.primary.main}
-          d="M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z"
-        >
-          <animate
-            attributeName="d"
-            dur="10s"
-            repeatCount="indefinite"
-            values="
-              M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z;
-              M580,500Q500,600,400,600Q300,600,250,525Q200,450,150,375Q100,300,160,230Q220,160,320,150Q420,140,490,200Q560,260,590,330Q620,400,580,500Z;
-              M549.5,567Q492,634,405,647.5Q318,661,271.5,597Q225,533,175,466.5Q125,400,172.5,323Q220,246,290,203Q360,160,449,182Q538,204,568,302Q598,400,549.5,567Z
-            "
-          />
-        </path>
-      </Box>
-
-      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 2, py: 4 }}>
-        <Grid container spacing={6} alignItems="center" columns={12}>
-          <Grid xs={12} md={6}>
-            <Typography variant="h1" gutterBottom>
+      {/* Hero */}
+      <Container maxWidth={false} sx={{ position: "relative", zIndex: 2, py: { xs: 6, md: 10 }, px: { xs: 2, sm: 6, md: 12 } }}>
+        <Grid container spacing={6} alignItems="center">
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="h1"
+              gutterBottom
+              sx={{
+                fontSize: { xs: "2.5rem", sm: "3.5rem", md: "5rem", lg: "6rem" },
+                textAlign: { xs: "center", md: "left" },
+              }}
+            >
               idontevenknowhim
             </Typography>
-            <Typography variant="body1" sx={{ opacity: 0.8 }}>
-              Industry‑ready beats. Instant downloads.
+            <Typography variant="body1" sx={{ opacity: 0.8, textAlign: { xs: "center", md: "left" } }}>
+              Industry-ready beats. Instant downloads.
             </Typography>
 
+            {/* Search */}
             <Box component="form" onSubmit={onSearchSubmit} sx={{ display: "flex", mt: 4 }}>
               <InputBase
                 placeholder="Search beats, kits, loops..."
@@ -203,7 +171,8 @@ const LandingPage = () => {
               </IconButton>
             </Box>
 
-            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap" }}>
+            {/* Buttons */}
+            <Box sx={{ display: "flex", gap: 2, mt: 3, flexWrap: "wrap", justifyContent: { xs: "center", md: "flex-start" } }}>
               <Button variant="contained" color="primary" onClick={() => setOpenContactModal(true)}>
                 Contact
               </Button>
@@ -218,66 +187,19 @@ const LandingPage = () => {
         </Grid>
       </Container>
 
-      {/* Feature Cards */}
-      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2, py: 5 }}>
-        <Grid container spacing={6} justifyContent="center" columns={12}>
-          {Object.keys(routeMap).map((title) => (
-            <Grid item xs={12} sm={6} md={6} lg={4} key={title}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <NeumorphicCard
-                  onClick={() => history.push(routeMap[title])}
-                  sx={{
-                    height: 200,
-                    width: 400,
-                    px: 5,
-                    py: 4,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                  }}
-                >
-                  {iconMap[title]}
-                  <Typography variant="h5" sx={{ mt: 2, color: theme.palette.text.primary }}>
-                    {title}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: theme.palette.text.secondary, mt: 1 }}>
-                    {title === "Browse Beats"
-                      ? "Exclusive beats across genres. Preview instantly."
-                      : title === "Meet the Creator"
-                        ? "Learn about the artist and vision."
-                        : "Explore licensing options."}
-                  </Typography>
-                </NeumorphicCard>
-              </motion.div>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
       {/* Latest Products */}
-      <Container sx={{ position: "relative", zIndex: 2, py: 8 }}>
-        <Typography variant="h3" textAlign="center" gutterBottom>
+      <Container maxWidth={false} sx={{ position: "relative", zIndex: 2, py: { xs: 6, md: 10 }, px: { xs: 2, sm: 4, md: 8 } }}>
+        <Typography variant="h3" textAlign="center" gutterBottom sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
           Latest Products
         </Typography>
-        <Grid container spacing={4} justifyContent="center" columns={12}>
+        <Grid container spacing={4} justifyContent="center">
           {latestProducts.map((product) => (
-            <Grid xs={12} sm={6} md={6} lg={4} key={product.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
+            <Grid item xs={12} sm={6} md={4} key={product.id}>
+              <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                 <NeumorphicCard
                   onClick={() => history.push(`/products/${product.id}`)}
                   sx={{
-                    px: 4,
+                    px: 3,
                     py: 3,
                     borderRadius: 2,
                     minHeight: 420,
@@ -286,15 +208,14 @@ const LandingPage = () => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     cursor: "pointer",
-                    boxShadow: `8px 8px 16px #0c0c0c, -8px -8px 16px transparent`,
-                    transition: "all 0.3s ease-in-out",
                   }}
                 >
+                  {/* Image + Audio */}
                   <Box
                     sx={{
                       position: "relative",
-                      width: 200,
-                      height: 200,
+                      width: { xs: "100%", sm: 200 },
+                      height: { xs: "auto", sm: 200 },
                       borderRadius: 2,
                       overflow: "hidden",
                       mb: 2,
@@ -319,14 +240,9 @@ const LandingPage = () => {
                             color: "#fff",
                             width: 60,
                             height: 60,
-                            "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
                           }}
                         >
-                          {playingProductId === product.id ? (
-                            <PauseIcon sx={{ fontSize: 40 }} />
-                          ) : (
-                            <PlayArrowIcon sx={{ fontSize: 40 }} />
-                          )}
+                          {playingProductId === product.id ? <PauseIcon sx={{ fontSize: 40 }} /> : <PlayArrowIcon sx={{ fontSize: 40 }} />}
                         </IconButton>
                         <audio
                           ref={(el) => (audioRefs.current[product.id] = el)}
@@ -337,31 +253,11 @@ const LandingPage = () => {
                     )}
                   </Box>
 
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 600,
-                      textAlign: "center",
-                      color: theme.palette.text.primary,
-                      mb: 1,
-                      fontSize: "1.25rem",
-                    }}
-                  >
+                  <Typography variant="h6" sx={{ fontWeight: 600, textAlign: "center", mb: 1 }}>
                     {product.title}
                   </Typography>
 
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    sx={{
-                      py: 2,
-                      fontSize: "1rem",
-                      bgcolor: theme.palette.primary.main,
-                      color: theme.palette.background.main,
-                      boxShadow: `0 0 10px ${theme.palette.primary.main}`,
-                    }}
-                  >
+                  <Button variant="contained" fullWidth size="large" sx={{ py: 2 }}>
                     View Product
                   </Button>
                 </NeumorphicCard>
@@ -371,48 +267,67 @@ const LandingPage = () => {
         </Grid>
       </Container>
 
+      {/* Feature Cards */}
+      <Container maxWidth={false} sx={{ position: "relative", zIndex: 2, py: { xs: 6, md: 10 }, px: { xs: 2, sm: 4, md: 8 } }}>
+        <Grid container spacing={6} justifyContent="center">
+          {Object.keys(routeMap).map((title) => (
+            <Grid item xs={12} sm={6} md={4} key={title}>
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                <NeumorphicCard
+                  onClick={() => history.push(routeMap[title])}
+                  sx={{
+                    height: 220,
+                    px: 4,
+                    py: 4,
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  {iconMap[title]}
+                  <Typography variant="h5" sx={{ mt: 2 }}>
+                    {title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                    {title === "Browse Beats"
+                      ? "Exclusive beats across genres. Preview instantly."
+                      : title === "Meet the Creator"
+                      ? "Learn about the artist and vision."
+                      : "Explore licensing options."}
+                  </Typography>
+                </NeumorphicCard>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
       {/* Testimonials */}
-      <Container sx={{ py: 10 }}>
-        <Typography variant="h3" textAlign="center" gutterBottom>
+      <Container sx={{ py: { xs: 6, md: 10 }, px: { xs: 2, sm: 4, md: 8 } }}>
+        <Typography variant="h3" textAlign="center" gutterBottom sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
           Trusted by Creators Worldwide
         </Typography>
-        <Grid container spacing={4} justifyContent="center" columns={12}>
+        <Grid container spacing={4} justifyContent="center">
           {testimonials.map(({ name, quote, videoUrl }, index) => (
-            <Grid xs={12} md={8} key={index}>
+            <Grid item xs={12} md={8} key={index}>
               <NeumorphicCard sx={{ p: 4 }}>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 1,
-                    textAlign: "center",
-                    color: theme.palette.primary.main,
-                  }}
-                >
+                <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1, textAlign: "center" }}>
                   {name}
                 </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    mb: 2,
-                    fontStyle: "italic",
-                    textAlign: "center",
-                    color: theme.palette.text.secondary,
-                  }}
-                >
+                <Typography variant="body1" sx={{ mb: 2, fontStyle: "italic", textAlign: "center" }}>
                   "{quote}"
                 </Typography>
                 {videoUrl && (
                   <Box sx={{ mt: 2, borderRadius: 2, overflow: "hidden" }}>
                     <iframe
-                      width="100%"
-                      height="360"
                       src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?rel=0&controls=1`}
                       title={`Testimonial video by ${name}`}
-                      frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      style={{ borderRadius: "12px" }}
+                      style={{ width: "100%", aspectRatio: "16/9", borderRadius: "12px" }}
                     />
                   </Box>
                 )}
@@ -423,7 +338,7 @@ const LandingPage = () => {
       </Container>
 
       {/* Final CTA */}
-      <Box sx={{ py: 10, textAlign: "center", borderTop: "1px solid #222" }}>
+      <Box sx={{ py: { xs: 6, md: 10 }, textAlign: "center", borderTop: "1px solid #222" }}>
         <Typography variant="h5" gutterBottom>
           Ready 2 Work?
         </Typography>
@@ -435,7 +350,7 @@ const LandingPage = () => {
         </Button>
       </Box>
 
-      {/* Fixed CTA */}
+      {/* Floating CTA */}
       <Box
         sx={{
           position: "fixed",
@@ -456,17 +371,7 @@ const LandingPage = () => {
         <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
           Let’s make something great
         </Typography>
-        <Button
-          size="small"
-          variant="contained"
-          sx={{
-            bgcolor: theme.palette.primary.main,
-            color: theme.palette.background.default,
-            textTransform: "none",
-            boxShadow: `0 0 8px ${theme.palette.primary.main}`,
-          }}
-          onClick={() => history.push("/products")}
-        >
+        <Button size="small" variant="contained" onClick={() => history.push("/products")}>
           Explore Beats
         </Button>
       </Box>
