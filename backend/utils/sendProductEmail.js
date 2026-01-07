@@ -63,11 +63,11 @@ async function sendProductEmail(email, fileKeys = []) {
     });
 
     await transporter.sendMail({
-      from: `"Your Store" <${process.env.EMAIL_USERNAME}>`,
+      from: `"doomsprod" <${process.env.EMAIL_USERNAME}>`,
       to: email,
       subject: "🎧 Your Download is Ready!",
       html: `
-        <p>Thank you for your purchase! Here are your download links:</p>
+        <p>Thank you for your purchase! Send me back finished products! Here are your download links:</p>
         <ul>
           ${downloadLinks.map(link => `<li><a href="${link}">${link}</a></li>`).join("")}
         </ul>

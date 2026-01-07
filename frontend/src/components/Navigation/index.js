@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { NavLink, useHistory } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -10,9 +10,9 @@ import {
   IconButton,
   InputBase,
   Badge,
-  alpha,
   Menu,
   MenuItem,
+  Avatar,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
@@ -21,10 +21,15 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import MenuIcon from '@mui/icons-material/Menu';
 
 import { logout } from '../../store/session';
-import ProfileButton from './ProfileButton';
 import OpenModalMenuItem from '../Navigation/OpenModalMenuItem';
 import SignUpFormModal from '../SignUpFormModal';
 import LoginFormModal from '../LoginFormModal';
+
+const NAV_LINKS = [
+  { path: '/products', label: 'Products' },
+  { path: '/about', label: 'About' },
+  { path: '/licenses', label: 'Licenses' },
+];
 
 function Navigation({ isLoaded }) {
   const dispatch = useDispatch();
@@ -33,7 +38,8 @@ function Navigation({ isLoaded }) {
 
   const sessionUser = useSelector((state) => state.session.user);
   const cartItems = useSelector((state) => state.cartItems.allItems || {});
-  const cartCount = Object.keys(cartItems).length;
+
+  const cartCount = useMemo(() => Object.keys(cartItems).length, [cartItems]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -44,30 +50,37 @@ function Navigation({ isLoaded }) {
     if (showSearch) {
       const timeout = setTimeout(() => {
         document.querySelector('input[placeholder="Search…"]')?.focus();
-      }, 150);
+      }, 100);
       return () => clearTimeout(timeout);
     }
   }, [showSearch]);
 
-  const onSearchSubmit = (e) => {
+  const onSearchSubmit = useCallback((e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       history.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
       setShowSearch(false);
+      setSearchTerm('');
     }
-  };
+  }, [searchTerm, history]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch(logout());
     history.push('/');
-  };
+  }, [dispatch, history]);
 
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
-  const handleNav = (path) => {
+  const handleMenuOpen = useCallback((event) => {
+    setAnchorEl(event.currentTarget);
+  }, []);
+
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
+
+  const handleNav = useCallback((path) => {
     history.push(path);
     handleMenuClose();
-  };
+  }, [history, handleMenuClose]);
 
   return (
     <>
@@ -76,114 +89,69 @@ function Navigation({ isLoaded }) {
         color="transparent"
         elevation={0}
         sx={{
-          backdropFilter: 'blur(6px)',
-          backgroundColor: alpha(theme.palette.background.paper, 0.85),
-          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
-          zIndex: theme.zIndex.drawer + 1,
-          position: 'relative',
+          backgroundColor: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        {/* Subtle static glow blobs */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '-20%',
-            left: '-10%',
-            width: 200,
-            height: 200,
-            background: `radial-gradient(circle, ${alpha(theme.palette.primary.main, 0.08)} 0%, transparent 70%)`,
-            borderRadius: '50%',
-            filter: 'blur(50px)',
-            willChange: 'transform, opacity',
-            zIndex: 0,
-            display: { xs: 'none', md: 'block' },
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '-30%',
-            right: '-10%',
-            width: 240,
-            height: 240,
-            background: `radial-gradient(circle, ${alpha(theme.palette.secondary.main, 0.06)} 0%, transparent 70%)`,
-            borderRadius: '50%',
-            filter: 'blur(50px)',
-            willChange: 'transform, opacity',
-            zIndex: 0,
-            display: { xs: 'none', md: 'block' },
-          }}
-        />
-
         <Toolbar
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             px: { xs: 2, md: 4 },
-            py: 0.5,
-            minHeight: 56,
-            position: 'relative',
-            zIndex: 1,
+            minHeight: { xs: 56, sm: 64 },
           }}
         >
           {/* Logo */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <Box
+            onClick={() => history.push('/')}
+            sx={{
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.7 },
+            }}
+          >
             <Typography
-              variant="h5"
-              onClick={() => history.push('/')}
+              variant="h6"
               sx={{
-                fontWeight: 800,
-                fontSize: '1.9rem',
-                letterSpacing: 1.5,
+                fontWeight: 600,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
                 color: theme.palette.text.primary,
-                cursor: 'pointer',
-                '&:hover': { color: theme.palette.primary.light },
-                transition: 'color 0.15s ease',
+                userSelect: 'none',
               }}
             >
               doomsprod
             </Typography>
           </Box>
 
-          {/* Nav Links */}
+          {/* Desktop Nav Links */}
           <Box
             sx={{
               display: { xs: 'none', md: 'flex' },
-              gap: 2,
-              flexGrow: 2,
-              justifyContent: 'center',
-
+              gap: 0.5,
+              alignItems: 'center',
             }}
           >
-            {[
-              { path: '/products', label: 'Products' },
-              { path: '/about', label: 'About' },
-              { path: '/licenses', label: 'Licenses' },
-            ].map(({ path, label }) => (
+            {NAV_LINKS.map(({ path, label }) => (
               <Button
                 key={path}
                 component={NavLink}
                 to={path}
                 variant="text"
-                color="inherit"
                 sx={{
-                  fontWeight: 900,
-                  fontSize: '1.5rem',
-                  color: theme.palette.text.primary,
-                  position: 'relative',
+                  fontWeight: 500,
+                  fontSize: '0.9rem',
+                  color: theme.palette.text.secondary,
                   textTransform: 'none',
-                  padding: '6px 12px',
-                  borderRadius: '12px',
-                  transition: 'all 0.2s ease',
-                  '&:hover::after': {
-                    opacity: 1,
+                  px: 2,
+                  py: 1,
+                  minWidth: 'auto',
+                  '&:hover': {
+                    color: theme.palette.text.primary,
+                    backgroundColor: 'transparent',
                   },
                   '&.active': {
-                    color: theme.palette.primary.light,
-                    '&::after': {
-                      opacity: 1,
-                    },
+                    color: theme.palette.text.primary,
+                    fontWeight: 600,
                   },
                 }}
               >
@@ -192,8 +160,8 @@ function Navigation({ isLoaded }) {
             ))}
           </Box>
 
-          {/* Right Side */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, flexShrink: 0 }}>
+          {/* Right Side Actions */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             {/* Search */}
             {showSearch ? (
               <Box
@@ -202,90 +170,198 @@ function Navigation({ isLoaded }) {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  borderRadius: 20,
-                  backgroundColor: alpha(theme.palette.common.white, 0.12),
-                  px: 1.5,
-                  py: 0.4,
-                  width: { xs: 150, sm: 200 },
-                  transition: 'width 0.3s ease',
+                  borderRadius: 1,
+                  border: `1px solid ${theme.palette.divider}`,
+                  px: 0,
+                  py: 0,
+                  width: { xs: 160, sm: 220 },
+                  backgroundColor: theme.palette.background.default,
                 }}
               >
                 <InputBase
                   placeholder="Search…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  autoFocus
                   sx={{
-                    ml: 1,
                     flex: 1,
-                    fontSize: '0.9rem',
+                    fontSize: '0.875rem',
                     color: theme.palette.text.primary,
-                    pr: 1,
                   }}
                 />
                 <IconButton
-                  onClick={() => setShowSearch(false)}
-                  sx={{
-                    p: 0.5,
-                    color: theme.palette.primary.main,
-                  }}
+                  type="submit"
+                  size="small"
+                  sx={{ p: 0.5, color: theme.palette.text.secondary }}
                 >
-                  <SearchIcon />
+                  <SearchIcon fontSize="small" />
                 </IconButton>
               </Box>
             ) : (
               <IconButton
                 onClick={() => setShowSearch(true)}
+                size="small"
                 sx={{
-                  ml: 1,
-                  color: theme.palette.primary.main,
+                  color: theme.palette.text.secondary,
+                  '&:hover': { color: theme.palette.text.primary },
                 }}
+                aria-label="search"
               >
-                <SearchIcon />
+                <SearchIcon fontSize="small" />
               </IconButton>
             )}
 
             {/* Cart */}
-            <NavLink to="/cart" style={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton sx={{ color: theme.palette.primary.main }} aria-label="cart">
-                <Badge badgeContent={cartCount} color="secondary" invisible={cartCount === 0}>
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
-            </NavLink>
+            <IconButton
+              component={NavLink}
+              to="/cart"
+              size="small"
+              sx={{
+                color: theme.palette.text.secondary,
+                '&:hover': { color: theme.palette.text.primary },
+              }}
+              aria-label="cart"
+            >
+              <Badge
+                badgeContent={cartCount}
+                color="primary"
+                invisible={cartCount === 0}
+                sx={{
+                  '& .MuiBadge-badge': {
+                    fontSize: '0.65rem',
+                    height: 16,
+                    minWidth: 16,
+                  },
+                }}
+              >
+                <ShoppingCartIcon fontSize="small" />
+              </Badge>
+            </IconButton>
 
-            {/* Auth */}
-            {isLoaded && sessionUser ? (
-              <>
-                <ProfileButton user={sessionUser} />
-                <Button
-                  onClick={handleLogout}
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    px: 2,
-                    py: 0.6,
-                    textTransform: 'none',
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                    borderRadius: 20,
-                    color: theme.palette.common.white,
-                  }}
-                >
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <OpenModalMenuItem itemText="Log In" modalComponent={<LoginFormModal />} />
-                <OpenModalMenuItem itemText="Sign Up" modalComponent={<SignUpFormModal />} />
-              </>
+            {/* Auth Buttons - Desktop */}
+            {isLoaded && (
+              <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, ml: 1 }}>
+                {sessionUser ? (
+                  <>
+                    <Button
+                      variant="text"
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '0.875rem',
+                        px: 1.5,
+                        py: 0.5,
+                        textTransform: 'none',
+                        color: theme.palette.text.secondary,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        minWidth: 'auto',
+                        '&:hover': {
+                          color: theme.palette.text.primary,
+                          backgroundColor: 'transparent',
+                        },
+                      }}
+                    >
+                      <Avatar
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          fontSize: '0.75rem',
+                          backgroundColor: theme.palette.grey[300],
+                          color: theme.palette.grey[700],
+                        }}
+                      >
+                        {sessionUser.username?.[0]?.toUpperCase() || 'U'}
+                      </Avatar>
+                      <Box
+                        component="span"
+                        sx={{
+                          maxWidth: 100,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {sessionUser.username}
+                      </Box>
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      variant="text"
+                      size="small"
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '0.875rem',
+                        px: 1.5,
+                        py: 0.5,
+                        textTransform: 'none',
+                        color: theme.palette.text.secondary,
+                        minWidth: 'auto',
+                        '&:hover': {
+                          color: theme.palette.text.primary,
+                          backgroundColor: 'transparent',
+                        },
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <OpenModalMenuItem
+                      itemText="Log In"
+                      modalComponent={<LoginFormModal />}
+                      buttonProps={{
+                        variant: 'text',
+                        size: 'small',
+                        sx: {
+                          fontWeight: 500,
+                          fontSize: '0.875rem',
+                          px: 1.5,
+                          py: 0.5,
+                          textTransform: 'none',
+                          color: theme.palette.text.secondary,
+                          minWidth: 'auto',
+                          '&:hover': {
+                            color: theme.palette.text.primary,
+                            backgroundColor: 'transparent',
+                          },
+                        },
+                      }}
+                    />
+                    <OpenModalMenuItem
+                      itemText="Sign Up"
+                      modalComponent={<SignUpFormModal />}
+                      buttonProps={{
+                        variant: 'contained',
+                        size: 'small',
+                        sx: {
+                          fontWeight: 500,
+                          fontSize: '0.875rem',
+                          px: 2,
+                          py: 0.5,
+                          textTransform: 'none',
+                          boxShadow: 'none',
+                          '&:hover': { boxShadow: 'none' },
+                        },
+                      }}
+                    />
+                  </>
+                )}
+              </Box>
             )}
 
-            {/* Hamburger Menu */}
+            {/* Mobile Menu Icon */}
             <IconButton
               edge="end"
               onClick={handleMenuOpen}
-              sx={{ display: { xs: 'flex', md: 'none' }, color: theme.palette.text.primary }}
-              aria-label="open menu"
+              size="small"
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                ml: 0.5,
+                color: theme.palette.text.secondary,
+              }}
+              aria-label="menu"
             >
               <MenuIcon />
             </IconButton>
@@ -293,35 +369,74 @@ function Navigation({ isLoaded }) {
         </Toolbar>
       </AppBar>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile Menu */}
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleMenuClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{
           sx: {
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderRadius: 1,
+            mt: 1,
+            minWidth: 160,
+            boxShadow: theme.shadows[2],
           },
         }}
       >
-        <MenuItem onClick={() => handleNav('/products')}>Products</MenuItem>
-        <MenuItem onClick={() => handleNav('/about')}>About</MenuItem>
-        <MenuItem onClick={() => handleNav('/licenses')}>Licenses</MenuItem>
-        <MenuItem onClick={() => handleNav('/cart')}>Cart</MenuItem>
-        {isLoaded && sessionUser ? (
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
-        ) : (
+        {NAV_LINKS.map(({ path, label }) => (
+          <MenuItem
+            key={path}
+            onClick={() => handleNav(path)}
+            sx={{
+              py: 1,
+              px: 2,
+              fontSize: '0.875rem',
+            }}
+          >
+            {label}
+          </MenuItem>
+        ))}
+        <MenuItem
+          onClick={() => handleNav('/cart')}
+          sx={{
+            py: 1,
+            px: 2,
+            fontSize: '0.875rem',
+          }}
+        >
+          Cart {cartCount > 0 && `(${cartCount})`}
+        </MenuItem>
+
+        {isLoaded && (
           <>
-            <MenuItem>
-              <OpenModalMenuItem itemText="Log In" modalComponent={<LoginFormModal />} />
-            </MenuItem>
-            <MenuItem>
-              <OpenModalMenuItem itemText="Sign Up" modalComponent={<SignUpFormModal />} />
-            </MenuItem>
+            {sessionUser ? (
+              <MenuItem
+                onClick={handleLogout}
+                sx={{
+                  py: 1,
+                  px: 2,
+                  fontSize: '0.875rem',
+                }}
+              >
+                Logout
+              </MenuItem>
+            ) : (
+              <>
+                <MenuItem sx={{ py: 1, px: 2 }}>
+                  <OpenModalMenuItem
+                    itemText="Log In"
+                    modalComponent={<LoginFormModal />}
+                  />
+                </MenuItem>
+                <MenuItem sx={{ py: 1, px: 2 }}>
+                  <OpenModalMenuItem
+                    itemText="Sign Up"
+                    modalComponent={<SignUpFormModal />}
+                  />
+                </MenuItem>
+              </>
+            )}
           </>
         )}
       </Menu>

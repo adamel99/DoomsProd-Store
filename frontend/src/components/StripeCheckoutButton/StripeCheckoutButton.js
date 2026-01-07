@@ -15,7 +15,32 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
 
       await csrfFetch("/api/csrf/restore");
 
-      console.log("Sending cartItems to create-session:", cartItems);
+      // Calculate total
+      const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+
+      // If free, use free checkout endpoint
+      if (total === 0) {
+        console.log("🆓 Processing free checkout");
+
+        const response = await csrfFetch("/api/payment/free-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cartItems }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert("✅ Download links have been sent to your email!");
+          window.location.href = "/checkout-success";
+        } else {
+          throw new Error(data.message || "Free checkout failed");
+        }
+        return;
+      }
+
+      // Otherwise, use Stripe for paid items
+      console.log("💳 Processing paid checkout with Stripe");
 
       const response = await csrfFetch("/api/payment/create-session", {
         method: "POST",
@@ -29,10 +54,12 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
       const stripe = await stripePromise;
       await stripe.redirectToCheckout({ sessionId: data.sessionId });
     } catch (err) {
-      console.error("❌ Stripe Checkout failed:", err);
+      console.error("❌ Checkout failed:", err);
       alert("Something went wrong. Please try again.");
     }
   };
+
+  const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
   return (
     <button
@@ -49,7 +76,7 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
         boxShadow: "0 4px 12px rgba(255, 64, 129, 0.3)",
       }}
     >
-      Pay with Stripe
+      {total === 0 ? "Get Free Download" : "Pay with Stripe"}
     </button>
   );
 };
