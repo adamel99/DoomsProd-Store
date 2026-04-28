@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const { requireAuth } = require('../../utils/auth');
-const { sendProductEmail } = require('../../utils/sendProduct');
+const { sendProductEmail } = require('../../utils/sendProductEmail');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
