@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const { requireAuth } = require('../../utils/auth');
-const { sendProductEmail } = require('../../utils/sendProductEmail');
+const { sendProductEmail, getSignedFileUrl } = require('../../utils/sendProductEmail');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -15,7 +15,6 @@ router.post('/create-session', async (req, res, next) => {
       return res.status(400).json({ message: 'Cart is empty.' });
     }
 
-    // Optional: use requireAuth if you want to enforce login
     let userId = null;
     let userEmail = null;
 
@@ -29,7 +28,6 @@ router.post('/create-session', async (req, res, next) => {
       console.warn("⚠️ User not authenticated, proceeding without user info.");
     }
 
-    // Extract file keys from downloadUrls - handle multiple encoding scenarios
     const allFileKeys = cartItems.flatMap(item => {
       let downloadUrls = [];
 
@@ -38,36 +36,29 @@ router.post('/create-session', async (req, res, next) => {
       console.log("📦 Type:", typeof item.downloadUrls);
 
       try {
-        // Handle if it's already an array
         if (Array.isArray(item.downloadUrls)) {
           downloadUrls = item.downloadUrls;
-        }
-        // Handle if it's a JSON string
-        else if (typeof item.downloadUrls === 'string') {
+        } else if (typeof item.downloadUrls === 'string') {
           downloadUrls = JSON.parse(item.downloadUrls);
         }
-
         console.log("✅ Parsed downloadUrls:", downloadUrls);
       } catch (err) {
         console.error('⚠️ Failed to parse downloadUrls:', err);
         return [];
       }
 
-      // Extract S3 keys from URL objects or strings
       return downloadUrls.map(urlObj => {
-        // Handle if it's already just a string key
         if (typeof urlObj === 'string' && !urlObj.startsWith('http')) {
           console.log("✅ Direct key:", urlObj);
           return urlObj;
         }
 
-        // Handle URL objects with .url property
         const urlString = urlObj?.url || urlObj;
         if (!urlString) return null;
 
         try {
           const url = new URL(urlString);
-          const rawKey = url.pathname.slice(1); // Remove leading "/"
+          const rawKey = url.pathname.slice(1);
           const decodedKey = decodeURIComponent(rawKey.replace(/\+/g, ' '));
           console.log("✅ Extracted key from URL:", decodedKey);
           return decodedKey;
@@ -102,7 +93,6 @@ router.post('/create-session', async (req, res, next) => {
       cancel_url: `${process.env.FRONTEND_URL}/checkout-cancel`,
       metadata: {
         userId: userId || 'guest',
-        // ✅ Store as simple comma-separated string
         fileKeys: allFileKeys.join(','),
       },
       customer_email: userEmail || undefined,
@@ -130,14 +120,12 @@ router.post('/free-checkout', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Cart is empty.' });
     }
 
-    // Check if all items are free
     const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
     if (total > 0) {
       return res.status(400).json({ message: 'This endpoint is only for free items.' });
     }
 
-    // Extract file keys
     const allFileKeys = cartItems.flatMap(item => {
       let downloadUrls = [];
 
@@ -153,17 +141,14 @@ router.post('/free-checkout', requireAuth, async (req, res) => {
       }
 
       return downloadUrls.map(urlObj => {
-        // If it's already a key string
         if (typeof urlObj === 'string' && !urlObj.startsWith('http')) {
           return urlObj;
         }
 
-        // If it has a key property, use that
         if (urlObj?.key) {
           return urlObj.key;
         }
 
-        // Extract from URL
         const urlString = urlObj?.url || urlObj;
         if (!urlString) return null;
 
@@ -184,14 +169,28 @@ router.post('/free-checkout', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'No downloadable files found.' });
     }
 
-    // Send email immediately
-    await sendProductEmail(userEmail, allFileKeys);
+    // Generate signed URLs for the success page
+    const signedUrls = await Promise.all(
+      allFileKeys.map(async (key) => {
+        try {
+          const url = await getSignedFileUrl(key);
+          console.log(`✅ Signed URL for: ${key}`);
+          return url;
+        } catch (err) {
+          console.error('Failed to sign URL:', key, err);
+          return null;
+        }
+      })
+    );
 
+    // Send email with the file keys
+    await sendProductEmail(userEmail, allFileKeys);
     console.log("✅ Free product email sent to:", userEmail);
 
     return res.json({
       success: true,
-      message: 'Download links sent to your email!'
+      message: 'Download links sent to your email!',
+      downloadLinks: signedUrls.filter(Boolean),
     });
 
   } catch (error) {

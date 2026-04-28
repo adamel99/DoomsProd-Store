@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { getSignedFileUrl } = require('../../utils/sendProduct');
+const { getSignedFileUrl } = require('../../utils/sendProductEmail');
 
 function isValidSessionId(id) {
   return typeof id === 'string' && id.startsWith('cs_');
