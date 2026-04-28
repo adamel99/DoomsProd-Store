@@ -29,7 +29,7 @@ router.get('/', async (req, res, next) => {
     const productsWithLicenses = products.map((product) => {
       const productJson = product.toJSON();
       if (productJson.type === 'beat') {
-        productJson.price = basicLicense.price;
+        // productJson.price = basicLicense.price;
         productJson.licenses = licenses;
       }
       return productJson;
@@ -75,8 +75,8 @@ router.post(
       const allowedTypes = ['beat', 'loop_kit', 'drum_kit'];
 
       if (!title || !allowedTypes.includes(normalizedType)) return res.status(400).json({ message: 'Invalid product type or title missing.' });
-      if (normalizedType === 'beat' && price !== undefined) return res.status(400).json({ message: 'Beats must not have fixed prices.' });
-      if ((normalizedType === 'loop_kit' || normalizedType === 'drum_kit') && (price === null || price === undefined)) return res.status(400).json({ message: 'Loop kits and drum kits must have a price.' });
+      // if (normalizedType === 'beat' && price !== undefined) return res.status(400).json({ message: 'Beats must not have fixed prices.' });
+      // if ((normalizedType === 'loop_kit' || normalizedType === 'drum_kit') && (price === null || price === undefined)) return res.status(400).json({ message: 'Loop kits and drum kits must have a price.' });
 
       const imageUrl = req.files?.image?.[0]?.location || null;
       const downloadUrls = [];
@@ -110,7 +110,7 @@ router.post(
         type: normalizedType,
         youtubeLink: youtubeLink || null,
         audioPreviewUrl: audioPreviewUrl || null,
-        price: price || null,
+        price: null,
         imageUrl,
         downloadUrls: downloadUrls.length > 0 ? downloadUrls : null,
       });
@@ -145,14 +145,14 @@ router.put(
 
       if (!allowedTypes.includes(normalizedType)) return res.status(400).json({ message: 'Invalid product type.' });
       if (normalizedType === 'beat' && price !== undefined && price !== null) return res.status(400).json({ message: 'Beats should not have fixed prices.' });
-      if ((normalizedType === 'loop_kit' || normalizedType === 'drum_kit') && (price === null || price === undefined)) return res.status(400).json({ message: 'Loop kits and drum kits must have a price.' });
+      // if ((normalizedType === 'loop_kit' || normalizedType === 'drum_kit') && (price === null || price === undefined)) return res.status(400).json({ message: 'Loop kits and drum kits must have a price.' });
 
       if (title !== undefined) product.title = title;
       if (description !== undefined) product.description = description;
       if (type !== undefined) product.type = normalizedType;
       if (youtubeLink !== undefined) product.youtubeLink = youtubeLink;
       if (audioPreviewUrl !== undefined) product.audioPreviewUrl = audioPreviewUrl;
-      if (price !== undefined) product.price = price;
+      // if (price !== undefined) product.price = price;
       if (req.files?.image?.[0]) product.imageUrl = req.files.image[0].location;
 
       const downloadUrls = [];

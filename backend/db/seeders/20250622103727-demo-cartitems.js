@@ -8,24 +8,31 @@ options.tableName = 'CartItems';
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Use correct schema (production or public)
-    const schema = options.schema ? `"${options.schema}"` : 'public';
+    const isProduction = process.env.NODE_ENV === 'production';
 
     const [users, carts, products, licenses] = await Promise.all([
       queryInterface.sequelize.query(
-        `SELECT id FROM ${schema}."Users" LIMIT 1;`,
+        isProduction
+          ? `SELECT id FROM "${options.schema}"."Users" LIMIT 1;`
+          : `SELECT id FROM "Users" LIMIT 1;`,
         { type: Sequelize.QueryTypes.SELECT }
       ),
       queryInterface.sequelize.query(
-        `SELECT id FROM ${schema}."Carts" LIMIT 1;`,
+        isProduction
+          ? `SELECT id FROM "${options.schema}"."Carts" LIMIT 1;`
+          : `SELECT id FROM "Carts" LIMIT 1;`,
         { type: Sequelize.QueryTypes.SELECT }
       ),
       queryInterface.sequelize.query(
-        `SELECT id FROM ${schema}."Products" ORDER BY id ASC LIMIT 3;`,
+        isProduction
+          ? `SELECT id FROM "${options.schema}"."Products" ORDER BY id ASC LIMIT 3;`
+          : `SELECT id FROM "Products" ORDER BY id ASC LIMIT 3;`,
         { type: Sequelize.QueryTypes.SELECT }
       ),
       queryInterface.sequelize.query(
-        `SELECT id FROM ${schema}."Licenses" LIMIT 1;`,
+        isProduction
+          ? `SELECT id FROM "${options.schema}"."Licenses" LIMIT 1;`
+          : `SELECT id FROM "Licenses" LIMIT 1;`,
         { type: Sequelize.QueryTypes.SELECT }
       ),
     ]);

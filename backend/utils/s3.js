@@ -39,11 +39,15 @@ const upload = multer({
       "image/png",
       "image/webp",
       "image/jpg",
-      "audio/mpeg",           // mp3
-      "audio/wav",            // wav
-      "application/zip",      // zip
-      "application/x-zip-compressed",
-      "application/octet-stream", // sometimes zip
+      "audio/mpeg",                    // mp3
+      "audio/wav",                     // wav
+      "audio/wave",                    // wav (some browsers)
+      "audio/x-wav",                   // wav (some browsers)
+      "audio/vnd.wave",                // wav (some browsers)
+      "application/zip",               // zip
+      "application/x-zip-compressed",  // zip
+      "application/octet-stream",      // zip/wav fallback
+      "application/x-zip",             // zip (some browsers)
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
