@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 const routes = require('./routes');
 const { environment } = require('./config');
 const isProduction = environment === 'production';
@@ -58,9 +59,14 @@ app.use('/api', routes);
 
 // Serve frontend in production
 if (isProduction) {
-  app.use(express.static(path.resolve(__dirname, '../frontend/build')));
+  const staticPath = path.resolve(__dirname, '../frontend/build');
+  console.log('📁 Static path:', staticPath);
+  console.log('✅ index.html exists:', fs.existsSync(path.join(staticPath, 'index.html')));
+  console.log('📂 Build folder contents:', fs.existsSync(staticPath) ? fs.readdirSync(staticPath) : 'FOLDER NOT FOUND');
+
+  app.use(express.static(staticPath));
   app.get(/^(?!\/api).*/, (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
+    res.sendFile(path.join(staticPath, 'index.html'));
   });
 }
 
