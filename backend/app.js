@@ -6,10 +6,10 @@ const csurf = require('csurf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const path = require('path');
 const routes = require('./routes');
 const { environment } = require('./config');
 const isProduction = environment === 'production';
-
 const app = express();
 
 app.use(morgan('dev'));
@@ -56,6 +56,14 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api', routes);
 
+// Serve frontend in production
+if (isProduction) {
+  app.use(express.static(path.resolve(__dirname, '../frontend/build')));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../frontend/build', 'index.html'));
+  });
+}
+
 // Error handling
 app.use((_req, _res, next) => {
   const err = new Error("The requested resource couldn't be found.");
@@ -66,7 +74,6 @@ app.use((_req, _res, next) => {
 });
 
 const { ValidationError } = require('sequelize');
-
 app.use((err, _req, _res, next) => {
   if (err instanceof ValidationError) {
     let errors = {};
