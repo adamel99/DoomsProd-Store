@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use(routes);
+app.use('/api', routes);
 
 // Error handling
 app.use((_req, _res, next) => {
