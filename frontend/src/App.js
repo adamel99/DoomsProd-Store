@@ -32,7 +32,9 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    dispatch(restoreUser()).then(() => setIsLoaded(true));
+    dispatch(restoreUser())
+      .then(() => setIsLoaded(true))
+      .catch(() => setIsLoaded(true)); // ← add this
   }, [dispatch]);
 
   return (
