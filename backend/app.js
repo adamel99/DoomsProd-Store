@@ -42,20 +42,23 @@ app.use(
   })
 );
 
+// Create csurf instance ONCE
+const csrfProtection = csurf({
+  cookie: {
+    secure: isProduction,
+    sameSite: isProduction && 'Lax',
+    httpOnly: true,
+  },
+  value: (req) =>
+    req.headers['xsrf-token'] ||
+    req.headers['XSRF-TOKEN'] ||
+    req.headers['x-xsrf-token'],
+});
+
 // CSRF
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/webhook') return next();
-  csurf({
-    cookie: {
-      secure: isProduction,
-      sameSite: isProduction && 'Lax',
-      httpOnly: true,
-    },
-    value: (req) =>
-      req.headers['xsrf-token'] ||
-      req.headers['XSRF-TOKEN'] ||
-      req.headers['x-xsrf-token'],
-  })(req, res, next);
+  csrfProtection(req, res, next);
 });
 
 // Routes
@@ -67,7 +70,6 @@ if (isProduction) {
   console.log('📁 Static path:', staticPath);
   console.log('✅ index.html exists:', fs.existsSync(path.join(staticPath, 'index.html')));
   console.log('📂 Build folder contents:', fs.existsSync(staticPath) ? fs.readdirSync(staticPath) : 'FOLDER NOT FOUND');
-
   app.use(express.static(staticPath));
   app.get(/^(?!\/api).*/, (req, res) => {
     res.sendFile(path.join(staticPath, 'index.html'));
