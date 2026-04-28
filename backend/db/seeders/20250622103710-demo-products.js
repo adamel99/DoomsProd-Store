@@ -1,18 +1,14 @@
 'use strict';
-
 const bcrypt = require("bcryptjs");
 let options = {};
 if (process.env.NODE_ENV === "production") {
   options.schema = process.env.SCHEMA;
 }
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     options.tableName = "Products";
-
     return queryInterface.bulkInsert(options, [
       {
-        id: 1,
         userId: 1,
         title: 'Rylo Rodriguez x NoCap Type Beat ~ "Breath"',
         description: 'Emotional Sample Rylo Rodriguez x NoCap Type Beat',
@@ -30,7 +26,6 @@ module.exports = {
         }),
       },
       {
-        id: 2,
         userId: 1,
         title: 'Rylo Rodriguez x NoCap Type Beat ~ "Time"',
         description: 'Emotional Sample Rylo Rodriguez x NoCap Type Beat',
@@ -43,12 +38,11 @@ module.exports = {
         imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg',
         downloadUrls: JSON.stringify({
           zip: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.zip',
-          mp3: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.mp3' ,
-          wav: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.wav' ,
+          mp3: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.mp3',
+          wav: 'https://your-s3-bucket.s3.amazonaws.com/time-pack.wav',
         }),
       },
       {
-        id: 3,
         userId: 1,
         title: 'Rylo Rodriguez x NoCap Type Beat ~ "Hit My Line"',
         description: 'Emotional Sample Rylo Rodriguez x NoCap Type Beat',
@@ -60,20 +54,15 @@ module.exports = {
         updatedAt: new Date(),
         imageUrl: 'https://doomsstoreimguploads.s3.us-east-2.amazonaws.com/products/1751136160606-e6910571f74131164b7261ff02e2d7a3.jpg',
         downloadUrls: JSON.stringify({
-          zip: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.zip' ,
-          mp3: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.mp3' ,
-          wav: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.wav' ,
+          zip: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.zip',
+          mp3: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.mp3',
+          wav: 'https://your-s3-bucket.s3.amazonaws.com/hitmyline-pack.wav',
         }),
       },
     ]);
   },
-
   down: async (queryInterface, Sequelize) => {
     options.tableName = "Products";
-    const Op = Sequelize.Op;
-
-    return queryInterface.bulkDelete(options, {
-      id: { [Op.in]: [1, 2, 3] },
-    }, {});
+    return queryInterface.bulkDelete(options, null, {});
   },
 };
