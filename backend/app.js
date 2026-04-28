@@ -61,6 +61,12 @@ app.use((req, res, next) => {
   csrfProtection(req, res, next);
 });
 
+// CSRF restore route (production)
+app.get('/api/csrf/restore', (req, res) => {
+  res.cookie('XSRF-TOKEN', req.csrfToken());
+  res.status(201).json({});
+});
+
 // Routes
 app.use('/api', routes);
 
