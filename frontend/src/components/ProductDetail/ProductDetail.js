@@ -4,7 +4,6 @@ import {
   Typography,
   Container,
   Grid,
-  Paper,
   Button,
   Divider,
   FormControl,
@@ -14,11 +13,8 @@ import {
   useMediaQuery,
   IconButton,
   Chip,
-  Fade,
-  Breadcrumbs,
-  Link,
 } from "@mui/material";
-import { useTheme, alpha } from "@mui/material/styles";
+import { useTheme } from "@mui/material/styles";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,14 +26,116 @@ import PauseIcon from "@mui/icons-material/Pause";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import HomeIcon from "@mui/icons-material/Home";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const ADMIN_EMAIL = "adamelh1999@gmail.com";
 
+// ─── Shared primitives ──────────────────────────────────────────────────────
+
+const LiquidBackground = React.memo(() => (
+  <Box sx={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
+    <Box sx={{
+      position: "absolute", top: "-10vh", left: "-8vw",
+      width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
+      borderRadius: "50%",
+      background: "radial-gradient(circle at 40% 40%, rgba(228,63,111,0.2) 0%, rgba(192,45,90,0.08) 55%, transparent 72%)",
+      filter: "blur(70px)",
+      animation: "orbF1 22s ease-in-out infinite",
+      "@keyframes orbF1": {
+        "0%,100%": { transform: "translate(0,0) scale(1)" },
+        "50%": { transform: "translate(4vw, 5vh) scale(1.07)" },
+      },
+    }} />
+    <Box sx={{
+      position: "absolute", bottom: "0", right: "-10vw",
+      width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
+      borderRadius: "50%",
+      background: "radial-gradient(circle, rgba(150,20,60,0.15) 0%, transparent 70%)",
+      filter: "blur(80px)",
+      animation: "orbF2 30s ease-in-out infinite reverse",
+      "@keyframes orbF2": {
+        "0%,100%": { transform: "translate(0,0) scale(1)" },
+        "50%": { transform: "translate(-4vw, -5vh) scale(1.1)" },
+      },
+    }} />
+    <Box sx={{
+      position: "absolute", inset: 0, opacity: 0.022,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+      backgroundRepeat: "repeat", backgroundSize: "128px 128px",
+    }} />
+  </Box>
+));
+
+const GlassPanel = ({ children, sx = {}, ...rest }) => (
+  <Box
+    sx={{
+      background: "rgba(255,255,255,0.03)",
+      backdropFilter: "blur(28px)",
+      WebkitBackdropFilter: "blur(28px)",
+      border: "1px solid rgba(255,255,255,0.09)",
+      borderTop: "1px solid rgba(255,255,255,0.14)",
+      borderRadius: "28px",
+      boxShadow: [
+        "0 1px 0 rgba(255,255,255,0.07) inset",
+        "0 24px 64px rgba(0,0,0,0.6)",
+        "8px 8px 20px rgba(0,0,0,0.4)",
+        "-3px -3px 10px rgba(255,255,255,0.015)",
+      ].join(", "),
+      ...sx,
+    }}
+    {...rest}
+  >
+    {children}
+  </Box>
+);
+
+const NeumorphPanel = ({ children, sx = {} }) => (
+  <Box sx={{
+    background: "linear-gradient(145deg, #1c1419, #130f12)",
+    borderRadius: "24px",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderTop: "1px solid rgba(255,255,255,0.1)",
+    boxShadow: [
+      "6px 6px 20px rgba(0,0,0,0.7)",
+      "-3px -3px 10px rgba(255,255,255,0.025)",
+      "0 1px 0 rgba(255,255,255,0.07) inset",
+    ].join(", "),
+    ...sx,
+  }}>
+    {children}
+  </Box>
+);
+
+const LiquidOrb = ({ size = 60, color = "rgba(228,63,111,0.7)", sx = {} }) => (
+  <Box sx={{
+    width: size, height: size, borderRadius: "50%", flexShrink: 0,
+    background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25) 0%, ${color} 45%, rgba(0,0,0,0.4) 100%)`,
+    boxShadow: [
+      `0 ${size * 0.1}px ${size * 0.3}px rgba(0,0,0,0.55)`,
+      `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.15)`,
+    ].join(", "),
+    ...sx,
+  }} />
+);
+
+const WaveformBars = ({ count = 7 }) => (
+  <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }}>
+    {[...Array(count)].map((_, i) => (
+      <Box key={i} sx={{
+        width: 4, height: 28, bgcolor: "#E43F6F", borderRadius: "2px",
+        animation: `waveBar 0.8s ease-in-out ${i * 0.1}s infinite`,
+        "@keyframes waveBar": {
+          "0%,100%": { height: "12px", opacity: 0.6 },
+          "50%": { height: "32px", opacity: 1 },
+        },
+      }} />
+    ))}
+  </Box>
+);
+
+// ─── ProductDetailPage ───────────────────────────────────────────────────────
 const ProductDetailPage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -53,55 +151,35 @@ const ProductDetailPage = () => {
   const [addCartError, setAddCartError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
     dispatch(getSingleProductThunk(productId));
-    setIsVisible(true);
     window.scrollTo(0, 0);
   }, [dispatch, productId]);
 
   useEffect(() => {
-    if (product?.type === "beat") {
-      dispatch(getAllLicensesThunk());
-    }
+    if (product?.type === "beat") dispatch(getAllLicensesThunk());
   }, [dispatch, product]);
 
   if (!product) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: theme.palette.background.default,
-        }}
-      >
-        <Typography variant="h5" color="text.secondary">
-          Loading...
-        </Typography>
+      <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#0e0b0d" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <LiquidOrb size={32} color="rgba(228,63,111,0.7)" sx={{ animation: "pulse 1.5s ease-in-out infinite", "@keyframes pulse": { "0%,100%": { opacity: 0.6, transform: "scale(1)" }, "50%": { opacity: 1, transform: "scale(1.1)" } } }} />
+          <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, color: "rgba(255,234,236,0.4)", fontSize: "1rem" }}>
+            Loading...
+          </Typography>
+        </Box>
       </Box>
     );
   }
 
-  const {
-    title,
-    description,
-    imageUrl,
-    youtubeLink,
-    downloadUrls,
-    type,
-    price,
-    id,
-    genre,
-    bpm,
-  } = product;
+  const { title, description, imageUrl, youtubeLink, downloadUrls, type, price, id, genre, bpm } = product;
 
   const audioUrl = Array.isArray(downloadUrls)
-    ? downloadUrls.find((file) => file.type === "mp3")?.url || ""
+    ? downloadUrls.find((f) => f.type === "mp3")?.url || ""
     : "";
 
   const isAdmin = currentUser?.email === ADMIN_EMAIL;
@@ -129,195 +207,116 @@ const ProductDetailPage = () => {
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
+    if (isPlaying) { audioRef.current.pause(); } else { audioRef.current.play(); }
     setIsPlaying(!isPlaying);
   };
 
   const getYouTubeEmbedUrl = (url) => {
     try {
       const urlObj = new URL(url);
-      const videoId =
-        urlObj.hostname === "youtu.be"
-          ? urlObj.pathname.slice(1)
-          : urlObj.searchParams.get("v");
-
+      const videoId = urlObj.hostname === "youtu.be"
+        ? urlObj.pathname.slice(1)
+        : urlObj.searchParams.get("v");
       return `https://www.youtube.com/embed/${videoId}`;
-    } catch (err) {
-      console.error("Invalid YouTube URL:", url);
-      return "";
-    }
+    } catch { return ""; }
   };
 
   const selectedLicense = licenses.find((l) => l.id === selectedLicenseId);
-  const displayPrice =
-    type === "beat" && selectedLicense ? selectedLicense.price : price;
+  const displayPrice = type === "beat" && selectedLicense ? selectedLicense.price : price;
 
   return (
-    <Box
-      sx={{
-        backgroundColor: theme.palette.background.default,
-        pt: { xs: 4, md: 6 },
-        pb: { xs: 8, md: 12 },
-        color: theme.palette.text.primary,
-        minHeight: "100vh",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Animated Background Blobs */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: "-150px",
-          left: "-100px",
-          width: { xs: 300, md: 600 },
-          height: { xs: 300, md: 600 },
-          bgcolor: alpha(theme.palette.primary.main, 0.15),
-          filter: "blur(120px)",
-          borderRadius: "50%",
-          zIndex: 0,
-          animation: "float 20s ease-in-out infinite",
-          "@keyframes float": {
-            "0%, 100%": { transform: "translate(0, 0) scale(1)" },
-            "50%": { transform: "translate(30px, 30px) scale(1.1)" },
-          },
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: "-150px",
-          right: "-100px",
-          width: { xs: 250, md: 500 },
-          height: { xs: 250, md: 500 },
-          bgcolor: alpha(theme.palette.info.main, 0.1),
-          filter: "blur(100px)",
-          borderRadius: "50%",
-          zIndex: 0,
-          animation: "float 25s ease-in-out infinite reverse",
-        }}
-      />
+    <Box sx={{ backgroundColor: "#0e0b0d", pt: { xs: 5, md: 8 }, pb: { xs: 10, md: 16 }, color: "#FFEAEC", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+      <LiquidBackground />
 
-      {/* Main Content */}
       <Box sx={{ position: "relative", zIndex: 2 }}>
         <Container maxWidth="lg">
-          {/* Breadcrumbs */}
-          <Fade in={isVisible} timeout={600}>
-            <Box sx={{ mb: 4 }}>
-              <Button
-                startIcon={<ArrowBackIcon />}
-                onClick={() => history.push("/products")}
-                sx={{
-                  color: theme.palette.text.secondary,
-                  mb: 2,
-                  "&:hover": {
-                    color: theme.palette.primary.main,
-                    bgcolor: `${theme.palette.primary.main}10`,
-                  },
-                }}
-              >
-                Back to Products
-              </Button>
-              <Breadcrumbs
-                separator={<NavigateNextIcon fontSize="small" />}
-                sx={{
-                  "& .MuiBreadcrumbs-separator": {
-                    color: theme.palette.text.secondary,
-                  },
-                }}
-              >
-                <Link
-                  component="button"
-                  onClick={() => history.push("/")}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    color: theme.palette.text.secondary,
-                    textDecoration: "none",
-                    "&:hover": {
-                      color: theme.palette.primary.main,
-                    },
-                  }}
-                >
-                  <HomeIcon fontSize="small" />
-                  Home
-                </Link>
-                <Link
-                  component="button"
-                  onClick={() => history.push("/products")}
-                  sx={{
-                    color: theme.palette.text.secondary,
-                    textDecoration: "none",
-                    "&:hover": {
-                      color: theme.palette.primary.main,
-                    },
-                  }}
-                >
-                  Products
-                </Link>
-                <Typography color="text.primary">{title}</Typography>
-              </Breadcrumbs>
-            </Box>
-          </Fade>
+
+          {/* ── Back button ──────────────────────────────────────────── */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => history.push("/products")}
+              sx={{
+                mb: 5,
+                fontFamily: `"DM Sans", sans-serif`,
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                color: "rgba(255,234,236,0.4)",
+                background: "rgba(255,255,255,0.03)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: "100px",
+                px: 2.5, py: 1,
+                boxShadow: "3px 3px 10px rgba(0,0,0,0.4), -1px -1px 5px rgba(255,255,255,0.02)",
+                transition: "all 0.25s ease",
+                "&:hover": {
+                  color: "#FFEAEC",
+                  borderColor: "rgba(228,63,111,0.3)",
+                  background: "rgba(228,63,111,0.07)",
+                },
+              }}
+            >
+              Back to Collection
+            </Button>
+          </motion.div>
 
           <Grid container spacing={{ xs: 4, md: 6 }}>
-            {/* Left: Image + Audio */}
+
+            {/* ── LEFT: Image ──────────────────────────────────────────── */}
             <Grid item xs={12} md={5}>
               <motion.div
-                initial={{ opacity: 0, x: -30 }}
+                initial={{ opacity: 0, x: -28 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
               >
-                <Box
-                  sx={{
-                    position: "sticky",
-                    top: 24,
-                  }}
-                >
-                  {/* Product Type Badge */}
-                  <Chip
-                    icon={<MusicNoteIcon sx={{ fontSize: 18 }} />}
-                    label={type?.toUpperCase() || "PRODUCT"}
-                    sx={{
-                      position: "absolute",
-                      top: 16,
-                      left: 16,
-                      zIndex: 3,
-                      bgcolor: "rgba(207, 18, 89, 0.95)",
-                      color: "#fff",
-                      fontWeight: 700,
-                      fontSize: "0.85rem",
-                      backdropFilter: "blur(10px)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      px: 1,
-                    }}
-                  />
-
-                  <Paper
-                    elevation={0}
+                <Box sx={{ position: "sticky", top: 24 }}>
+                  {/* Image card */}
+                  <Box
                     sx={{
                       position: "relative",
-                      borderRadius: 2,
+                      borderRadius: "28px",
                       overflow: "hidden",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
-                      background: `linear-gradient(145deg, rgba(26, 26, 26, 0.8), rgba(20, 20, 20, 0.9))`,
-                      boxShadow: `0 12px 40px rgba(0, 0, 0, 0.5)`,
+                      background: "linear-gradient(160deg, rgba(28,20,24,0.9), rgba(16,10,14,0.95))",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      borderTop: "1px solid rgba(255,255,255,0.14)",
+                      boxShadow: [
+                        "10px 10px 30px rgba(0,0,0,0.7)",
+                        "-4px -4px 14px rgba(255,255,255,0.02)",
+                        "0 1px 0 rgba(255,255,255,0.07) inset",
+                      ].join(", "),
                       cursor: audioUrl ? "pointer" : "default",
-                      transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
-                      userSelect: "none",
-                      "&:hover": {
-                        transform: "scale(1.02)",
-                        boxShadow: `0 16px 48px ${theme.palette.primary.main}30`,
-                      },
+                      transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+                      "&:hover": audioUrl ? {
+                        transform: "translateY(-4px)",
+                        boxShadow: [
+                          "12px 14px 40px rgba(0,0,0,0.75)",
+                          "0 8px 28px rgba(228,63,111,0.12)",
+                        ].join(", "),
+                      } : {},
                     }}
                     onClick={audioUrl ? toggleAudio : undefined}
-                    aria-label={isPlaying ? "Pause preview" : "Play preview"}
                   >
+                    {/* Type badge */}
+                    <Box sx={{
+                      position: "absolute", top: 16, left: 16, zIndex: 3,
+                      display: "flex", alignItems: "center", gap: 0.8,
+                      background: "rgba(228,63,111,0.85)",
+                      backdropFilter: "blur(12px)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderTop: "1px solid rgba(255,255,255,0.35)",
+                      borderRadius: "100px", px: 1.8, py: 0.6,
+                      boxShadow: "3px 3px 12px rgba(0,0,0,0.5)",
+                    }}>
+                      <MusicNoteIcon sx={{ fontSize: 14, color: "#fff" }} />
+                      <Typography sx={{
+                        fontFamily: `"DM Sans", sans-serif`,
+                        fontSize: "0.7rem", fontWeight: 700,
+                        letterSpacing: "1.5px", color: "#fff", textTransform: "uppercase",
+                      }}>
+                        {type || "Product"}
+                      </Typography>
+                    </Box>
+
                     <Box
                       component="img"
                       src={imageUrl || "/placeholder.jpg"}
@@ -325,142 +324,104 @@ const ProductDetailPage = () => {
                       onLoad={() => setImageLoaded(true)}
                       sx={{
                         width: "100%",
-                        height: { xs: 350, md: 450 },
+                        height: { xs: 320, md: 420 },
                         objectFit: "cover",
-                        transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
-                        transform: isPlaying ? "scale(1.05)" : "scale(1)",
+                        display: "block",
+                        transition: "transform 0.6s ease, opacity 0.4s ease",
+                        transform: isPlaying ? "scale(1.04)" : "scale(1)",
                         opacity: imageLoaded ? 1 : 0,
                       }}
                     />
 
-                    {/* Gradient Overlay */}
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: "50%",
-                        background:
-                          "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
-                        pointerEvents: "none",
-                      }}
-                    />
+                    {/* Gradient */}
+                    <Box sx={{
+                      position: "absolute", bottom: 0, left: 0, right: 0, height: "55%",
+                      background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)",
+                      pointerEvents: "none",
+                    }} />
 
-                    {/* Play/Pause Button */}
+                    {/* Play button */}
                     {audioUrl && (
-                      <AnimatePresence>
-                        <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0.8, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <IconButton
-                            sx={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "rgba(207, 18, 89, 0.95)",
-                              backdropFilter: "blur(10px)",
-                              color: "#fff",
-                              width: { xs: 70, md: 80 },
-                              height: { xs: 70, md: 80 },
-                              border: "2px solid rgba(255, 255, 255, 0.2)",
-                              zIndex: 2,
-                              transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-                              "&:hover": {
-                                backgroundColor: theme.palette.primary.dark,
-                                transform: "translate(-50%, -50%) scale(1.15)",
-                                boxShadow: `0 8px 32px ${theme.palette.primary.main}90`,
-                              },
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleAudio();
-                            }}
-                            aria-label={isPlaying ? "Pause preview" : "Play preview"}
+                      <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 2 }}>
+                        <AnimatePresence>
+                          <motion.div
+                            key="playBtn"
+                            initial={{ scale: 0.85, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.3 }}
                           >
-                            {isPlaying ? (
-                              <PauseIcon sx={{ fontSize: { xs: 36, md: 42 } }} />
-                            ) : (
-                              <PlayArrowIcon sx={{ fontSize: { xs: 36, md: 42 }, ml: 0.5 }} />
-                            )}
-                          </IconButton>
-                        </motion.div>
-                      </AnimatePresence>
-                    )}
-
-                    {/* Waveform Animation */}
-                    {isPlaying && (
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          bottom: 20,
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          display: "flex",
-                          gap: 0.75,
-                          zIndex: 2,
-                        }}
-                      >
-                        {[...Array(7)].map((_, i) => (
-                          <Box
-                            key={i}
-                            sx={{
-                              width: 4,
-                              height: 30,
-                              bgcolor: theme.palette.primary.main,
-                              borderRadius: 1,
-                              animation: `waveform 0.8s ease-in-out ${i * 0.1}s infinite`,
-                              "@keyframes waveform": {
-                                "0%, 100%": { height: "15px" },
-                                "50%": { height: "35px" },
-                              },
-                            }}
-                          />
-                        ))}
+                            <IconButton
+                              onClick={(e) => { e.stopPropagation(); toggleAudio(); }}
+                              sx={{
+                                width: { xs: 68, md: 80 }, height: { xs: 68, md: 80 },
+                                background: "rgba(255,255,255,0.1)",
+                                backdropFilter: "blur(24px)",
+                                WebkitBackdropFilter: "blur(24px)",
+                                border: "1px solid rgba(255,255,255,0.18)",
+                                borderTop: "1px solid rgba(255,255,255,0.32)",
+                                color: "#FFEAEC",
+                                boxShadow: [
+                                  "4px 4px 16px rgba(0,0,0,0.6)",
+                                  "-2px -2px 10px rgba(255,255,255,0.05)",
+                                  "inset 0 1px 0 rgba(255,255,255,0.2)",
+                                ].join(", "),
+                                transition: "all 0.3s ease",
+                                "&:hover": {
+                                  background: "rgba(228,63,111,0.3)",
+                                  borderColor: "rgba(228,63,111,0.5)",
+                                  transform: "scale(1.1)",
+                                },
+                              }}
+                              aria-label={isPlaying ? "Pause" : "Play"}
+                            >
+                              {isPlaying
+                                ? <PauseIcon sx={{ fontSize: { xs: 32, md: 38 } }} />
+                                : <PlayArrowIcon sx={{ fontSize: { xs: 32, md: 38 }, ml: 0.5 }} />
+                              }
+                            </IconButton>
+                          </motion.div>
+                        </AnimatePresence>
                       </Box>
                     )}
 
-                    <audio
-                      ref={audioRef}
-                      src={audioUrl}
-                      onEnded={() => setIsPlaying(false)}
-                      preload="metadata"
-                    />
-                  </Paper>
+                    {/* Waveform */}
+                    {isPlaying && (
+                      <Box sx={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", zIndex: 2 }}>
+                        <WaveformBars />
+                      </Box>
+                    )}
 
-                  {/* Product Metadata */}
+                    <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} preload="metadata" />
+                  </Box>
+
+                  {/* Genre/BPM chips */}
                   {(genre || bpm) && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 2,
-                        mt: 3,
-                        flexWrap: "wrap",
-                      }}
-                    >
+                    <Box sx={{ display: "flex", gap: 1.5, mt: 3, flexWrap: "wrap" }}>
                       {genre && (
-                        <Chip
-                          label={`Genre: ${genre}`}
-                          sx={{
-                            bgcolor: "rgba(255, 255, 255, 0.05)",
-                            color: theme.palette.text.secondary,
-                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                          }}
-                        />
+                        <Box sx={{
+                          px: 2, py: 0.8, borderRadius: "100px",
+                          background: "rgba(255,255,255,0.04)",
+                          backdropFilter: "blur(12px)",
+                          border: "1px solid rgba(255,255,255,0.07)",
+                          boxShadow: "3px 3px 10px rgba(0,0,0,0.4), -1px -1px 4px rgba(255,255,255,0.02)",
+                        }}>
+                          <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, fontSize: "0.78rem", color: "rgba(255,234,236,0.45)", fontWeight: 600 }}>
+                            Genre: {genre}
+                          </Typography>
+                        </Box>
                       )}
                       {bpm && (
-                        <Chip
-                          label={`${bpm} BPM`}
-                          sx={{
-                            bgcolor: "rgba(255, 255, 255, 0.05)",
-                            color: theme.palette.text.secondary,
-                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                          }}
-                        />
+                        <Box sx={{
+                          px: 2, py: 0.8, borderRadius: "100px",
+                          background: "rgba(228,63,111,0.08)",
+                          backdropFilter: "blur(12px)",
+                          border: "1px solid rgba(228,63,111,0.2)",
+                          boxShadow: "3px 3px 10px rgba(0,0,0,0.4)",
+                        }}>
+                          <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, fontSize: "0.78rem", color: "#E43F6F", fontWeight: 700 }}>
+                            {bpm} BPM
+                          </Typography>
+                        </Box>
                       )}
                     </Box>
                   )}
@@ -468,115 +429,74 @@ const ProductDetailPage = () => {
               </motion.div>
             </Grid>
 
-            {/* Right: Product Info */}
+            {/* ── RIGHT: Info ──────────────────────────────────────────── */}
             <Grid item xs={12} md={7}>
               <motion.div
-                initial={{ opacity: 0, x: 30 }}
+                initial={{ opacity: 0, x: 28 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
               >
                 <Box>
-                  <Typography
-                    variant="h2"
-                    fontWeight={900}
-                    sx={{
-                      mb: 2,
-                      fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
-                      lineHeight: 1.2,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.info.main})`,
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
+                  {/* Title */}
+                  <Typography variant="h2" sx={{
+                    fontFamily: `"Syne", sans-serif`,
+                    fontWeight: 800,
+                    fontSize: { xs: "2rem", sm: "2.6rem", md: "3.2rem" },
+                    lineHeight: 1.1, mb: 1,
+                    background: "linear-gradient(180deg, #FFEAEC 0%, rgba(255,234,236,0.65) 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}>
                     {title}
                   </Typography>
 
-                  <Divider
-                    sx={{
-                      borderColor: "rgba(255, 255, 255, 0.1)",
-                      mb: 3,
-                    }}
-                  />
+                  <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "#E43F6F", mb: 3, boxShadow: "0 2px 12px rgba(228,63,111,0.5)" }} />
 
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: theme.palette.text.secondary,
-                      whiteSpace: "pre-line",
-                      mb: 4,
-                      lineHeight: 1.8,
-                      fontSize: "1.05rem",
-                    }}
-                  >
+                  {/* Description */}
+                  <Typography sx={{
+                    fontFamily: `"DM Sans", sans-serif`,
+                    color: "rgba(255,234,236,0.45)",
+                    whiteSpace: "pre-line", mb: 5,
+                    lineHeight: 1.8, fontSize: "1rem",
+                  }}>
                     {description || "No description available."}
                   </Typography>
 
-                  {/* License Selection */}
+                  {/* License selection */}
                   {type === "beat" && licenses.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4, duration: 0.6 }}
-                    >
-                      <FormControl
-                        fullWidth
-                        sx={{
-                          mb: 4,
-                          "& .MuiOutlinedInput-root": {
-                            borderRadius: 1,
-                            bgcolor: "rgba(255, 255, 255, 0.03)",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
-                            "&:hover": {
-                              bgcolor: "rgba(255, 255, 255, 0.05)",
-                              border: `1px solid ${theme.palette.primary.main}40`,
-                            },
-                            "&.Mui-focused": {
-                              border: `1px solid ${theme.palette.primary.main}`,
-                              boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`,
-                            },
-                          },
-                        }}
-                      >
-                        <InputLabel
-                          sx={{
-                            color: theme.palette.text.secondary,
-                            "&.Mui-focused": {
-                              color: theme.palette.primary.main,
-                            },
-                          }}
-                        >
-                          Select License
-                        </InputLabel>
+                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.55 }}>
+                      <FormControl fullWidth sx={{
+                        mb: 4,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "16px",
+                          background: "rgba(255,255,255,0.04)",
+                          backdropFilter: "blur(16px)",
+                          color: "#FFEAEC",
+                          boxShadow: [
+                            "4px 4px 14px rgba(0,0,0,0.5)",
+                            "-2px -2px 8px rgba(255,255,255,0.02)",
+                          ].join(", "),
+                          "& fieldset": { borderColor: "rgba(255,255,255,0.08)" },
+                          "&:hover fieldset": { borderColor: "rgba(228,63,111,0.35)" },
+                          "&.Mui-focused fieldset": { borderColor: "#E43F6F", borderWidth: "1.5px" },
+                        },
+                        "& .MuiInputLabel-root": { color: "rgba(255,234,236,0.4)" },
+                        "& .MuiInputLabel-root.Mui-focused": { color: "#E43F6F" },
+                      }}>
+                        <InputLabel>Select License</InputLabel>
                         <Select
                           value={selectedLicenseId}
                           label="Select License"
                           onChange={handleLicenseChange}
-                          sx={{
-                            color: theme.palette.text.primary,
-                          }}
+                          sx={{ color: "#FFEAEC" }}
                         >
-                          <MenuItem value="">
-                            <em>Choose a license</em>
-                          </MenuItem>
+                          <MenuItem value=""><em>Choose a license</em></MenuItem>
                           {licenses.map((license) => (
                             <MenuItem key={license.id} value={license.id}>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  width: "100%",
-                                }}
-                              >
+                              <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                                 <Typography>{license.name}</Typography>
-                                <Typography
-                                  sx={{
-                                    color: theme.palette.primary.main,
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  ${license.price}
-                                </Typography>
+                                <Typography sx={{ color: "#E43F6F", fontWeight: 700 }}>${license.price}</Typography>
                               </Box>
                             </MenuItem>
                           ))}
@@ -585,158 +505,95 @@ const ProductDetailPage = () => {
                     </motion.div>
                   )}
 
-                  {/* Price Display */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                  >
-                    <Box
-                      sx={{
-                        p: 3,
-                        mb: 3,
-                        borderRadius: 2,
-                        background: `linear-gradient(135deg, rgba(207, 18, 89, 0.1), rgba(28, 114, 147, 0.1))`,
-                        border: `1px solid ${theme.palette.primary.main}40`,
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: `theme.palette.text.secondary`,
-                          textTransform: "uppercase",
-                          letterSpacing: "1px",
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        Price
-                      </Typography>
-                      <Typography
-                        variant="h3"
-                        fontWeight={700}
-                        sx={{
-                          mt: 0.5,
-                          background: `white`,
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                          fontSize: { xs: "2rem", md: "2.5rem" },
-                        }}
-                      >
-                        ${displayPrice}
-                      </Typography>
-                    </Box>
+                  {/* Price panel */}
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
+                    <GlassPanel sx={{ p: 3, mb: 3 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Box>
+                          <Typography sx={{
+                            fontFamily: `"DM Sans", sans-serif`,
+                            color: "rgba(255,234,236,0.35)",
+                            fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "2px", mb: 0.5,
+                          }}>
+                            {selectedLicense ? selectedLicense.name : "Price"}
+                          </Typography>
+                          <Typography sx={{
+                            fontFamily: `"Syne", sans-serif`,
+                            fontWeight: 800,
+                            fontSize: { xs: "2.2rem", md: "2.8rem" },
+                            color: "#FFEAEC", lineHeight: 1,
+                          }}>
+                            ${displayPrice}
+                          </Typography>
+                        </Box>
+                        <LiquidOrb size={52} color="rgba(228,63,111,0.7)" />
+                      </Box>
+                    </GlassPanel>
                   </motion.div>
 
-                  {/* Error/Success Messages */}
+                  {/* Error/success */}
                   <AnimatePresence>
                     {addCartError && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
-                        <Box
-                          sx={{
-                            mb: 2,
-                            p: 2,
-                            bgcolor: "rgba(244, 67, 54, 0.1)",
-                            border: "1px solid rgba(244, 67, 54, 0.3)",
-                            borderRadius: 2,
-                          }}
-                        >
-                          <Typography color="error" fontSize="0.95rem">
-                            {addCartError}
-                          </Typography>
+                      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                        <Box sx={{
+                          mb: 2, px: 2.5, py: 1.5,
+                          background: "rgba(228,63,111,0.08)",
+                          border: "1px solid rgba(228,63,111,0.25)",
+                          borderRadius: "14px", backdropFilter: "blur(8px)",
+                        }}>
+                          <Typography sx={{ color: "#E43F6F", fontSize: "0.875rem" }}>{addCartError}</Typography>
                         </Box>
                       </motion.div>
                     )}
                     {success && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1.5,
-                            mb: 2,
-                            p: 2,
-                            bgcolor: "rgba(76, 175, 80, 0.15)",
-                            border: "1px solid rgba(76, 175, 80, 0.3)",
-                            borderRadius: 2,
-                          }}
-                        >
-                          <CheckCircleIcon sx={{ color: "success.main", fontSize: 24 }} />
-                          <Typography
-                            color="success.main"
-                            fontSize="0.95rem"
-                            fontWeight={600}
-                          >
-                            Successfully added to cart!
+                      <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.92 }}>
+                        <Box sx={{
+                          display: "flex", alignItems: "center", gap: 1.5,
+                          mb: 2, px: 2.5, py: 1.5,
+                          background: "rgba(76,175,80,0.1)",
+                          border: "1px solid rgba(76,175,80,0.25)",
+                          borderRadius: "14px", backdropFilter: "blur(8px)",
+                        }}>
+                          <CheckCircleIcon sx={{ color: "success.main", fontSize: 22 }} />
+                          <Typography sx={{ color: "success.main", fontSize: "0.9rem", fontWeight: 600, fontFamily: `"DM Sans", sans-serif` }}>
+                            Added to cart successfully!
                           </Typography>
                         </Box>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
-                  {/* Add to Cart Button */}
+                  {/* Add to cart */}
                   <Button
                     variant="contained"
                     fullWidth
                     size="large"
                     startIcon={<ShoppingCartIcon />}
                     onClick={handleAddToCart}
-                    sx={{
-                      mb: 3,
-                      borderRadius: 3,
-                      px: 4,
-                      py: 2,
-                      fontWeight: 700,
-                      fontSize: "1.1rem",
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                      boxShadow: `0 8px 24px ${theme.palette.primary.main}40`,
-                      transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-                      "&:hover": {
-                        background: `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.info.main})`,
-                        transform: "translateY(-3px)",
-                        boxShadow: `0 12px 32px ${theme.palette.primary.main}60`,
-                      },
-                    }}
+                    sx={{ mb: 3, py: 2, fontSize: "1.05rem", fontWeight: 700 }}
                   >
                     Add to Cart
                   </Button>
 
-                  {/* Admin Actions */}
+                  {/* Admin actions */}
                   {isAdmin && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6, duration: 0.6 }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          gap: 2,
-                          pt: 3,
-                          mt: 3,
-                          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                        }}
-                      >
+                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.55 }}>
+                      <Box sx={{
+                        display: "flex", gap: 2, pt: 3, mt: 1,
+                        borderTop: "1px solid rgba(255,255,255,0.06)",
+                      }}>
                         <Button
                           variant="outlined"
                           fullWidth
                           startIcon={<EditIcon />}
                           onClick={() => history.push(`/products/${productId}/edit`)}
                           sx={{
-                            borderColor: "rgba(255, 255, 255, 0.2)",
-                            color: theme.palette.info.main,
-                            fontWeight: 600,
+                            borderColor: "rgba(255,255,255,0.1)",
+                            color: "rgba(255,234,236,0.55)",
                             "&:hover": {
-                              borderColor: theme.palette.info.main,
-                              bgcolor: `${theme.palette.info.main}15`,
+                              borderColor: "rgba(255,255,255,0.22)",
+                              bgcolor: "rgba(255,255,255,0.04)",
+                              color: "#FFEAEC",
                             },
                           }}
                         >
@@ -747,23 +604,15 @@ const ProductDetailPage = () => {
                           fullWidth
                           startIcon={<DeleteIcon />}
                           onClick={async () => {
-                            if (
-                              window.confirm(
-                                `Are you sure you want to delete "${title}"?`
-                              )
-                            ) {
+                            if (window.confirm(`Delete "${title}"?`)) {
                               await dispatch(deleteProductThunk(id));
                               history.push("/products");
                             }
                           }}
                           sx={{
-                            borderColor: "rgba(244, 67, 54, 0.5)",
-                            color: "error.main",
-                            fontWeight: 600,
-                            "&:hover": {
-                              borderColor: "error.main",
-                              bgcolor: "rgba(244, 67, 54, 0.1)",
-                            },
+                            borderColor: "rgba(228,63,111,0.3)",
+                            color: "#E43F6F",
+                            "&:hover": { borderColor: "#E43F6F", bgcolor: "rgba(228,63,111,0.08)" },
                           }}
                         >
                           Delete
@@ -776,54 +625,49 @@ const ProductDetailPage = () => {
             </Grid>
           </Grid>
 
-          {/* YouTube Preview Section */}
+          {/* ── YouTube Section ──────────────────────────────────────── */}
           {youtubeLink && (
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <Box sx={{ mt: { xs: 8, md: 12 } }}>
-                <Typography
-                  variant="h4"
-                  fontWeight={700}
-                  sx={{
-                    mb: 4,
-                    fontSize: { xs: "1.75rem", md: "2.25rem" },
-                  }}
-                >
-                  YouTube Preview
-                </Typography>
-                <Box
-                  sx={{
-                    position: "relative",
-                    paddingBottom: "56.25%",
-                    height: 0,
-                    overflow: "hidden",
-                    borderRadius: 4,
-                    boxShadow: `0 12px 40px rgba(0, 0, 0, 0.6)`,
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                  }}
-                >
-                  <iframe
-                    src={getYouTubeEmbedUrl(youtubeLink)}
-                    title="YouTube Preview"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  />
+              <Box sx={{ mt: { xs: 10, md: 14 } }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 5 }}>
+                  <Box sx={{ width: 4, height: 32, borderRadius: "2px", bgcolor: "#E43F6F", boxShadow: "0 2px 12px rgba(228,63,111,0.5)" }} />
+                  <Typography variant="h4" sx={{
+                    fontFamily: `"Syne", sans-serif`,
+                    fontWeight: 800, fontSize: { xs: "1.6rem", md: "2.1rem" },
+                    color: "#FFEAEC",
+                  }}>
+                    YouTube Preview
+                  </Typography>
                 </Box>
+
+                <NeumorphPanel>
+                  <Box sx={{ p: 2 }}>
+                    <Box sx={{
+                      position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden",
+                      borderRadius: "20px",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                    }}>
+                      <iframe
+                        src={getYouTubeEmbedUrl(youtubeLink)}
+                        title="YouTube Preview"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+                      />
+                    </Box>
+                  </Box>
+                </NeumorphPanel>
               </Box>
             </motion.div>
           )}
+
         </Container>
       </Box>
     </Box>

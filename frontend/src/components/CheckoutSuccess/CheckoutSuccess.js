@@ -1,28 +1,231 @@
-import React from "react";
-import { useLocation, Link } from "react-router-dom";
+// CheckoutSuccess.jsx
+import React, { useEffect, useState } from "react";
+import { useLocation, useHistory } from "react-router-dom";
+import { Box, Typography, Button } from "@mui/material";
+import { motion } from "framer-motion";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import DownloadIcon from "@mui/icons-material/Download";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
+const LiquidBackground = React.memo(() => (
+  <Box sx={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
+    <Box sx={{
+      position: "absolute", top: "-10vh", left: "-8vw",
+      width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
+      borderRadius: "50%",
+      background: "radial-gradient(circle at 40% 40%, rgba(228,63,111,0.2) 0%, rgba(192,45,90,0.08) 55%, transparent 72%)",
+      filter: "blur(70px)",
+      animation: "orbF1 22s ease-in-out infinite",
+      "@keyframes orbF1": {
+        "0%,100%": { transform: "translate(0,0) scale(1)" },
+        "50%": { transform: "translate(4vw, 5vh) scale(1.07)" },
+      },
+    }} />
+    <Box sx={{
+      position: "absolute", bottom: 0, right: "-10vw",
+      width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
+      borderRadius: "50%",
+      background: "radial-gradient(circle, rgba(150,20,60,0.15) 0%, transparent 70%)",
+      filter: "blur(80px)",
+      animation: "orbF2 30s ease-in-out infinite reverse",
+      "@keyframes orbF2": {
+        "0%,100%": { transform: "translate(0,0) scale(1)" },
+        "50%": { transform: "translate(-4vw, -5vh) scale(1.1)" },
+      },
+    }} />
+    <Box sx={{
+      position: "absolute", inset: 0, opacity: 0.022,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+      backgroundRepeat: "repeat", backgroundSize: "128px 128px",
+    }} />
+  </Box>
+));
+
+const GlassPanel = ({ children, sx = {}, ...rest }) => (
+  <Box
+    sx={{
+      background: "rgba(255,255,255,0.03)",
+      backdropFilter: "blur(28px)",
+      WebkitBackdropFilter: "blur(28px)",
+      border: "1px solid rgba(255,255,255,0.09)",
+      borderTop: "1px solid rgba(255,255,255,0.14)",
+      borderRadius: "28px",
+      boxShadow: [
+        "0 1px 0 rgba(255,255,255,0.07) inset",
+        "0 24px 64px rgba(0,0,0,0.6)",
+        "8px 8px 20px rgba(0,0,0,0.4)",
+        "-3px -3px 10px rgba(255,255,255,0.015)",
+      ].join(", "),
+      ...sx,
+    }}
+    {...rest}
+  >
+    {children}
+  </Box>
+);
 
 export default function CheckoutSuccess() {
   const location = useLocation();
-
-  // Extract session_id from URL query params (?session_id=...)
+  const history = useHistory();
   const params = new URLSearchParams(location.search);
   const sessionId = params.get("session_id");
+  const [ring, setRing] = useState(false);
+
+  useEffect(() => {
+    // Trigger the ring pulse after mount
+    const t = setTimeout(() => setRing(true), 200);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
-    <div style={{ padding: 40, color: "#fff" }}>
-      <h1>✅ Thank you for your purchase!</h1>
-      <p>
-        You’ll receive an email or link to download your beats and license shortly.
-      </p>
-      {sessionId && (
-        <p>
-          Or you can{" "}
-          <Link to={`/downloads/${sessionId}`} style={{ color: "#ff4081" }}>
-            download your files here
-          </Link>
-          .
-        </p>
-      )}
-    </div>
+    <Box sx={{
+      backgroundColor: "#0e0b0d",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#FFEAEC",
+      position: "relative",
+      overflow: "hidden",
+      px: 2,
+    }}>
+      <LiquidBackground />
+
+      <Box sx={{ position: "relative", zIndex: 2, width: "100%", maxWidth: 520 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 32, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <GlassPanel sx={{ p: { xs: 4, md: 6 }, textAlign: "center" }}>
+
+            {/* Success icon */}
+            <Box sx={{ position: "relative", display: "inline-flex", mb: 4 }}>
+              {/* Ripple rings */}
+              {ring && [0, 1, 2].map((i) => (
+                <Box key={i} sx={{
+                  position: "absolute",
+                  inset: `-${(i + 1) * 12}px`,
+                  borderRadius: "50%",
+                  border: "1px solid rgba(76,175,80,0.25)",
+                  animation: `ripple 2s ease-out ${i * 0.3}s infinite`,
+                  "@keyframes ripple": {
+                    "0%": { opacity: 0.7, transform: "scale(0.85)" },
+                    "100%": { opacity: 0, transform: "scale(1.2)" },
+                  },
+                }} />
+              ))}
+              <Box sx={{
+                width: 88, height: 88, borderRadius: "50%",
+                background: "rgba(76,175,80,0.1)",
+                border: "1px solid rgba(76,175,80,0.3)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 0 32px rgba(76,175,80,0.2), inset 0 1px 0 rgba(255,255,255,0.1)",
+              }}>
+                <motion.div
+                  initial={{ scale: 0, rotate: -20 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5, type: "spring", stiffness: 200 }}
+                >
+                  <CheckCircleOutlineIcon sx={{ fontSize: 48, color: "#4caf50" }} />
+                </motion.div>
+              </Box>
+            </Box>
+
+            {/* Heading */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "#4caf50", mx: "auto", mb: 3, boxShadow: "0 2px 12px rgba(76,175,80,0.5)" }} />
+              <Typography sx={{
+                fontFamily: `"Syne", sans-serif`,
+                fontWeight: 800,
+                fontSize: { xs: "1.8rem", md: "2.2rem" },
+                color: "#FFEAEC", lineHeight: 1.15, mb: 2,
+              }}>
+                Purchase Complete
+              </Typography>
+              <Typography sx={{
+                fontFamily: `"DM Sans", sans-serif`,
+                color: "rgba(255,234,236,0.45)",
+                fontSize: "0.95rem", lineHeight: 1.7, mb: 4,
+              }}>
+                Thank you for your order. You'll receive an email with your download
+                links and license details shortly.
+              </Typography>
+            </motion.div>
+
+            {/* Download link */}
+            {sessionId && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55, duration: 0.5 }}
+              >
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  startIcon={<DownloadIcon />}
+                  onClick={() => history.push(`/downloads/${sessionId}`)}
+                  sx={{
+                    mb: 2,
+                    py: 1.8,
+                    fontFamily: `"Syne", sans-serif`,
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    borderRadius: "14px",
+                    background: "linear-gradient(135deg, #43a047, #2e7d32)",
+                    boxShadow: "0 6px 24px rgba(76,175,80,0.3)",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #4caf50, #388e3c)",
+                      boxShadow: "0 8px 32px rgba(76,175,80,0.45)",
+                      transform: "translateY(-2px)",
+                    },
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  Download Your Files
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Back to shop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.65, duration: 0.5 }}
+            >
+              <Button
+                fullWidth
+                startIcon={<ArrowBackIcon />}
+                onClick={() => history.push("/products")}
+                sx={{
+                  py: 1.4,
+                  fontFamily: `"DM Sans", sans-serif`,
+                  fontWeight: 600, fontSize: "0.875rem",
+                  color: "rgba(255,234,236,0.4)",
+                  background: "rgba(255,255,255,0.03)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: "14px",
+                  transition: "all 0.25s ease",
+                  "&:hover": {
+                    color: "#FFEAEC",
+                    borderColor: "rgba(228,63,111,0.3)",
+                    background: "rgba(228,63,111,0.07)",
+                  },
+                }}
+              >
+                Back to Collection
+              </Button>
+            </motion.div>
+
+          </GlassPanel>
+        </motion.div>
+      </Box>
+    </Box>
   );
 }

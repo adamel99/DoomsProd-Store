@@ -3,47 +3,46 @@ import { useDispatch, useSelector } from "react-redux";
 import * as sessionActions from "../../store/session";
 import { useModal } from "../../context/Modal";
 import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Alert,
-  useTheme,
+  Box, Button, TextField, Typography, Alert, IconButton, InputAdornment,
 } from "@mui/material";
-import { styled, alpha } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
-const NeonButton = styled(Button)(({ theme }) => ({
-  marginTop: theme.spacing(4),
-  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-  color: theme.palette.common.white,
-  fontWeight: 700,
-  boxShadow: `0 5px 20px ${alpha(theme.palette.primary.main, 0.35)}`,
-  borderRadius: "30px",
-  textTransform: "uppercase",
-  letterSpacing: "1.5px",
-  "&:hover": {
-    background: `linear-gradient(135deg, ${theme.palette.secondary.main}, ${theme.palette.primary.main})`,
-    boxShadow: `0 8px 30px ${alpha(theme.palette.primary.main, 0.5)}`,
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderRadius: "14px",
+    color: "#FFEAEC",
+    fontFamily: `"DM Sans", sans-serif`,
+    backdropFilter: "blur(8px)",
+    boxShadow: "4px 4px 12px rgba(0,0,0,0.4), -1px -1px 4px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.05)",
+    transition: "all 0.2s ease",
+    "& fieldset": { borderColor: "rgba(255,255,255,0.08)" },
+    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+    "&.Mui-focused fieldset": {
+      borderColor: "rgba(228,63,111,0.5)",
+      boxShadow: "0 0 0 3px rgba(228,63,111,0.08)",
+    },
   },
-  "&:disabled": {
-    opacity: 0.4,
-    boxShadow: "none",
-    background: `linear-gradient(135deg, ${theme.palette.grey[700]}, ${theme.palette.grey[900]})`,
+  "& .MuiInputLabel-root": {
+    fontFamily: `"DM Sans", sans-serif`,
+    color: "rgba(255,234,236,0.35)",
+    "&.Mui-focused": { color: "#E43F6F" },
   },
-}));
+  input: { color: "#FFEAEC" },
+};
 
 const LoginFormModal = () => {
-  const theme = useTheme();
   const dispatch = useDispatch();
   const { closeModal } = useModal();
-  const user = useSelector((state) => state.session.user);
 
   const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const minUsernameLength = 4;
-  const minPasswordLength = 6;
+  const isDisabled = credential.length < 4 || password.length < 6;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,128 +51,142 @@ const LoginFormModal = () => {
       .then(closeModal)
       .catch(async (res) => {
         const data = await res.json();
-        if (data && data.errors) setErrors(data.errors);
+        if (data?.errors) setErrors(data.errors);
       });
   };
 
-  const isButtonDisabled =
-    credential.length < minUsernameLength || password.length < minPasswordLength;
-
   return (
-    <Box
-      sx={{
-        minWidth: 350,
-        background: alpha(theme.palette.background.paper, 0.05),
-        border: `1px solid ${alpha(theme.palette.common.white, 0.15)}`,
-        borderRadius: 4,
-        boxShadow: `0 8px 40px ${alpha(theme.palette.primary.main, 0.1)}`,
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        overflow: "hidden",
-        px: 4,
-        py: 5,
-      }}
-    >
-      <Typography
-        variant="h4"
-        align="center"
-        gutterBottom
-        sx={{
-          fontWeight: 900,
-          textTransform: "uppercase",
-          letterSpacing: 2,
-          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          textShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.5)}`,
-        }}
-      >
-        Log In
-      </Typography>
+    <Box sx={{
+      width: { xs: 320, sm: 400 },
+      background: "linear-gradient(160deg, rgba(28,20,24,0.97), rgba(16,11,14,0.98))",
+      backdropFilter: "blur(40px)",
+      WebkitBackdropFilter: "blur(40px)",
+      border: "1px solid rgba(255,255,255,0.09)",
+      borderTop: "1px solid rgba(255,255,255,0.14)",
+      borderRadius: "28px",
+      boxShadow: [
+        "0 1px 0 rgba(255,255,255,0.07) inset",
+        "0 32px 80px rgba(0,0,0,0.8)",
+        "10px 10px 32px rgba(0,0,0,0.5)",
+        "-3px -3px 12px rgba(255,255,255,0.015)",
+      ].join(", "),
+      px: { xs: 3, sm: 4.5 },
+      py: 5,
+      position: "relative",
+      overflow: "hidden",
+    }}>
 
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        noValidate
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 3,
-          mt: 2,
-        }}
-      >
+      {/* Subtle top glow */}
+      <Box sx={{
+        position: "absolute",
+        top: -60, left: "50%",
+        transform: "translateX(-50%)",
+        width: 200, height: 100,
+        borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(228,63,111,0.18) 0%, transparent 70%)",
+        pointerEvents: "none",
+      }} />
+
+      {/* Logo dot + title */}
+      <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Box sx={{
+          width: 10, height: 10, borderRadius: "50%",
+          bgcolor: "#E43F6F",
+          boxShadow: "0 0 10px rgba(228,63,111,1), 0 0 24px rgba(228,63,111,0.5)",
+          mx: "auto", mb: 2,
+        }} />
+        <Typography sx={{
+          fontFamily: `"Syne", sans-serif`,
+          fontWeight: 900,
+          fontSize: "1.75rem",
+          color: "#FFEAEC",
+          letterSpacing: "-0.5px",
+        }}>
+          Welcome back
+        </Typography>
+        <Typography sx={{
+          fontFamily: `"DM Sans", sans-serif`,
+          fontSize: "0.85rem",
+          color: "rgba(255,234,236,0.35)",
+          mt: 0.75,
+        }}>
+          Sign in to your account
+        </Typography>
+      </Box>
+
+      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
         <TextField
           label="Username or Email"
           value={credential}
           onChange={(e) => setCredential(e.target.value)}
           fullWidth
           required
-          InputLabelProps={{
-            sx: {
-              color: theme.palette.text.secondary,
-            },
-          }}
-          sx={{
-            input: { color: theme.palette.text.primary },
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: alpha(theme.palette.background.paper, 0.05),
-              borderRadius: "12px",
-              "& fieldset": { borderColor: theme.palette.grey[700] },
-              "&:hover fieldset": { borderColor: theme.palette.primary.main },
-              "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
-            },
-          }}
+          sx={fieldSx}
         />
         {errors.credential && (
-          <Alert
-            severity="error"
-            sx={{
-              backgroundColor: alpha(theme.palette.error.main, 0.12),
-              color: theme.palette.error.main,
-            }}
-          >
+          <Alert severity="error" sx={{ bgcolor: "rgba(228,63,111,0.1)", color: "#E43F6F", border: "1px solid rgba(228,63,111,0.2)", borderRadius: "12px", "& .MuiAlert-icon": { color: "#E43F6F" } }}>
             {errors.credential}
           </Alert>
         )}
 
         <TextField
           label="Password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           fullWidth
           required
-          InputLabelProps={{
-            sx: {
-              color: theme.palette.text.secondary,
-            },
-          }}
-          sx={{
-            input: { color: theme.palette.text.primary },
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: alpha(theme.palette.background.paper, 0.05),
-              borderRadius: "12px",
-              "& fieldset": { borderColor: theme.palette.grey[700] },
-              "&:hover fieldset": { borderColor: theme.palette.primary.main },
-              "&.Mui-focused fieldset": { borderColor: theme.palette.primary.main },
-            },
+          sx={fieldSx}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPassword((p) => !p)} edge="end" size="small"
+                  sx={{ color: "rgba(255,234,236,0.3)", "&:hover": { color: "#E43F6F" } }}>
+                  {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                </IconButton>
+              </InputAdornment>
+            ),
           }}
         />
         {errors.password && (
-          <Alert
-            severity="error"
-            sx={{
-              backgroundColor: alpha(theme.palette.error.main, 0.12),
-              color: theme.palette.error.main,
-            }}
-          >
+          <Alert severity="error" sx={{ bgcolor: "rgba(228,63,111,0.1)", color: "#E43F6F", border: "1px solid rgba(228,63,111,0.2)", borderRadius: "12px", "& .MuiAlert-icon": { color: "#E43F6F" } }}>
             {errors.password}
           </Alert>
         )}
 
-        <NeonButton type="submit" fullWidth disabled={isButtonDisabled}>
+        <Button
+          type="submit"
+          fullWidth
+          disabled={isDisabled}
+          sx={{
+            mt: 1,
+            py: 1.5,
+            fontFamily: `"Syne", sans-serif`,
+            fontWeight: 800,
+            fontSize: "0.9rem",
+            letterSpacing: "0.5px",
+            textTransform: "none",
+            borderRadius: "14px",
+            background: isDisabled
+              ? "rgba(255,255,255,0.04)"
+              : "linear-gradient(135deg, #E43F6F, #c02d5a)",
+            color: isDisabled ? "rgba(255,234,236,0.2)" : "#fff",
+            border: isDisabled
+              ? "1px solid rgba(255,255,255,0.06)"
+              : "1px solid rgba(228,63,111,0.4)",
+            boxShadow: isDisabled
+              ? "4px 4px 12px rgba(0,0,0,0.4)"
+              : "0 6px 20px rgba(228,63,111,0.4), 4px 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+            transition: "all 0.25s ease",
+            "&:hover:not(:disabled)": {
+              background: "linear-gradient(135deg, #f0537f, #d03568)",
+              transform: "translateY(-1px)",
+              boxShadow: "0 10px 28px rgba(228,63,111,0.5), 4px 6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+            },
+          }}
+        >
           Log In
-        </NeonButton>
+        </Button>
       </Box>
     </Box>
   );

@@ -1,6 +1,8 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -10,7 +12,6 @@ const s3 = new S3Client({
   },
 });
 
-// Helper to check if string is URL
 function isUrl(string) {
   try {
     new URL(string);
@@ -21,62 +22,52 @@ function isUrl(string) {
 }
 
 async function getSignedFileUrl(key) {
-  if (isUrl(key)) {
-    // If already a URL, just return it
-    return key;
-  }
-
-  // Otherwise, generate signed URL from S3 key
+  if (isUrl(key)) return key;
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
     Key: key,
   });
-
   return await getSignedUrl(s3, command, { expiresIn: 3600 });
 }
 
 async function sendProductEmail(email, fileKeys = []) {
-    console.log("📧 Preparing to send email to:", email);
-    console.log("🔗 File keys for email:", fileKeys);
+  console.log("📧 Preparing to send email to:", email);
+  console.log("🔗 File keys for email:", fileKeys);
 
-    const downloadLinks = await Promise.all(
-      fileKeys.map(async (key) => {
-        try {
-          const url = await getSignedFileUrl(key);
-          console.log(`✅ Generated signed URL for key: ${key}`);
-          return url;
-        } catch (err) {
-          console.error(`❌ Failed to generate signed URL for: ${key}`, err);
-          throw err;
-        }
-      })
-    );
+  const downloadLinks = await Promise.all(
+    fileKeys.map(async (key) => {
+      try {
+        const url = await getSignedFileUrl(key);
+        console.log(`✅ Generated signed URL for key: ${key}`);
+        return url;
+      } catch (err) {
+        console.error(`❌ Failed to generate signed URL for: ${key}`, err);
+        throw err;
+      }
+    })
+  );
 
-    console.log("📤 Final download links to include in email:", downloadLinks);
+  console.log("📤 Final download links:", downloadLinks);
 
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+  const { data, error } = await resend.emails.send({
+    from: "doomsprod <onboarding@resend.dev>", // use this until you verify a domain
+    to: email,
+    subject: "🎧 Your Download is Ready!",
+    html: `
+      <p>Thank you for your purchase! Send me back finished products! Here are your download links:</p>
+      <ul>
+        ${downloadLinks.map((link) => `<li><a href="${link}">${link}</a></li>`).join("")}
+      </ul>
+      <p><small>These links will expire in 1 hour.</small></p>
+    `,
+  });
 
-    await transporter.sendMail({
-      from: `"doomsprod" <${process.env.EMAIL_USERNAME}>`,
-      to: email,
-      subject: "🎧 Your Download is Ready!",
-      html: `
-        <p>Thank you for your purchase! Send me back finished products! Here are your download links:</p>
-        <ul>
-          ${downloadLinks.map(link => `<li><a href="${link}">${link}</a></li>`).join("")}
-        </ul>
-        <p><small>These links will expire in 1 hour.</small></p>
-      `,
-    });
-
-    console.log("✅ Email sent successfully!");
+  if (error) {
+    console.error("❌ Resend error:", error);
+    throw new Error(error.message);
   }
 
+  console.log("✅ Email sent successfully! ID:", data.id);
+}
 
 module.exports = { sendProductEmail };
