@@ -51,6 +51,10 @@ app.use((req, res, next) => {
       sameSite: isProduction && 'Lax',
       httpOnly: true,
     },
+    value: (req) =>
+      req.headers['xsrf-token'] ||
+      req.headers['XSRF-TOKEN'] ||
+      req.headers['x-xsrf-token'],
   })(req, res, next);
 });
 
