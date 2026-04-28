@@ -21,7 +21,7 @@ const NewProduct = () => {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
+  // const [price, setPrice] = useState("");
   const [audioPreviewUrl, setAudioPreviewUrl] = useState("");
   const [youtubeLink, setYoutubeLink] = useState("");
   const [genre, setGenre] = useState("");
@@ -60,9 +60,9 @@ const NewProduct = () => {
       formData.append("youtubeLink", youtubeLink);
       formData.append("genre", genre);
 
-      if (type !== "beat") {
-        formData.append("price", price);
-      }
+      // if (type !== "beat") {
+      //   formData.append("price", price);
+      // }
 
       if (imageFile) formData.append("image", imageFile);
       if (zipFile) formData.append("zipFile", zipFile);
@@ -108,7 +108,7 @@ const NewProduct = () => {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        {type !== "beat" && (
+        {/* {type !== "beat" && (
           <TextField
             label="Price"
             type="number"
@@ -116,7 +116,7 @@ const NewProduct = () => {
             onChange={(e) => setPrice(e.target.value)}
             required
           />
-        )}
+        )} */}
 
         <TextField
           label="YouTube Audio Preview URL"
@@ -142,7 +142,7 @@ const NewProduct = () => {
             label="Type"
             onChange={(e) => {
               setType(e.target.value);
-              if (e.target.value === "beat") setPrice("");
+              // if (e.target.value === "beat") setPrice("");
             }}
           >
             <MenuItem value="beat">Beat</MenuItem>
