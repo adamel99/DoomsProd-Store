@@ -710,7 +710,7 @@ const LandingPage = () => {
                 letterSpacing: "-0.02em",
               }}
             >
-              idontevenknowhim
+              welcome
             </Typography>
 
             {/* Thin accent rule under title — replaces decorative orbs */}
