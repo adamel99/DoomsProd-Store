@@ -50,7 +50,7 @@ async function sendProductEmail(email, fileKeys = []) {
   console.log("📤 Final download links:", downloadLinks);
 
   const { data, error } = await resend.emails.send({
-    from: "doomsprod <onboarding@resend.dev>", // use this until you verify a domain
+    from: "doomsprod <noreply@dooma.studio>", // use this until you verify a domain
     to: email,
     subject: "🎧 Your Download is Ready!",
     html: `
