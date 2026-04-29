@@ -1,4 +1,5 @@
 import React from "react";
+import { useHistory } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import { csrfFetch } from "../../store/csrf";
 
@@ -6,6 +7,8 @@ const publishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = loadStripe(publishableKey);
 
 const StripeCheckoutButton = ({ cartItems, userId }) => {
+  const history = useHistory();
+
   const handleCheckout = async () => {
     try {
       if (!cartItems.length) {
@@ -15,42 +18,36 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
 
       await csrfFetch("/api/csrf/restore");
 
-      // Calculate total
       const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
-      // If free, use free checkout endpoint
       if (total === 0) {
         console.log("🆓 Processing free checkout");
-
         const response = await csrfFetch("/api/payment/free-checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cartItems }),
         });
-
         const data = await response.json();
 
         if (data.success) {
-          alert("✅ Download links have been sent to your email!");
-          window.location.href = "/checkout-success";
+          history.push({
+            pathname: "/checkout-success",
+            state: { downloadLinks: data.downloadLinks, isFree: true },
+          });
         } else {
           throw new Error(data.message || "Free checkout failed");
         }
         return;
       }
 
-      // Otherwise, use Stripe for paid items
       console.log("💳 Processing paid checkout with Stripe");
-
       const response = await csrfFetch("/api/payment/create-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cartItems, userId }),
       });
-
       const data = await response.json();
       if (!data.sessionId) throw new Error("No sessionId received");
-
       const stripe = await stripePromise;
       await stripe.redirectToCheckout({ sessionId: data.sessionId });
     } catch (err) {

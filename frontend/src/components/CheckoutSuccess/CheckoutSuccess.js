@@ -1,4 +1,3 @@
-// CheckoutSuccess.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
@@ -69,10 +68,11 @@ export default function CheckoutSuccess() {
   const history = useHistory();
   const params = new URLSearchParams(location.search);
   const sessionId = params.get("session_id");
+  const isFree = location.state?.isFree || false;
+  const freeDownloadLinks = location.state?.downloadLinks || [];
   const [ring, setRing] = useState(false);
 
   useEffect(() => {
-    // Trigger the ring pulse after mount
     const t = setTimeout(() => setRing(true), 200);
     return () => clearTimeout(t);
   }, []);
@@ -101,7 +101,6 @@ export default function CheckoutSuccess() {
 
             {/* Success icon */}
             <Box sx={{ position: "relative", display: "inline-flex", mb: 4 }}>
-              {/* Ripple rings */}
               {ring && [0, 1, 2].map((i) => (
                 <Box key={i} sx={{
                   position: "absolute",
@@ -145,20 +144,68 @@ export default function CheckoutSuccess() {
                 fontSize: { xs: "1.8rem", md: "2.2rem" },
                 color: "#FFEAEC", lineHeight: 1.15, mb: 2,
               }}>
-                Purchase Complete
+                {isFree ? "Your Files Are Ready!" : "Purchase Complete"}
               </Typography>
               <Typography sx={{
                 fontFamily: `"DM Sans", sans-serif`,
                 color: "rgba(255,234,236,0.45)",
                 fontSize: "0.95rem", lineHeight: 1.7, mb: 4,
               }}>
-                Thank you for your order. You'll receive an email with your download
-                links and license details shortly.
+                {isFree
+                  ? "Download your files below. We also sent the links to your email."
+                  : "Thank you for your order. You'll receive an email with your download links and license details shortly."}
               </Typography>
             </motion.div>
 
-            {/* Download link */}
-            {sessionId && (
+            {/* Free download links */}
+            {isFree && freeDownloadLinks.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}>
+                  {freeDownloadLinks.map((url, idx) => {
+                    const fileName = decodeURIComponent(url.split("?")[0].split("/").pop());
+                    return (
+                      <Button
+                        key={idx}
+                        fullWidth
+                        variant="outlined"
+                        startIcon={<DownloadIcon />}
+                        href={url}
+                        target="_blank"
+                        download={fileName}
+                        sx={{
+                          py: 1.5,
+                          fontFamily: `"DM Sans", sans-serif`,
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          borderRadius: "14px",
+                          color: "#4caf50",
+                          borderColor: "rgba(76,175,80,0.35)",
+                          background: "rgba(76,175,80,0.05)",
+                          textAlign: "left",
+                          justifyContent: "flex-start",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          "&:hover": {
+                            borderColor: "#4caf50",
+                            background: "rgba(76,175,80,0.12)",
+                          },
+                        }}
+                      >
+                        {fileName || `File ${idx + 1}`}
+                      </Button>
+                    );
+                  })}
+                </Box>
+              </motion.div>
+            )}
+
+            {/* Paid Stripe download button */}
+            {!isFree && sessionId && (
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
