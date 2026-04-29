@@ -1,15 +1,12 @@
 'use strict';
-
 let options = {};
 if (process.env.NODE_ENV === 'production') {
   options.schema = process.env.SCHEMA;
 }
 options.tableName = 'CartItems';
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     const isProduction = process.env.NODE_ENV === 'production';
-
     const [users, carts, products, licenses] = await Promise.all([
       queryInterface.sequelize.query(
         isProduction
@@ -41,48 +38,35 @@ module.exports = {
     const cartId = carts[0]?.id;
     const licenseId = licenses[0]?.id;
 
-    return queryInterface.bulkInsert(
-      options,
-      [
-        {
-          userId,
-          cartId,
-          productId: products[0]?.id,
-          licenseId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          userId,
-          cartId,
-          productId: products[1]?.id,
-          licenseId: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          userId,
-          cartId,
-          productId: products[2]?.id,
-          licenseId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ],
-      {}
-    );
+    return queryInterface.bulkInsert(options, [
+      {
+        userId,
+        cartId,
+        productId: products[0]?.id,
+        licenseId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        userId,
+        cartId,
+        productId: products[1]?.id,
+        licenseId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        userId,
+        cartId,
+        productId: products[2]?.id,
+        licenseId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ], {});
   },
-
   down: async (queryInterface, Sequelize) => {
     options.tableName = 'CartItems';
-    const Op = Sequelize.Op;
-    return queryInterface.bulkDelete(
-      options,
-      {
-        // Remove all entries from this seeder
-        productId: { [Op.in]: [1, 2, 3] },
-      },
-      {}
-    );
+    return queryInterface.bulkDelete(options, null, {});
   },
 };
