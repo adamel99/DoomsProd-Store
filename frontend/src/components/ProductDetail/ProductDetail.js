@@ -5,14 +5,12 @@ import {
   Container,
   Grid,
   Button,
-  Divider,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   useMediaQuery,
   IconButton,
-  Chip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useParams, useHistory } from "react-router-dom";
@@ -32,7 +30,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 const ADMIN_EMAIL = "adamelh1999@gmail.com";
 
-// ─── Shared primitives ──────────────────────────────────────────────────────
+// ─── Shared primitives ────────────────────────────────────────────────────────
 
 const LiquidBackground = React.memo(() => (
   <Box sx={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
@@ -69,24 +67,21 @@ const LiquidBackground = React.memo(() => (
 ));
 
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
-  <Box
-    sx={{
-      background: "rgba(255,255,255,0.03)",
-      backdropFilter: "blur(28px)",
-      WebkitBackdropFilter: "blur(28px)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderTop: "1px solid rgba(255,255,255,0.14)",
-      borderRadius: "28px",
-      boxShadow: [
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-        "0 24px 64px rgba(0,0,0,0.6)",
-        "8px 8px 20px rgba(0,0,0,0.4)",
-        "-3px -3px 10px rgba(255,255,255,0.015)",
-      ].join(", "),
-      ...sx,
-    }}
-    {...rest}
-  >
+  <Box sx={{
+    background: "rgba(255,255,255,0.03)",
+    backdropFilter: "blur(28px)",
+    WebkitBackdropFilter: "blur(28px)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    borderTop: "1px solid rgba(255,255,255,0.14)",
+    borderRadius: "28px",
+    boxShadow: [
+      "0 1px 0 rgba(255,255,255,0.07) inset",
+      "0 24px 64px rgba(0,0,0,0.6)",
+      "8px 8px 20px rgba(0,0,0,0.4)",
+      "-3px -3px 10px rgba(255,255,255,0.015)",
+    ].join(", "),
+    ...sx,
+  }} {...rest}>
     {children}
   </Box>
 );
@@ -135,7 +130,14 @@ const WaveformBars = ({ count = 7 }) => (
   </Box>
 );
 
-// ─── ProductDetailPage ───────────────────────────────────────────────────────
+// ─── Speaker icon SVG ─────────────────────────────────────────────────────────
+const SpeakerIcon = ({ opacity = 0.6 }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill={`rgba(255,234,236,${opacity})`}>
+    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+  </svg>
+);
+
+// ─── ProductDetailPage ────────────────────────────────────────────────────────
 const ProductDetailPage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -152,6 +154,8 @@ const ProductDetailPage = () => {
   const [success, setSuccess] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [volume, setVolume] = useState(0.5);
+  const [showVolume, setShowVolume] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -163,11 +167,27 @@ const ProductDetailPage = () => {
     if (product?.type === "beat") dispatch(getAllLicensesThunk());
   }, [dispatch, product]);
 
+  // Set initial volume
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = 0.5;
+  }, []);
+
+  const handleVolumeChange = (val) => {
+    setVolume(val);
+    if (audioRef.current) audioRef.current.volume = val;
+  };
+
   if (!product) {
     return (
       <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#0e0b0d" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <LiquidOrb size={32} color="rgba(228,63,111,0.7)" sx={{ animation: "pulse 1.5s ease-in-out infinite", "@keyframes pulse": { "0%,100%": { opacity: 0.6, transform: "scale(1)" }, "50%": { opacity: 1, transform: "scale(1.1)" } } }} />
+          <LiquidOrb size={32} color="rgba(228,63,111,0.7)" sx={{
+            animation: "pulse 1.5s ease-in-out infinite",
+            "@keyframes pulse": {
+              "0%,100%": { opacity: 0.6, transform: "scale(1)" },
+              "50%": { opacity: 1, transform: "scale(1.1)" },
+            },
+          }} />
           <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, color: "rgba(255,234,236,0.4)", fontSize: "1rem" }}>
             Loading...
           </Typography>
@@ -207,7 +227,11 @@ const ProductDetailPage = () => {
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
-    if (isPlaying) { audioRef.current.pause(); } else { audioRef.current.play(); }
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -225,13 +249,18 @@ const ProductDetailPage = () => {
   const displayPrice = type === "beat" && selectedLicense ? selectedLicense.price : price;
 
   return (
-    <Box sx={{ backgroundColor: "#0e0b0d", pt: { xs: 5, md: 8 }, pb: { xs: 10, md: 16 }, color: "#FFEAEC", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+    <Box sx={{
+      backgroundColor: "#0e0b0d",
+      pt: { xs: 5, md: 8 }, pb: { xs: 10, md: 16 },
+      color: "#FFEAEC", minHeight: "100vh",
+      position: "relative", overflow: "hidden",
+    }}>
       <LiquidBackground />
 
       <Box sx={{ position: "relative", zIndex: 2 }}>
         <Container maxWidth="lg">
 
-          {/* ── Back button ──────────────────────────────────────────── */}
+          {/* ── Back button ────────────────────────────────────────────── */}
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
             <Button
               startIcon={<ArrowBackIcon />}
@@ -239,8 +268,7 @@ const ProductDetailPage = () => {
               sx={{
                 mb: 5,
                 fontFamily: `"DM Sans", sans-serif`,
-                fontWeight: 600,
-                fontSize: "0.875rem",
+                fontWeight: 600, fontSize: "0.875rem",
                 color: "rgba(255,234,236,0.4)",
                 background: "rgba(255,255,255,0.03)",
                 backdropFilter: "blur(12px)",
@@ -262,7 +290,7 @@ const ProductDetailPage = () => {
 
           <Grid container spacing={{ xs: 4, md: 6 }}>
 
-            {/* ── LEFT: Image ──────────────────────────────────────────── */}
+            {/* ── LEFT: Image ───────────────────────────────────────────── */}
             <Grid item xs={12} md={5}>
               <motion.div
                 initial={{ opacity: 0, x: -28 }}
@@ -270,30 +298,30 @@ const ProductDetailPage = () => {
                 transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
               >
                 <Box sx={{ position: "sticky", top: 24 }}>
+
                   {/* Image card */}
-                  <Box
-                    sx={{
-                      position: "relative",
-                      borderRadius: "28px",
-                      overflow: "hidden",
-                      background: "linear-gradient(160deg, rgba(28,20,24,0.9), rgba(16,10,14,0.95))",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderTop: "1px solid rgba(255,255,255,0.14)",
+                  <Box sx={{
+                    position: "relative",
+                    borderRadius: "28px",
+                    overflow: "hidden",
+                    background: "linear-gradient(160deg, rgba(28,20,24,0.9), rgba(16,10,14,0.95))",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderTop: "1px solid rgba(255,255,255,0.14)",
+                    boxShadow: [
+                      "10px 10px 30px rgba(0,0,0,0.7)",
+                      "-4px -4px 14px rgba(255,255,255,0.02)",
+                      "0 1px 0 rgba(255,255,255,0.07) inset",
+                    ].join(", "),
+                    cursor: audioUrl ? "pointer" : "default",
+                    transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+                    "&:hover": audioUrl ? {
+                      transform: "translateY(-4px)",
                       boxShadow: [
-                        "10px 10px 30px rgba(0,0,0,0.7)",
-                        "-4px -4px 14px rgba(255,255,255,0.02)",
-                        "0 1px 0 rgba(255,255,255,0.07) inset",
+                        "12px 14px 40px rgba(0,0,0,0.75)",
+                        "0 8px 28px rgba(228,63,111,0.12)",
                       ].join(", "),
-                      cursor: audioUrl ? "pointer" : "default",
-                      transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
-                      "&:hover": audioUrl ? {
-                        transform: "translateY(-4px)",
-                        boxShadow: [
-                          "12px 14px 40px rgba(0,0,0,0.75)",
-                          "0 8px 28px rgba(228,63,111,0.12)",
-                        ].join(", "),
-                      } : {},
-                    }}
+                    } : {},
+                  }}
                     onClick={audioUrl ? toggleAudio : undefined}
                   >
                     {/* Type badge */}
@@ -333,68 +361,153 @@ const ProductDetailPage = () => {
                       }}
                     />
 
-                    {/* Gradient */}
+                    {/* Bottom gradient */}
                     <Box sx={{
                       position: "absolute", bottom: 0, left: 0, right: 0, height: "55%",
                       background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 55%, transparent 100%)",
                       pointerEvents: "none",
                     }} />
 
-                    {/* Play button */}
                     {audioUrl && (
-                      <Box sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 2 }}>
-                        <AnimatePresence>
-                          <motion.div
-                            key="playBtn"
-                            initial={{ scale: 0.85, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <IconButton
-                              onClick={(e) => { e.stopPropagation(); toggleAudio(); }}
-                              sx={{
-                                width: { xs: 68, md: 80 }, height: { xs: 68, md: 80 },
-                                background: "rgba(255,255,255,0.1)",
-                                backdropFilter: "blur(24px)",
-                                WebkitBackdropFilter: "blur(24px)",
-                                border: "1px solid rgba(255,255,255,0.18)",
-                                borderTop: "1px solid rgba(255,255,255,0.32)",
-                                color: "#FFEAEC",
-                                boxShadow: [
-                                  "4px 4px 16px rgba(0,0,0,0.6)",
-                                  "-2px -2px 10px rgba(255,255,255,0.05)",
-                                  "inset 0 1px 0 rgba(255,255,255,0.2)",
-                                ].join(", "),
-                                transition: "all 0.3s ease",
-                                "&:hover": {
-                                  background: "rgba(228,63,111,0.3)",
-                                  borderColor: "rgba(228,63,111,0.5)",
-                                  transform: "scale(1.1)",
-                                },
-                              }}
-                              aria-label={isPlaying ? "Pause" : "Play"}
+                      <>
+                        {/* ── Play button — centered ── */}
+                        <Box sx={{
+                          position: "absolute",
+                          top: "50%", left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          zIndex: 2,
+                        }}>
+                          <AnimatePresence>
+                            <motion.div
+                              key="playBtn"
+                              initial={{ scale: 0.85, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ duration: 0.3 }}
                             >
-                              {isPlaying
-                                ? <PauseIcon sx={{ fontSize: { xs: 32, md: 38 } }} />
-                                : <PlayArrowIcon sx={{ fontSize: { xs: 32, md: 38 }, ml: 0.5 }} />
-                              }
-                            </IconButton>
-                          </motion.div>
-                        </AnimatePresence>
-                      </Box>
-                    )}
+                              <IconButton
+                                onClick={(e) => { e.stopPropagation(); toggleAudio(); }}
+                                sx={{
+                                  width: { xs: 68, md: 80 }, height: { xs: 68, md: 80 },
+                                  background: "rgba(255,255,255,0.1)",
+                                  backdropFilter: "blur(24px)",
+                                  WebkitBackdropFilter: "blur(24px)",
+                                  border: "1px solid rgba(255,255,255,0.18)",
+                                  borderTop: "1px solid rgba(255,255,255,0.32)",
+                                  color: "#FFEAEC",
+                                  boxShadow: [
+                                    "4px 4px 16px rgba(0,0,0,0.6)",
+                                    "-2px -2px 10px rgba(255,255,255,0.05)",
+                                    "inset 0 1px 0 rgba(255,255,255,0.2)",
+                                  ].join(", "),
+                                  transition: "all 0.3s ease",
+                                  "&:hover": {
+                                    background: "rgba(228,63,111,0.3)",
+                                    borderColor: "rgba(228,63,111,0.5)",
+                                    transform: "scale(1.1)",
+                                  },
+                                }}
+                                aria-label={isPlaying ? "Pause" : "Play"}
+                              >
+                                {isPlaying
+                                  ? <PauseIcon sx={{ fontSize: { xs: 32, md: 38 } }} />
+                                  : <PlayArrowIcon sx={{ fontSize: { xs: 32, md: 38 }, ml: 0.5 }} />
+                                }
+                              </IconButton>
+                            </motion.div>
+                          </AnimatePresence>
+                        </Box>
 
-                    {/* Waveform */}
-                    {isPlaying && (
-                      <Box sx={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", zIndex: 2 }}>
-                        <WaveformBars />
-                      </Box>
-                    )}
+                        {/* ── Volume control — bottom-left, horizontal pill ── */}
+                        <Box
+                          onMouseEnter={() => setShowVolume(true)}
+                          onMouseLeave={() => setShowVolume(false)}
+                          onClick={(e) => e.stopPropagation()}
+                          sx={{
+                            position: "absolute",
+                            bottom: 18, left: 18,
+                            zIndex: 3,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            background: "rgba(14,11,13,0.75)",
+                            backdropFilter: "blur(20px)",
+                            WebkitBackdropFilter: "blur(20px)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            borderTop: "1px solid rgba(255,255,255,0.18)",
+                            borderRadius: "100px",
+                            px: 1.5, py: 1,
+                            boxShadow: "4px 4px 14px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07)",
+                            overflow: "hidden",
+                            minWidth: 36,
+                            transition: "width 0.3s ease",
+                            width: showVolume ? 160 : 36,
+                          }}
+                        >
+                          {/* Speaker icon — always visible */}
+                          <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", lineHeight: 0 }}>
+                            <SpeakerIcon opacity={showVolume ? 0.9 : 0.55} />
+                          </Box>
 
-                    <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} preload="metadata" />
+                          {/* Slider + label — expands on hover */}
+                          <Box sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            opacity: showVolume ? 1 : 0,
+                            width: showVolume ? 112 : 0,
+                            overflow: "hidden",
+                            transition: "opacity 0.2s ease, width 0.3s ease",
+                            flexShrink: 0,
+                          }}>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={volume}
+                              onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                              style={{
+                                width: 80,
+                                cursor: "pointer",
+                                accentColor: "#E43F6F",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <Typography sx={{
+                              fontSize: "0.58rem",
+                              color: "rgba(255,234,236,0.5)",
+                              fontFamily: "monospace",
+                              minWidth: 22,
+                              lineHeight: 1,
+                              flexShrink: 0,
+                            }}>
+                              {Math.round(volume * 100)}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* ── Waveform — bottom-right, only when playing ── */}
+                        {isPlaying && (
+                          <Box sx={{
+                            position: "absolute",
+                            bottom: 22, right: 18,
+                            zIndex: 2,
+                          }}>
+                            <WaveformBars />
+                          </Box>
+                        )}
+
+                        <audio
+                          ref={audioRef}
+                          src={audioUrl}
+                          onEnded={() => setIsPlaying(false)}
+                          preload="metadata"
+                        />
+                      </>
+                    )}
                   </Box>
 
-                  {/* Genre/BPM chips */}
+                  {/* Genre / BPM chips */}
                   {(genre || bpm) && (
                     <Box sx={{ display: "flex", gap: 1.5, mt: 3, flexWrap: "wrap" }}>
                       {genre && (
@@ -429,7 +542,7 @@ const ProductDetailPage = () => {
               </motion.div>
             </Grid>
 
-            {/* ── RIGHT: Info ──────────────────────────────────────────── */}
+            {/* ── RIGHT: Info ───────────────────────────────────────────── */}
             <Grid item xs={12} md={7}>
               <motion.div
                 initial={{ opacity: 0, x: 28 }}
@@ -451,7 +564,11 @@ const ProductDetailPage = () => {
                     {title}
                   </Typography>
 
-                  <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "#E43F6F", mb: 3, boxShadow: "0 2px 12px rgba(228,63,111,0.5)" }} />
+                  <Box sx={{
+                    width: 48, height: 3, borderRadius: "2px",
+                    bgcolor: "#E43F6F", mb: 3,
+                    boxShadow: "0 2px 12px rgba(228,63,111,0.5)",
+                  }} />
 
                   {/* Description */}
                   <Typography sx={{
@@ -465,7 +582,11 @@ const ProductDetailPage = () => {
 
                   {/* License selection */}
                   {type === "beat" && licenses.length > 0 && (
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.55 }}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35, duration: 0.55 }}
+                    >
                       <FormControl fullWidth sx={{
                         mb: 4,
                         "& .MuiOutlinedInput-root": {
@@ -506,14 +627,19 @@ const ProductDetailPage = () => {
                   )}
 
                   {/* Price panel */}
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, duration: 0.5 }}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                  >
                     <GlassPanel sx={{ p: 3, mb: 3 }}>
                       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Box>
                           <Typography sx={{
                             fontFamily: `"DM Sans", sans-serif`,
                             color: "rgba(255,234,236,0.35)",
-                            fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "2px", mb: 0.5,
+                            fontSize: "0.65rem", textTransform: "uppercase",
+                            letterSpacing: "2px", mb: 0.5,
                           }}>
                             {selectedLicense ? selectedLicense.name : "Price"}
                           </Typography>
@@ -531,22 +657,32 @@ const ProductDetailPage = () => {
                     </GlassPanel>
                   </motion.div>
 
-                  {/* Error/success */}
+                  {/* Error / success */}
                   <AnimatePresence>
                     {addCartError && (
-                      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                      >
                         <Box sx={{
                           mb: 2, px: 2.5, py: 1.5,
                           background: "rgba(228,63,111,0.08)",
                           border: "1px solid rgba(228,63,111,0.25)",
                           borderRadius: "14px", backdropFilter: "blur(8px)",
                         }}>
-                          <Typography sx={{ color: "#E43F6F", fontSize: "0.875rem" }}>{addCartError}</Typography>
+                          <Typography sx={{ color: "#E43F6F", fontSize: "0.875rem" }}>
+                            {addCartError}
+                          </Typography>
                         </Box>
                       </motion.div>
                     )}
                     {success && (
-                      <motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.92 }}>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.92 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.92 }}
+                      >
                         <Box sx={{
                           display: "flex", alignItems: "center", gap: 1.5,
                           mb: 2, px: 2.5, py: 1.5,
@@ -555,7 +691,10 @@ const ProductDetailPage = () => {
                           borderRadius: "14px", backdropFilter: "blur(8px)",
                         }}>
                           <CheckCircleIcon sx={{ color: "success.main", fontSize: 22 }} />
-                          <Typography sx={{ color: "success.main", fontSize: "0.9rem", fontWeight: 600, fontFamily: `"DM Sans", sans-serif` }}>
+                          <Typography sx={{
+                            color: "success.main", fontSize: "0.9rem",
+                            fontWeight: 600, fontFamily: `"DM Sans", sans-serif`,
+                          }}>
                             Added to cart successfully!
                           </Typography>
                         </Box>
@@ -577,7 +716,11 @@ const ProductDetailPage = () => {
 
                   {/* Admin actions */}
                   {isAdmin && (
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.55 }}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5, duration: 0.55 }}
+                    >
                       <Box sx={{
                         display: "flex", gap: 2, pt: 3, mt: 1,
                         borderTop: "1px solid rgba(255,255,255,0.06)",
@@ -612,7 +755,10 @@ const ProductDetailPage = () => {
                           sx={{
                             borderColor: "rgba(228,63,111,0.3)",
                             color: "#E43F6F",
-                            "&:hover": { borderColor: "#E43F6F", bgcolor: "rgba(228,63,111,0.08)" },
+                            "&:hover": {
+                              borderColor: "#E43F6F",
+                              bgcolor: "rgba(228,63,111,0.08)",
+                            },
                           }}
                         >
                           Delete
@@ -625,7 +771,7 @@ const ProductDetailPage = () => {
             </Grid>
           </Grid>
 
-          {/* ── YouTube Section ──────────────────────────────────────── */}
+          {/* ── YouTube Section ──────────────────────────────────────────── */}
           {youtubeLink && (
             <motion.div
               initial={{ opacity: 0, y: 28 }}
@@ -635,7 +781,11 @@ const ProductDetailPage = () => {
             >
               <Box sx={{ mt: { xs: 10, md: 14 } }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 5 }}>
-                  <Box sx={{ width: 4, height: 32, borderRadius: "2px", bgcolor: "#E43F6F", boxShadow: "0 2px 12px rgba(228,63,111,0.5)" }} />
+                  <Box sx={{
+                    width: 4, height: 32, borderRadius: "2px",
+                    bgcolor: "#E43F6F",
+                    boxShadow: "0 2px 12px rgba(228,63,111,0.5)",
+                  }} />
                   <Typography variant="h4" sx={{
                     fontFamily: `"Syne", sans-serif`,
                     fontWeight: 800, fontSize: { xs: "1.6rem", md: "2.1rem" },
