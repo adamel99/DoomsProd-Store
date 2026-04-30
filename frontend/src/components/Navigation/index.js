@@ -51,9 +51,12 @@ function Navigation({ isLoaded }) {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);           // mobile hamburger
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null); // profile dropdown
   const [scrolled, setScrolled] = useState(false);
+
   const open = Boolean(anchorEl);
+  const profileOpen = Boolean(profileAnchorEl);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -86,6 +89,9 @@ function Navigation({ isLoaded }) {
     history.push(path);
     handleMenuClose();
   }, [history, handleMenuClose]);
+
+  const handleProfileOpen = useCallback((e) => setProfileAnchorEl(e.currentTarget), []);
+  const handleProfileClose = useCallback(() => setProfileAnchorEl(null), []);
 
   return (
     <>
@@ -129,23 +135,25 @@ function Navigation({ isLoaded }) {
           pointerEvents: 'none',
         }} />
 
+        {/* True three-column grid: logo | center | actions */}
         <Box sx={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
-          justifyContent: 'space-between',
           px: { xs: 2, sm: 3, md: 5 },
           height: { xs: 56, sm: 62 },
-          position: 'relative',
+          gap: 2,
         }}>
 
-          {/* ── Logo ── */}
+          {/* ── Col 1: Logo ── */}
           <Box
             onClick={() => history.push('/')}
             sx={{
               display: 'flex', alignItems: 'center', gap: 1.1,
-              cursor: 'pointer', userSelect: 'none', flexShrink: 0,
+              cursor: 'pointer', userSelect: 'none',
               transition: 'opacity 0.2s',
               '&:hover': { opacity: 0.75 },
+              justifySelf: 'start',
             }}
           >
             <Box sx={{
@@ -164,24 +172,16 @@ function Navigation({ isLoaded }) {
             </Typography>
           </Box>
 
-          {/* ── Centered area: nav links OR search bar (desktop only) ── */}
-          <Box sx={{
-            display: { xs: 'none', md: 'flex' },
-            alignItems: 'center',
-            gap: '2px',
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}>
+          {/* ── Col 2: Nav links OR search bar — always truly centered ── */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center' }}>
             <AnimatePresence mode="wait">
               {showSearch ? (
                 <motion.div
                   key="search-open"
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 320, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  style={{ overflow: 'hidden' }}
+                  initial={{ width: 200, opacity: 0 }}
+                  animate={{ width: 380, opacity: 1 }}
+                  exit={{ width: 200, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <Box
                     component="form"
@@ -190,48 +190,61 @@ function Navigation({ isLoaded }) {
                       display: 'flex',
                       alignItems: 'center',
                       background: 'rgba(255,255,255,0.05)',
-                      backdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255,255,255,0.09)',
-                      borderRadius: '10px',
-                      px: 1.5,
-                      height: 34,
-                      width: 320,
-                      transition: 'border-color 0.2s',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderTop: '1px solid rgba(255,255,255,0.16)',
+                      borderRadius: '100px',
+                      pl: 2, pr: 0.75,
+                      height: 38,
+                      width: '100%',
+                      boxShadow: [
+                        '4px 4px 14px rgba(0,0,0,0.4)',
+                        '-1px -1px 6px rgba(255,255,255,0.02)',
+                        'inset 0 1px 0 rgba(255,255,255,0.06)',
+                      ].join(', '),
+                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                       '&:focus-within': {
-                        borderColor: 'rgba(228,63,111,0.4)',
-                        boxShadow: '0 0 0 3px rgba(228,63,111,0.07)',
+                        borderColor: 'rgba(228,63,111,0.45)',
+                        borderTopColor: 'rgba(228,63,111,0.6)',
+                        boxShadow: [
+                          '4px 4px 14px rgba(0,0,0,0.4)',
+                          '0 0 0 3px rgba(228,63,111,0.08)',
+                          'inset 0 1px 0 rgba(255,255,255,0.06)',
+                        ].join(', '),
                       },
                     }}
                   >
-                    <SearchIcon sx={{
-                      fontSize: 15,
-                      color: 'rgba(255,234,236,0.3)',
-                      mr: 1,
-                      flexShrink: 0,
-                    }} />
+                    <SearchIcon sx={{ fontSize: 15, color: 'rgba(255,234,236,0.35)', mr: 1.2, flexShrink: 0 }} />
                     <InputBase
-                      placeholder="Search products…"
+                      placeholder="Search beats, kits, loops…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       autoFocus
                       sx={{
                         flex: 1,
                         fontFamily: `"DM Sans", sans-serif`,
-                        fontSize: '0.85rem',
+                        fontSize: '0.875rem',
                         color: '#FFEAEC',
-                        '& input::placeholder': { color: 'rgba(255,234,236,0.25)' },
+                        '& input::placeholder': { color: 'rgba(255,234,236,0.22)' },
                       }}
                     />
                     <IconButton
                       size="small"
                       onClick={handleCloseSearch}
                       sx={{
-                        p: 0.4,
-                        color: 'rgba(255,234,236,0.25)',
-                        '&:hover': { color: '#FFEAEC' },
+                        width: 28, height: 28,
+                        borderRadius: '100px',
+                        color: 'rgba(255,234,236,0.3)',
+                        flexShrink: 0,
+                        transition: 'all 0.15s ease',
+                        '&:hover': {
+                          color: '#FFEAEC',
+                          background: 'rgba(255,255,255,0.07)',
+                        },
                       }}
                     >
-                      <CloseIcon sx={{ fontSize: 14 }} />
+                      <CloseIcon sx={{ fontSize: 13 }} />
                     </IconButton>
                   </Box>
                 </motion.div>
@@ -282,10 +295,10 @@ function Navigation({ isLoaded }) {
             </AnimatePresence>
           </Box>
 
-          {/* ── Right actions ── */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          {/* ── Col 3: Right actions ── */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', justifySelf: 'end' }}>
 
-            {/* Search icon — always in right rail, toggles center search on desktop */}
+            {/* Search icon */}
             <IconButton
               onClick={() => setShowSearch((prev) => !prev)}
               size="small"
@@ -332,7 +345,7 @@ function Navigation({ isLoaded }) {
               </Badge>
             </IconButton>
 
-            {/* Auth — Desktop */}
+            {/* ── Auth — Desktop ── */}
             {isLoaded && (
               <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '6px' }}>
 
@@ -340,18 +353,34 @@ function Navigation({ isLoaded }) {
 
                 {sessionUser ? (
                   <>
-                    <Box sx={{
-                      display: 'flex', alignItems: 'center', gap: 0.9,
-                      px: 1.4, height: 34,
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: '10px',
-                      boxShadow: [
-                        '3px 3px 10px rgba(0,0,0,0.3)',
-                        '-1px -1px 4px rgba(255,255,255,0.02)',
-                        '0 1px 0 rgba(255,255,255,0.05) inset',
-                      ].join(', '),
-                    }}>
+                    {/* Clickable username pill → opens profile dropdown */}
+                    <Box
+                      onClick={handleProfileOpen}
+                      sx={{
+                        display: 'flex', alignItems: 'center', gap: 0.9,
+                        px: 1.4, height: 34,
+                        background: profileOpen
+                          ? 'rgba(228,63,111,0.09)'
+                          : 'rgba(255,255,255,0.04)',
+                        border: '1px solid',
+                        borderColor: profileOpen
+                          ? 'rgba(228,63,111,0.3)'
+                          : 'rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        boxShadow: [
+                          '3px 3px 10px rgba(0,0,0,0.3)',
+                          '-1px -1px 4px rgba(255,255,255,0.02)',
+                          '0 1px 0 rgba(255,255,255,0.05) inset',
+                        ].join(', '),
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          borderColor: 'rgba(228,63,111,0.3)',
+                          background: 'rgba(228,63,111,0.07)',
+                        },
+                      }}
+                    >
                       <Avatar sx={{
                         width: 20, height: 20, fontSize: '0.58rem',
                         bgcolor: '#E43F6F', color: '#fff', fontWeight: 700,
@@ -370,29 +399,87 @@ function Navigation({ isLoaded }) {
                       </Typography>
                     </Box>
 
-                    <Button
-                      onClick={handleLogout}
-                      size="small"
-                      sx={{
-                        fontFamily: `"DM Sans", sans-serif`,
-                        fontWeight: 600, fontSize: '0.8rem',
-                        px: 1.6, height: 34,
-                        textTransform: 'none',
-                        color: 'rgba(255,234,236,0.38)',
-                        borderRadius: '10px',
-                        border: '1px solid rgba(255,255,255,0.07)',
-                        background: 'rgba(255,255,255,0.03)',
-                        boxShadow: '3px 3px 10px rgba(0,0,0,0.25), -1px -1px 4px rgba(255,255,255,0.015)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          color: '#E43F6F',
-                          borderColor: 'rgba(228,63,111,0.3)',
-                          background: 'rgba(228,63,111,0.07)',
+                    {/* ── Profile dropdown ── */}
+                    <Menu
+                      anchorEl={profileAnchorEl}
+                      open={profileOpen}
+                      onClose={handleProfileClose}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                      PaperProps={{
+                        sx: {
+                          mt: 1,
+                          minWidth: 220,
+                          background: 'rgba(16,11,14,0.97)',
+                          backdropFilter: 'blur(32px)',
+                          WebkitBackdropFilter: 'blur(32px)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderTop: '1px solid rgba(255,255,255,0.13)',
+                          borderRadius: '16px',
+                          boxShadow: [
+                            '0 24px 60px rgba(0,0,0,0.75)',
+                            '6px 6px 20px rgba(0,0,0,0.4)',
+                            '-2px -2px 8px rgba(255,255,255,0.01)',
+                            '0 1px 0 rgba(255,255,255,0.06) inset',
+                          ].join(', '),
+                          overflow: 'hidden',
+                          '& .MuiList-root': { py: 0 },
                         },
                       }}
                     >
-                      Logout
-                    </Button>
+                      {/* User info header */}
+                      <Box sx={{
+                        px: 2.5, py: 2,
+                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex', alignItems: 'center', gap: 1.5,
+                      }}>
+                        <Avatar sx={{
+                          width: 36, height: 36, fontSize: '0.85rem',
+                          bgcolor: '#E43F6F', color: '#fff', fontWeight: 700,
+                          fontFamily: `"Syne", sans-serif`,
+                          boxShadow: '0 4px 12px rgba(228,63,111,0.4)',
+                        }}>
+                          {sessionUser.username?.[0]?.toUpperCase() || 'U'}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{
+                            fontFamily: `"Syne", sans-serif`,
+                            fontWeight: 700, fontSize: '0.9rem',
+                            color: '#FFEAEC', lineHeight: 1.3,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                            {sessionUser.username}
+                          </Typography>
+                          <Typography sx={{
+                            fontFamily: `"DM Sans", sans-serif`,
+                            fontSize: '0.72rem',
+                            color: 'rgba(255,234,236,0.35)',
+                            lineHeight: 1.3,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                            {sessionUser.email}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      {/* Logout */}
+                      <MenuItem
+                        onClick={() => {
+                          handleProfileClose();
+                          handleLogout();
+                        }}
+                        sx={{
+                          fontFamily: `"DM Sans", sans-serif`,
+                          fontSize: '0.875rem', fontWeight: 600,
+                          color: '#E43F6F',
+                          py: 1.4, px: 2.5,
+                          transition: 'background 0.15s ease',
+                          '&:hover': { background: 'rgba(228,63,111,0.08)' },
+                        }}
+                      >
+                        Logout
+                      </MenuItem>
+                    </Menu>
                   </>
                 ) : (
                   <>
@@ -542,7 +629,10 @@ function Navigation({ isLoaded }) {
               border: '1px solid rgba(228,63,111,0.3)',
               borderRadius: '100px',
             }}>
-              <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, fontSize: '0.68rem', fontWeight: 700, color: '#E43F6F' }}>
+              <Typography sx={{
+                fontFamily: `"DM Sans", sans-serif`,
+                fontSize: '0.68rem', fontWeight: 700, color: '#E43F6F',
+              }}>
                 {cartCount}
               </Typography>
             </Box>
@@ -555,18 +645,46 @@ function Navigation({ isLoaded }) {
 
             {sessionUser ? (
               <>
-                <MenuItem disabled sx={{ py: 1, px: 2.5, opacity: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar sx={{ width: 20, height: 20, fontSize: '0.58rem', bgcolor: '#E43F6F', fontWeight: 700 }}>
-                      {sessionUser.username?.[0]?.toUpperCase() || 'U'}
-                    </Avatar>
-                    <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, fontSize: '0.78rem', color: 'rgba(255,234,236,0.28)' }}>
+                {/* Mobile user info */}
+                <Box sx={{
+                  px: 2.5, py: 1.5,
+                  display: 'flex', alignItems: 'center', gap: 1.2,
+                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  mb: 0.5,
+                }}>
+                  <Avatar sx={{
+                    width: 28, height: 28, fontSize: '0.7rem',
+                    bgcolor: '#E43F6F', fontWeight: 700,
+                    boxShadow: '0 3px 10px rgba(228,63,111,0.35)',
+                  }}>
+                    {sessionUser.username?.[0]?.toUpperCase() || 'U'}
+                  </Avatar>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{
+                      fontFamily: `"Syne", sans-serif`,
+                      fontWeight: 700, fontSize: '0.82rem',
+                      color: '#FFEAEC', lineHeight: 1.2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
                       {sessionUser.username}
                     </Typography>
+                    <Typography sx={{
+                      fontFamily: `"DM Sans", sans-serif`,
+                      fontSize: '0.68rem',
+                      color: 'rgba(255,234,236,0.32)',
+                      lineHeight: 1.2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {sessionUser.email}
+                    </Typography>
                   </Box>
-                </MenuItem>
+                </Box>
+
                 <MenuItem
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleMenuClose();
+                    handleLogout();
+                  }}
                   sx={{
                     fontFamily: `"DM Sans", sans-serif`,
                     fontSize: '0.875rem', fontWeight: 600,
@@ -579,14 +697,11 @@ function Navigation({ isLoaded }) {
               </>
             ) : (
               <>
-                <MenuItem
-                  sx={{
-                    py: 1.2, px: 2.5,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    '&:hover': { background: 'rgba(255,255,255,0.05)' },
-                  }}
-                >
+                <MenuItem sx={{
+                  py: 1.2, px: 2.5,
+                  display: 'flex', justifyContent: 'center',
+                  '&:hover': { background: 'rgba(255,255,255,0.05)' },
+                }}>
                   <OpenModalMenuItem
                     itemText="Log In"
                     modalComponent={<LoginFormModal />}
@@ -594,8 +709,7 @@ function Navigation({ isLoaded }) {
                     buttonProps={{
                       sx: {
                         fontFamily: `"DM Sans", sans-serif`,
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
+                        fontSize: '0.875rem', fontWeight: 500,
                         color: 'rgba(255,234,236,0.48)',
                         textAlign: 'center',
                       },
@@ -603,14 +717,11 @@ function Navigation({ isLoaded }) {
                   />
                 </MenuItem>
 
-                <MenuItem
-                  sx={{
-                    py: 1.2, px: 2.5,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    '&:hover': { background: 'rgba(228,63,111,0.08)' },
-                  }}
-                >
+                <MenuItem sx={{
+                  py: 1.2, px: 2.5,
+                  display: 'flex', justifyContent: 'center',
+                  '&:hover': { background: 'rgba(228,63,111,0.08)' },
+                }}>
                   <OpenModalMenuItem
                     itemText="Sign Up"
                     modalComponent={<SignUpFormModal />}
@@ -618,10 +729,8 @@ function Navigation({ isLoaded }) {
                     buttonProps={{
                       sx: {
                         fontFamily: `"DM Sans", sans-serif`,
-                        fontSize: '0.875rem',
-                        fontWeight: 700,
-                        color: '#E43F6F',
-                        textAlign: 'center',
+                        fontSize: '0.875rem', fontWeight: 700,
+                        color: '#E43F6F', textAlign: 'center',
                       },
                     }}
                   />
