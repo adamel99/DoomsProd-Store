@@ -11,8 +11,7 @@ const paymentRouter = require('./payment');
 const webhookRouter = require('./webhook');
 const downloadRouter = require('./downloads'); // <-- ADD THIS
 
-const { restoreUser, setTokenCookie, requireAuth } = require('../../utils/auth.js');
-const { User } = require('../../db/models');
+const { restoreUser, requireAuth } = require('../../utils/auth.js');
 
 router.use(restoreUser);
 
@@ -29,24 +28,18 @@ router.use('/webhook', webhookRouter);
 router.use('/downloads', downloadRouter); // <-- ADD THIS
 
 // Test route for debugging
-router.post('/test', (req, res) => {
-  res.json({ requestBody: req.body });
-});
-
-router.get('/set-token-cookie', async (_req, res) => {
-  const user = await User.findOne({
-    where: { username: 'Demo-lition' }
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/test', (req, res) => {
+    res.json({ requestBody: req.body });
   });
-  setTokenCookie(res, user);
-  return res.json({ user });
-});
 
-router.get('/restore-user', (req, res) => {
-  return res.json(req.user);
-});
+  router.get('/restore-user', (req, res) => {
+    return res.json(req.user);
+  });
 
-router.get('/require-auth', requireAuth, (req, res) => {
-  return res.json(req.user);
-});
+  router.get('/require-auth', requireAuth, (req, res) => {
+    return res.json(req.user);
+  });
+}
 
 module.exports = router;

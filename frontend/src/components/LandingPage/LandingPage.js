@@ -16,13 +16,7 @@ import PauseIcon from "@mui/icons-material/Pause";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { getAllProductsThunk } from "../../store/products";
 import ContactModal from "../ContactInfo/ContactInfo";
-
-const getYouTubeId = (url) => {
-  const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^\s&?\/]+)/i
-  );
-  return match ? match[1] : null;
-};
+import { getYouTubeEmbedUrl } from "../../utils/youtube";
 
 const routeMap = {
   "Browse Beats": "/products",
@@ -43,6 +37,16 @@ const stats = [
   { label: "Happy Artists", value: "1K+" },
   { label: "Downloads", value: "10K+" },
 ];
+
+const tickerItems = [
+  "TRAP · DRILL · R&B · LOFI",
+  "WAV + TRACKED STEMS",
+  "UNLIMITED / EXCLUSIVE LICENSING",
+  "NEW DROPS EVERY WEEK",
+  "MIXED & MASTERED IN-HOUSE",
+];
+
+const MONO = `"JetBrains Mono", ui-monospace, monospace`;
 
 // ─── Ambient Background ───────────────────────────────────────────────────────
 const LiquidBackground = React.memo(() => (
@@ -77,21 +81,28 @@ const LiquidBackground = React.memo(() => (
   </Box>
 ));
 
-// ─── Glass Panel ──────────────────────────────────────────────────────────────
+// ─── Glass Panel (Apple-style liquid glass: thin edge, blur+saturate, specular top) ──
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box sx={{
-    background: "rgba(255,255,255,0.025)",
-    backdropFilter: "blur(32px)",
-    WebkitBackdropFilter: "blur(32px)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderTop: "1px solid rgba(255,255,255,0.13)",
-    borderLeft: "1px solid rgba(255,255,255,0.08)",
+    position: "relative",
+    background: "rgba(255,255,255,0.028)",
+    backdropFilter: "blur(38px) saturate(180%)",
+    WebkitBackdropFilter: "blur(38px) saturate(180%)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderTop: "1px solid rgba(255,255,255,0.2)",
+    borderLeft: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "28px",
     boxShadow: [
-      "0 1px 0 rgba(255,255,255,0.06) inset",
+      "0 1px 0 rgba(255,255,255,0.08) inset",
       "0 32px 80px rgba(0,0,0,0.6)",
       "0 2px 4px rgba(0,0,0,0.4)",
     ].join(", "),
+    "&::before": {
+      content: '""',
+      position: "absolute", inset: 0, borderRadius: "inherit",
+      background: "linear-gradient(120deg, rgba(255,255,255,0.06) 0%, transparent 30%)",
+      pointerEvents: "none",
+    },
     ...sx,
   }} {...rest}>
     {children}
@@ -168,6 +179,67 @@ const WaveformBars = ({ count = 5 }) => (
   </Box>
 );
 
+// ─── Decorative Level Meter (studio motif, purely ambient) ──────────────────
+const LevelMeter = ({ bars = 28 }) => (
+  <Box sx={{
+    display: "flex", alignItems: "flex-end", gap: "3px",
+    height: 64, width: "100%",
+  }}>
+    {[...Array(bars)].map((_, i) => (
+      <Box key={i} sx={{
+        flex: 1, borderRadius: "2px",
+        background: i % 7 === 0
+          ? "linear-gradient(to top, #E43F6F, #f06b90)"
+          : "rgba(255,234,236,0.14)",
+        animation: `meterBar ${1.6 + (i % 5) * 0.25}s ease-in-out ${(i % 9) * 0.09}s infinite`,
+        "@keyframes meterBar": {
+          "0%,100%": { height: "18%" },
+          "50%": { height: `${30 + ((i * 37) % 65)}%` },
+        },
+      }} />
+    ))}
+  </Box>
+);
+
+// ─── Studio status ticker (mono, marquee) ─────────────────────────────────────
+const StatusTicker = () => {
+  const loop = [...tickerItems, ...tickerItems];
+  return (
+    <Box sx={{
+      position: "relative", overflow: "hidden",
+      borderTop: "1px solid rgba(255,255,255,0.06)",
+      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      py: 1.5,
+      "&::before, &::after": {
+        content: '""', position: "absolute", top: 0, bottom: 0, width: 80, zIndex: 2,
+      },
+      "&::before": { left: 0, background: "linear-gradient(90deg, #0e0b0d, transparent)" },
+      "&::after": { right: 0, background: "linear-gradient(270deg, #0e0b0d, transparent)" },
+    }}>
+      <Box sx={{
+        display: "flex", width: "max-content", gap: 6,
+        animation: "tickerScroll 32s linear infinite",
+        "@keyframes tickerScroll": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      }}>
+        {loop.map((item, i) => (
+          <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <Typography sx={{
+              fontFamily: MONO, fontSize: "0.72rem", letterSpacing: "2px",
+              color: "rgba(255,234,236,0.38)", whiteSpace: "nowrap",
+            }}>
+              {item}
+            </Typography>
+            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "rgba(228,63,111,0.6)", flexShrink: 0 }} />
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 // ─── Volume Speaker SVG ───────────────────────────────────────────────────────
 const SpeakerIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,234,236,0.6)">
@@ -175,7 +247,7 @@ const SpeakerIcon = () => (
   </svg>
 );
 
-// ─── Product Card ─────────────────────────────────────────────────────────────
+// ─── Product Card (styled as a channel strip) ─────────────────────────────────
 const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCardClick }) => {
   const audioRef = useRef(null);
   const isPlaying = playingProductId === product.id;
@@ -198,11 +270,7 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
     [product.id, onToggleAudio]
   );
 
-  const audioSrc = Array.isArray(product.downloadUrls)
-    ? (product.downloadUrls.find((f) => f.type === "mp3")?.url ||
-       product.downloadUrls[0]?.url ||
-       product.downloadUrls[0])
-    : product.downloadUrls;
+  const audioSrc = product.audioPreviewUrl || "";
 
   return (
     <Box
@@ -214,8 +282,9 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
         position: "relative",
         background: "linear-gradient(160deg, rgba(28,18,22,0.9), rgba(16,10,14,0.97))",
         border: "1px solid rgba(255,255,255,0.065)",
-        borderTop: "1px solid rgba(255,255,255,0.11)",
-        backdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(255,255,255,0.12)",
+        backdropFilter: "blur(20px) saturate(160%)",
+        WebkitBackdropFilter: "blur(20px) saturate(160%)",
         boxShadow: [
           "8px 8px 28px rgba(0,0,0,0.7)",
           "-3px -3px 10px rgba(255,255,255,0.018)",
@@ -233,6 +302,14 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
         },
       }}
     >
+      {/* channel-strip index rail */}
+      <Box sx={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 2,
+        background: "linear-gradient(90deg, #E43F6F, rgba(228,63,111,0.15) 60%, transparent)",
+        opacity: isPlaying ? 1 : 0.45,
+        transition: "opacity 0.3s ease",
+      }} />
+
       {/* ── Image zone ────────────────────────────────────────────────── */}
       <Box sx={{ position: "relative", paddingTop: "100%", overflow: "hidden" }}>
         <Box
@@ -269,16 +346,16 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
                 onClick={handleAudioToggle}
                 sx={{
                   width: 60, height: 60,
-                  background: "rgba(14,11,13,0.6)",
-                  backdropFilter: "blur(28px)",
-                  WebkitBackdropFilter: "blur(28px)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderTop: "1px solid rgba(255,255,255,0.28)",
+                  background: "rgba(14,11,13,0.55)",
+                  backdropFilter: "blur(30px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderTop: "1px solid rgba(255,255,255,0.3)",
                   color: "#FFEAEC",
                   boxShadow: [
                     "5px 5px 16px rgba(0,0,0,0.65)",
                     "-2px -2px 8px rgba(255,255,255,0.03)",
-                    "inset 0 1px 0 rgba(255,255,255,0.18)",
+                    "inset 0 1px 0 rgba(255,255,255,0.2)",
                   ].join(", "),
                   transition: "all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
                   "&:hover": {
@@ -292,7 +369,7 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
                     ].join(", "),
                   },
                 }}
-                aria-label={isPlaying ? "Pause" : "Play"}
+                aria-label={isPlaying ? "Pause preview" : "Play preview"}
               >
                 {isPlaying
                   ? <PauseIcon sx={{ fontSize: 28 }} />
@@ -312,27 +389,25 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                background: "rgba(14,11,13,0.75)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
+                background: "rgba(14,11,13,0.72)",
+                backdropFilter: "blur(22px) saturate(180%)",
+                WebkitBackdropFilter: "blur(22px) saturate(180%)",
                 border: "1px solid rgba(255,255,255,0.1)",
-                borderTop: "1px solid rgba(255,255,255,0.18)",
+                borderTop: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: "100px",
                 px: 1.25,
                 py: 0.75,
-                boxShadow: "4px 4px 14px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07)",
+                boxShadow: "4px 4px 14px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
                 transition: "width 0.25s ease",
                 minWidth: 32,
                 overflow: "hidden",
                 width: showVolume ? 128 : 32,
               }}
             >
-              {/* Speaker icon — always visible */}
               <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", lineHeight: 0 }}>
                 <SpeakerIcon />
               </Box>
 
-              {/* Slider + readout — reveals on hover */}
               <Box sx={{
                 display: "flex",
                 alignItems: "center",
@@ -361,7 +436,7 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
                 <Typography sx={{
                   fontSize: "0.52rem",
                   color: "rgba(255,234,236,0.45)",
-                  fontFamily: "monospace",
+                  fontFamily: MONO,
                   minWidth: 20,
                   lineHeight: 1,
                   flexShrink: 0,
@@ -435,7 +510,7 @@ const ProductCard = React.memo(({ product, playingProductId, onToggleAudio, onCa
             },
           }}
         >
-          View Details
+          View details
         </Button>
       </Box>
     </Box>
@@ -459,10 +534,11 @@ const InteractiveFeatureSection = ({ history }) => {
   };
 
   const menuItems = [
-    { title: "Browse Beats", label: "SONIC CATALOG", desc: "Access the full vault of industry-standard production." },
-    { title: "Meet the Creator", label: "THE ARCHITECT", desc: "Go behind the scenes of the signature sound design." },
-    { title: "Licenses & Terms", label: "USAGE RIGHTS", desc: "Transparent, flexible legal framework for your hits." },
+    { title: "Browse Beats", label: "SONIC CATALOG", desc: "Access the full vault of industry-standard production.", cta: "Browse the catalog" },
+    { title: "Meet the Creator", label: "THE ARCHITECT", desc: "Go behind the scenes of the signature sound design.", cta: "Meet the creator" },
+    { title: "Licenses & Terms", label: "USAGE RIGHTS", desc: "Transparent, flexible legal framework for your hits.", cta: "View licensing" },
   ];
+  const activeItem = menuItems.find((i) => i.title === active);
 
   return (
     <Box
@@ -474,10 +550,11 @@ const InteractiveFeatureSection = ({ history }) => {
           <Grid item xs={12} md={5}>
             <Box sx={{ position: "relative" }}>
               <Typography sx={{
+                fontFamily: MONO,
                 fontSize: "0.65rem", letterSpacing: "5px",
-                color: "rgba(228,63,111,0.6)", mb: 4, fontWeight: 800,
+                color: "rgba(228,63,111,0.6)", mb: 4, fontWeight: 600,
               }}>
-                SYSTEM_NAVIGATION // 001
+                STUDIO MAP
               </Typography>
 
               {menuItems.map((item) => {
@@ -501,14 +578,15 @@ const InteractiveFeatureSection = ({ history }) => {
                       boxShadow: "0 0 12px rgba(228,63,111,0.6)",
                     }} />
                     <Typography sx={{
+                      fontFamily: MONO,
                       fontSize: "0.7rem",
                       color: isActive ? "#E43F6F" : "rgba(255,255,255,0.28)",
-                      fontWeight: 800, mb: 0.5, letterSpacing: "1px",
+                      fontWeight: 600, mb: 0.5, letterSpacing: "1px",
                     }}>
                       {item.label}
                     </Typography>
                     <Typography variant="h4" sx={{
-                      fontWeight: 900,
+                      fontSize: { xs: "1.8rem", md: "2.2rem" },
                       color: isActive ? "#FFEAEC" : "rgba(255,255,255,0.13)",
                       transition: "color 0.3s",
                     }}>
@@ -528,15 +606,6 @@ const InteractiveFeatureSection = ({ history }) => {
                 transform: `rotateY(${coords.x * 14}deg) rotateX(${coords.y * -14}deg)`,
                 p: 6, display: "flex", flexDirection: "column",
                 justifyContent: "flex-end", overflow: "hidden",
-                background: "rgba(255,255,255,0.01)",
-                "&::before": {
-                  content: '""', position: "absolute",
-                  top: 0, left: `${(coords.x + 0.5) * 100}%`,
-                  width: "1px", height: "100%",
-                  background: "linear-gradient(to bottom, transparent 0%, rgba(228,63,111,0.55) 50%, transparent 100%)",
-                  opacity: 0.6, boxShadow: "0 0 18px rgba(228,63,111,0.4)",
-                  transition: "left 0.08s linear",
-                },
                 "&::after": {
                   content: '""', position: "absolute", inset: 0,
                   borderRadius: "28px",
@@ -544,6 +613,15 @@ const InteractiveFeatureSection = ({ history }) => {
                   pointerEvents: "none",
                 },
               }}>
+                {/* scanning highlight line, like a level-meter needle */}
+                <Box sx={{
+                  position: "absolute", top: 0, left: `${(coords.x + 0.5) * 100}%`,
+                  width: "1px", height: "100%",
+                  background: "linear-gradient(to bottom, transparent 0%, rgba(228,63,111,0.55) 50%, transparent 100%)",
+                  opacity: 0.6, boxShadow: "0 0 18px rgba(228,63,111,0.4)",
+                  transition: "left 0.08s linear",
+                }} />
+
                 <Box sx={{ position: "absolute", top: "20%", right: "10%" }}>
                   <LiquidOrb size={160} color="rgba(228,63,111,0.2)" sx={{ filter: "blur(40px)" }} />
                 </Box>
@@ -574,15 +652,16 @@ const InteractiveFeatureSection = ({ history }) => {
                     color: "rgba(255,234,236,0.55)", fontSize: "1.1rem",
                     maxWidth: "80%", mb: 4, lineHeight: 1.7,
                   }}>
-                    {menuItems.find((i) => i.title === active)?.desc}
+                    {activeItem?.desc}
                   </Typography>
                   <Button
                     variant="contained"
                     onClick={() => history.push(routeMap[active])}
+                    endIcon={<ArrowForwardIcon />}
                     sx={{
-                      borderRadius: 0, py: 2, px: 6,
+                      py: 1.6, px: 4,
                       background: "#FFEAEC", color: "#0e0b0d",
-                      fontWeight: 900, letterSpacing: "2px",
+                      fontWeight: 700,
                       boxShadow: "4px 4px 16px rgba(0,0,0,0.5), -2px -2px 8px rgba(255,255,255,0.04)",
                       "&:hover": {
                         background: "#E43F6F", color: "#FFEAEC",
@@ -590,13 +669,12 @@ const InteractiveFeatureSection = ({ history }) => {
                       },
                     }}
                   >
-                    INITIALIZE SEQUENCE
+                    {activeItem?.cta}
                   </Button>
                 </Box>
 
                 <Box sx={{ position: "absolute", bottom: 20, right: 20, textAlign: "right", opacity: 0.3 }}>
-                  <Typography sx={{ fontSize: "0.6rem", fontFamily: "monospace", lineHeight: 1.8 }}>
-                    LATENCY: 12ms<br />
+                  <Typography sx={{ fontFamily: MONO, fontSize: "0.6rem", lineHeight: 1.8 }}>
                     STATUS: ACTIVE<br />
                     COORD: {coords.x.toFixed(2)} / {coords.y.toFixed(2)}
                   </Typography>
@@ -630,7 +708,7 @@ const LandingPage = () => {
     if (searchTerm.trim()) history.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
   }, [searchTerm, history]);
 
-  const toggleAudio = useCallback((e, productId, audioRef) => {
+  const toggleAudio = useCallback(async (e, productId, audioRef) => {
     e.stopPropagation();
     const currentAudio = audioRef.current;
     if (!currentAudio) return;
@@ -640,8 +718,13 @@ const LandingPage = () => {
     });
 
     if (currentAudio.paused) {
-      currentAudio.play();
-      setPlayingProductId(productId);
+      try {
+        await currentAudio.play();
+        setPlayingProductId(productId);
+      } catch (err) {
+        console.error("Failed to play product preview:", err);
+        setPlayingProductId(null);
+      }
     } else {
       currentAudio.pause();
       setPlayingProductId(null);
@@ -666,10 +749,10 @@ const LandingPage = () => {
       <LiquidBackground />
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", zIndex: 2, pt: { xs: 10, md: 14 }, pb: { xs: 6, md: 10 } }}>
+      <Box sx={{ position: "relative", zIndex: 2, pt: { xs: 10, md: 14 }, pb: { xs: 5, md: 7 } }}>
         <Container maxWidth="lg">
           {/* Status pill */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 5 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 6 }}>
             <GlassPanel sx={{
               px: 3, py: 1, borderRadius: "100px",
               display: "inline-flex", alignItems: "center", gap: 2,
@@ -679,20 +762,25 @@ const LandingPage = () => {
                 background: "#E43F6F",
                 boxShadow: "0 0 8px rgba(228,63,111,0.9), 0 0 20px rgba(228,63,111,0.4)",
                 flexShrink: 0,
+                animation: "pulseDot 2.2s ease-in-out infinite",
+                "@keyframes pulseDot": {
+                  "0%,100%": { opacity: 1 },
+                  "50%": { opacity: 0.4 },
+                },
               }} />
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`,
-                fontSize: "0.8rem", fontWeight: 600,
+                fontFamily: MONO,
+                fontSize: "0.75rem", fontWeight: 500,
                 letterSpacing: "2px", textTransform: "uppercase",
                 color: "rgba(255,234,236,0.6)",
               }}>
-                Industry Standard Production
+                Studio online — now booking
               </Typography>
             </GlassPanel>
           </Box>
 
-          {/* Hero title */}
-          <Box sx={{ textAlign: "center", mb: 6, position: "relative" }}>
+          {/* Hero wordmark */}
+          <Box sx={{ textAlign: "center", mb: 7, position: "relative" }}>
             <LiquidOrb size={64} color="rgba(228,63,111,0.6)" sx={{
               position: "absolute", left: { xs: "2%", md: "8%" }, top: "10%",
               display: { xs: "none", sm: "block" },
@@ -713,29 +801,40 @@ const LandingPage = () => {
               animation: "orbBob 5s ease-in-out infinite",
             }} />
 
+            <Typography sx={{
+              fontFamily: MONO, fontSize: "0.75rem", fontWeight: 500,
+              letterSpacing: "6px", color: "rgba(255,234,236,0.3)", mb: 1,
+            }}>
+              PRODUCTION
+            </Typography>
+
             <Typography variant="h1" sx={{
-              fontSize: { xs: "3.2rem", sm: "5rem", md: "7rem", lg: "8rem" },
+              fontSize: { xs: "4.2rem", sm: "6.5rem", md: "9rem", lg: "10.5rem" },
               background: "linear-gradient(180deg, #FFEAEC 0%, rgba(255,234,236,0.5) 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              mb: 0, mx: "auto", letterSpacing: "-0.02em",
+              mb: 0, mx: "auto",
             }}>
-              welcome
+              DOOMS
             </Typography>
 
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 3 }}>
               <AccentRule width={60} />
             </Box>
 
             <Typography sx={{
               fontFamily: `"DM Sans", sans-serif`,
               fontSize: { xs: "1.05rem", md: "1.3rem" },
-              color: "rgba(255,234,236,0.4)",
-              letterSpacing: "0.5px", mt: 2,
+              color: "rgba(255,234,236,0.45)",
+              letterSpacing: "0.3px", maxWidth: 560, mx: "auto",
             }}>
-              Industry-ready beats · Instant downloads · Elevate your sound
+              Hip-hop, trap & R&B instrumentals — mixed and mastered for release.
             </Typography>
+          </Box>
+
+          <Box sx={{ mb: 6 }}>
+            <StatusTicker />
           </Box>
 
           {/* Stats */}
@@ -761,7 +860,7 @@ const LandingPage = () => {
                   {stat.value}
                 </Typography>
                 <Typography sx={{
-                  fontFamily: `"DM Sans", sans-serif`, fontSize: "0.75rem",
+                  fontFamily: MONO, fontSize: "0.7rem",
                   color: "rgba(255,234,236,0.35)",
                   letterSpacing: "1.5px", textTransform: "uppercase", mt: 0.5,
                 }}>
@@ -778,15 +877,16 @@ const LandingPage = () => {
             sx={{
               display: "flex", mx: "auto", maxWidth: 600, mb: 5,
               background: "rgba(255,255,255,0.025)",
-              backdropFilter: "blur(28px)",
+              backdropFilter: "blur(30px) saturate(180%)",
+              WebkitBackdropFilter: "blur(30px) saturate(180%)",
               borderRadius: "100px",
               border: "1px solid rgba(255,255,255,0.08)",
-              borderTop: "1px solid rgba(255,255,255,0.13)",
+              borderTop: "1px solid rgba(255,255,255,0.16)",
               overflow: "hidden",
               boxShadow: [
                 "6px 6px 24px rgba(0,0,0,0.6)",
                 "-2px -2px 8px rgba(255,255,255,0.018)",
-                "inset 0 1px 0 rgba(255,255,255,0.06)",
+                "inset 0 1px 0 rgba(255,255,255,0.07)",
               ].join(", "),
               transition: "box-shadow 0.25s ease, border-color 0.25s ease",
               "&:focus-within": {
@@ -794,7 +894,7 @@ const LandingPage = () => {
                 boxShadow: [
                   "6px 6px 24px rgba(0,0,0,0.6)",
                   "0 0 0 2px rgba(228,63,111,0.12)",
-                  "inset 0 1px 0 rgba(255,255,255,0.06)",
+                  "inset 0 1px 0 rgba(255,255,255,0.07)",
                 ].join(", "),
               },
             }}
@@ -804,6 +904,7 @@ const LandingPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               fullWidth
+              inputProps={{ "aria-label": "Search beats, kits, and loops" }}
               sx={{
                 px: 3, py: 1.5, fontSize: "1rem", color: "#FFEAEC",
                 "& input::placeholder": { color: "rgba(255,234,236,0.25)" },
@@ -811,6 +912,7 @@ const LandingPage = () => {
             />
             <IconButton
               type="submit"
+              aria-label="Search"
               sx={{
                 m: 0.75, width: 44, height: 44, borderRadius: "100px",
                 bgcolor: "#E43F6F", color: "#FFEAEC",
@@ -834,26 +936,28 @@ const LandingPage = () => {
               onClick={handleContactOpen}
               sx={{ px: 4, py: 1.5, fontSize: "1rem" }}
             >
-              Contact Me
+              Start a project
             </Button>
             <Button
               variant="outlined" size="large"
               href="https://www.youtube.com/@DoomsProduction"
               target="_blank"
+              rel="noopener noreferrer"
               sx={{ px: 4, py: 1.5, fontSize: "1rem" }}
             >
-              YouTube
+              Watch on YouTube
             </Button>
             <Button
               variant="text" size="large"
               onClick={() => history.push("/products")}
+              endIcon={<ArrowForwardIcon />}
               sx={{
                 px: 4, py: 1.5, fontSize: "1rem",
                 color: "rgba(255,234,236,0.35)",
                 "&:hover": { color: "#E43F6F", bgcolor: "transparent" },
               }}
             >
-              Explore Beats →
+              Browse the catalog
             </Button>
           </Box>
         </Container>
@@ -871,11 +975,11 @@ const LandingPage = () => {
             <Box>
               <AccentRule width={32} sx={{ mb: 2 }} />
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`, fontSize: "0.7rem",
-                fontWeight: 600, letterSpacing: "3px",
+                fontFamily: MONO, fontSize: "0.7rem",
+                fontWeight: 500, letterSpacing: "3px",
                 textTransform: "uppercase", color: "#E43F6F", mb: 1,
               }}>
-                Fresh Out
+                Fresh out the booth
               </Typography>
               <Typography variant="h2" sx={{ fontSize: { xs: "2.2rem", md: "3.2rem" }, lineHeight: 1 }}>
                 Latest Releases
@@ -891,18 +995,26 @@ const LandingPage = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={3}>
-            {latestProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
-                <ProductCard
-                  product={product}
-                  playingProductId={playingProductId}
-                  onToggleAudio={toggleAudio}
-                  onCardClick={handleCardClick}
-                />
-              </Grid>
-            ))}
-          </Grid>
+          {latestProducts.length > 0 ? (
+            <Grid container spacing={3}>
+              {latestProducts.map((product) => (
+                <Grid item xs={12} sm={6} md={4} key={product.id}>
+                  <ProductCard
+                    product={product}
+                    playingProductId={playingProductId}
+                    onToggleAudio={toggleAudio}
+                    onCardClick={handleCardClick}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <GlassPanel sx={{ py: 8, px: 4, textAlign: "center" }}>
+              <Typography sx={{ color: "rgba(255,234,236,0.4)" }}>
+                New beats are on the way — check back soon.
+              </Typography>
+            </GlassPanel>
+          )}
         </Container>
       </Box>
 
@@ -915,11 +1027,11 @@ const LandingPage = () => {
           <Box sx={{ textAlign: "center", mb: 7 }}>
             <AccentRule width={32} sx={{ mx: "auto", mb: 3 }} />
             <Typography sx={{
-              fontFamily: `"DM Sans", sans-serif`, fontSize: "0.7rem",
-              fontWeight: 600, letterSpacing: "3px",
+              fontFamily: MONO, fontSize: "0.7rem",
+              fontWeight: 500, letterSpacing: "3px",
               textTransform: "uppercase", color: "#E43F6F", mb: 1.5,
             }}>
-              Trusted By
+              Trusted by
             </Typography>
             <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
               Heard Worldwide
@@ -968,7 +1080,7 @@ const LandingPage = () => {
                 </Box>
               </Box>
 
-              {videoUrl && (
+              {getYouTubeEmbedUrl(videoUrl) && (
                 <Box sx={{
                   borderRadius: "20px", overflow: "hidden",
                   border: "1px solid rgba(255,255,255,0.055)",
@@ -980,7 +1092,7 @@ const LandingPage = () => {
                   ].join(", "),
                 }}>
                   <iframe
-                    src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?rel=0&controls=1`}
+                    src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
                     title={`Video by ${name}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -997,11 +1109,9 @@ const LandingPage = () => {
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
       <Box sx={{ position: "relative", zIndex: 2, py: { xs: 10, md: 16 } }}>
         <Container maxWidth="sm">
-          <GlassPanel sx={{ p: { xs: 5, md: 7 }, textAlign: "center" }}>
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 1.5, mb: 5 }}>
-              <AccentRule width={16} sx={{ opacity: 0.4 }} />
-              <AccentRule width={40} />
-              <AccentRule width={16} sx={{ opacity: 0.4 }} />
+          <GlassPanel sx={{ p: { xs: 5, md: 7 }, textAlign: "center", overflow: "hidden" }}>
+            <Box sx={{ opacity: 0.5, mb: 4 }}>
+              <LevelMeter bars={32} />
             </Box>
             <Typography variant="h2" sx={{ fontSize: { xs: "1.8rem", md: "2.6rem" }, mb: 2 }}>
               Ready to Elevate Your Sound?

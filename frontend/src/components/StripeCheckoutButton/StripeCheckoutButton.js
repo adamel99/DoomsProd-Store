@@ -21,11 +21,9 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
       const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
       if (total === 0) {
-        console.log("🆓 Processing free checkout");
         const response = await csrfFetch("/api/payment/free-checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cartItems }),
         });
         const data = await response.json();
 
@@ -40,11 +38,9 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
         return;
       }
 
-      console.log("💳 Processing paid checkout with Stripe");
       const response = await csrfFetch("/api/payment/create-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cartItems, userId }),
       });
       const data = await response.json();
       if (!data.sessionId) throw new Error("No sessionId received");

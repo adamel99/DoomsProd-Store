@@ -557,7 +557,7 @@ const AboutMe = () => {
               component="a"
               href="https://github.com/adamel99"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               variant="outlined"
               size="large"
               sx={{ px: 4, py: 1.5, fontSize: "0.95rem" }}

@@ -1,16 +1,34 @@
 const express = require('express');
-const { requireAuth } = require('../../utils/auth');
+const { requireAuth, requireAdmin } = require('../../utils/auth');
 const { Order, User, OrderItem } = require('../../db/models');
+const { createOrderFromCart } = require('../../utils/checkout');
+const { body, param } = require('express-validator');
+const { handleValidationErrors } = require('../../utils/validation');
 
 const router = express.Router();
+const allowedStatuses = ['pending', 'completed', 'cancelled'];
+
+const validateOrderId = [
+  param('orderId')
+    .isInt({ min: 1 })
+    .withMessage('Order id must be valid.'),
+  handleValidationErrors,
+];
+
+const validateOrderUpdate = [
+  param('orderId')
+    .isInt({ min: 1 })
+    .withMessage('Order id must be valid.'),
+  body('status')
+    .optional()
+    .isIn(allowedStatuses)
+    .withMessage('Invalid order status.'),
+  handleValidationErrors,
+];
 
 // Admin: Get all orders with user info, newest first
-router.get('/', requireAuth, async (req, res, next) => {
+router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized: Admins only.' });
-    }
-
     const orders = await Order.findAll({
       include: { model: User, attributes: ['id', 'username', 'email'] },
       order: [['createdAt', 'DESC']],
@@ -37,7 +55,7 @@ router.get('/my', requireAuth, async (req, res, next) => {
 });
 
 // Get one order by ID (admin or owner), including order items
-router.get('/:orderId', requireAuth, async (req, res, next) => {
+router.get('/:orderId', requireAuth, validateOrderId, async (req, res, next) => {
   try {
     const order = await Order.findByPk(req.params.orderId, {
       include: { model: OrderItem },
@@ -55,40 +73,25 @@ router.get('/:orderId', requireAuth, async (req, res, next) => {
   }
 });
 
-// Create new order (user must supply total, orderItems handled separately or here)
+// Create new order from the authenticated user's cart
 router.post('/', requireAuth, async (req, res, next) => {
   try {
-    const { total } = req.body;
-
-    if (total === undefined) {
-      return res.status(400).json({ message: 'Total amount is required.' });
-    }
-
-    const newOrder = await Order.create({
-      userId: req.user.id,
-      total,
-    });
-
-    // Optional: create order items here if you want, or do in separate route
-
-    return res.status(201).json({ order: newOrder });
+    const { order } = await createOrderFromCart(req.user.id);
+    return res.status(201).json({ order });
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ message: error.message });
     next(error);
   }
 });
 
 // Update order total (and status if you add it later) — admin only
-router.put('/:orderId', requireAuth, async (req, res, next) => {
+router.put('/:orderId', requireAuth, requireAdmin, validateOrderUpdate, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized: Admins only.' });
-    }
-
     const order = await Order.findByPk(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found.' });
 
-    const { total } = req.body;
-    if (total !== undefined) order.total = total;
+    const { status } = req.body;
+    if (status !== undefined) order.status = status;
 
     await order.save();
 
@@ -99,12 +102,8 @@ router.put('/:orderId', requireAuth, async (req, res, next) => {
 });
 
 // Delete order — admin only
-router.delete('/:orderId', requireAuth, async (req, res, next) => {
+router.delete('/:orderId', requireAuth, requireAdmin, validateOrderId, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized: Admins only.' });
-    }
-
     const order = await Order.findByPk(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found.' });
 

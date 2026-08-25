@@ -31,8 +31,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const ADMIN_EMAIL = "adamelh1999@gmail.com";
-
 // ─── Glass Panel ──────────────────────────────────────────────────────────────
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
@@ -166,13 +164,10 @@ const ProductCard = ({ customProduct }) => {
   }
   if (!displayedProduct) return null;
 
-  const { title, price, description, imageUrl, downloadUrls, id, type } = displayedProduct;
+  const { title, price, description, imageUrl, audioPreviewUrl, id, type } = displayedProduct;
+  const audioUrl = audioPreviewUrl || "";
 
-  const audioUrl = Array.isArray(downloadUrls)
-    ? downloadUrls.find((f) => f.type === "mp3")?.url || ""
-    : "";
-
-  const isAdmin = currentUser?.email === ADMIN_EMAIL;
+  const isAdmin = currentUser?.role === "admin";
 
   const handleClick = () => { if (!isStandalone) history.push(`/products/${id}`); };
   const handleUpdate = () => history.push(`/products/${id}/edit`);
@@ -203,11 +198,22 @@ const ProductCard = ({ customProduct }) => {
     }
   };
 
-  const toggleAudio = (e) => {
+  const toggleAudio = async (e) => {
     e.stopPropagation();
     if (!audioRef.current) return;
-    if (isPlaying) { audioRef.current.pause(); } else { audioRef.current.play(); }
-    setIsPlaying(!isPlaying);
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    try {
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch (err) {
+      console.error("Failed to play product preview:", err);
+      setIsPlaying(false);
+    }
   };
 
   return (

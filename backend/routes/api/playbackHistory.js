@@ -31,9 +31,11 @@ router.post('/', requireAuth, async (req, res, next) => {
       return res.status(400).json({ message: 'productId is required' });
     }
 
-    // Optionally check if product exists
+    const product = await Product.findByPk(productId, { attributes: ['id'] });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
 
-    // Create new playback history entry
     const history = await PlaybackHistory.create({
       userId: req.user.id,
       productId,

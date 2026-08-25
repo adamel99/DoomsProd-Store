@@ -1,58 +1,72 @@
-// api/webook.js
 const express = require("express");
-const router = express.Router();
 const bodyParser = require("body-parser");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { UniqueConstraintError } = require("sequelize");
 const { sendProductEmail } = require("../../utils/sendProductEmail");
+const { Order, User, ProcessedStripeEvent, sequelize } = require("../../db/models");
+const { clearCartForOrder, getOrderFileKeys } = require("../../utils/checkout");
 
+const router = express.Router();
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 router.post("/", bodyParser.raw({ type: "application/json" }), async (req, res) => {
-    const sig = req.headers["stripe-signature"];
-    let event;
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    return res.status(400).send("Webhook signature verification failed");
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const orderId = session.metadata?.orderId;
+
+    if (!orderId || session.payment_status !== "paid") {
+      return res.status(200).json({ received: true });
+    }
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      await sequelize.transaction(async (transaction) => {
+        await ProcessedStripeEvent.create({ id: event.id, type: event.type }, { transaction });
+
+        const order = await Order.findByPk(orderId, {
+          include: [{ model: User, attributes: ["email"] }],
+          transaction,
+          lock: true,
+        });
+
+        if (!order || order.status === "completed") return;
+
+        if (String(order.userId) !== String(session.metadata?.userId)) {
+          const err = new Error("Order metadata mismatch");
+          err.status = 400;
+          throw err;
+        }
+
+        const fileKeys = await getOrderFileKeys(order.id, transaction);
+        if (fileKeys.length) {
+          await sendProductEmail(order.User.email, fileKeys);
+        }
+
+        await order.update({
+          status: "completed",
+          paymentIntentId: session.payment_intent || session.id,
+        }, { transaction });
+
+        await clearCartForOrder(order, transaction);
+      });
     } catch (err) {
-      console.error("Webhook signature verification failed:", err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-
-      const email = session.customer_details?.email || session.customer_email || 'adamelh1999@gmail.com';
-      if (!email) {
-        console.warn("Missing customer email in session:", session.id);
-        return res.status(400).send("Missing customer email");
-      }
-
-      const fileKeysStr = session.metadata?.fileKeys || "";
-      const fileKeys = fileKeysStr
-        .split(",")
-        .map(k => k.trim())
-        .filter(k => k.length > 0);
-
-      console.log("Extracted fileKeys from session metadata:", fileKeys);
-
-      if (fileKeys.length === 0) {
-        console.warn("⚠️ No valid fileKeys found. Skipping email.");
-        return res.status(200).json({ received: true }); // Don't fail webhook
-      }
-
-      try {
-        await sendProductEmail(email, fileKeys);
-        console.log(`Email sent to ${email} with files:`, fileKeys);
+      if (err instanceof UniqueConstraintError) {
         return res.status(200).json({ received: true });
-      } catch (err) {
-        console.error("Error sending email:", err);
-        return res.status(500).send("Webhook processing failed");
       }
+      if (err.status === 400) return res.status(400).send(err.message);
+      throw err;
     }
+  }
 
-    return res.status(200).json({ received: true });
-  });
-
-
+  return res.status(200).json({ received: true });
+});
 
 module.exports = router;

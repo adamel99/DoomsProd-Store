@@ -1,202 +1,116 @@
 const express = require('express');
-const router = express.Router();
 const Stripe = require('stripe');
 const { requireAuth } = require('../../utils/auth');
 const { sendProductEmail, getSignedFileUrl } = require('../../utils/sendProductEmail');
+const rateLimit = require('../../utils/rateLimit');
+const { cents, clearCartForOrder, createOrderFromCart, getOrderFileKeys } = require('../../utils/checkout');
+const { Order } = require('../../db/models');
 
+const router = express.Router();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-router.post('/create-session', async (req, res, next) => {
+const getReusableCheckoutSessionId = async (userId) => {
+  const pendingOrder = await Order.findOne({
+    where: { userId, status: 'pending' },
+    order: [['createdAt', 'DESC']],
+  });
+
+  if (!pendingOrder?.paymentIntentId?.startsWith('cs_')) return null;
+
   try {
-    const { cartItems } = req.body;
-    console.log("🛒 Incoming cartItems:", JSON.stringify(cartItems, null, 2));
-
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ message: 'Cart is empty.' });
+    const session = await stripe.checkout.sessions.retrieve(pendingOrder.paymentIntentId);
+    if (session.status === 'open' && session.payment_status === 'unpaid') {
+      return session.id;
     }
+  } catch (_err) {
+    return null;
+  }
 
-    let userId = null;
-    let userEmail = null;
+  return null;
+};
 
+router.post(
+  '/create-session',
+  requireAuth,
+  rateLimit({ windowMs: 10 * 60 * 1000, max: 10 }),
+  async (req, res) => {
     try {
-      await requireAuth(req, res, () => {});
-      if (req.user) {
-        userId = req.user.id.toString();
-        userEmail = req.user.email;
-      }
-    } catch (err) {
-      console.warn("⚠️ User not authenticated, proceeding without user info.");
-    }
+      const reusableSessionId = await getReusableCheckoutSessionId(req.user.id);
+      if (reusableSessionId) return res.json({ sessionId: reusableSessionId });
 
-    const allFileKeys = cartItems.flatMap(item => {
-      let downloadUrls = [];
+      const { order, lineItems, totalPrice } = await createOrderFromCart(req.user.id);
 
-      console.log("🔍 Processing item:", item.productName);
-      console.log("📦 Raw downloadUrls:", item.downloadUrls);
-      console.log("📦 Type:", typeof item.downloadUrls);
-
-      try {
-        if (Array.isArray(item.downloadUrls)) {
-          downloadUrls = item.downloadUrls;
-        } else if (typeof item.downloadUrls === 'string') {
-          downloadUrls = JSON.parse(item.downloadUrls);
-        }
-        console.log("✅ Parsed downloadUrls:", downloadUrls);
-      } catch (err) {
-        console.error('⚠️ Failed to parse downloadUrls:', err);
-        return [];
+      if (totalPrice <= 0) {
+        return res.status(400).json({ message: 'Use free checkout for free carts.' });
       }
 
-      return downloadUrls.map(urlObj => {
-        if (typeof urlObj === 'string' && !urlObj.startsWith('http')) {
-          console.log("✅ Direct key:", urlObj);
-          return urlObj;
-        }
-
-        const urlString = urlObj?.url || urlObj;
-        if (!urlString) return null;
-
-        try {
-          const url = new URL(urlString);
-          const rawKey = url.pathname.slice(1);
-          const decodedKey = decodeURIComponent(rawKey.replace(/\+/g, ' '));
-          console.log("✅ Extracted key from URL:", decodedKey);
-          return decodedKey;
-        } catch (err) {
-          console.error('❌ Invalid URL:', urlString, err);
-          return null;
-        }
-      }).filter(Boolean);
-    });
-
-    console.log("📦 Final extracted file keys:", allFileKeys);
-
-    if (allFileKeys.length === 0) {
-      console.warn("⚠️ No downloadable file keys found - email will not contain files!");
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: cartItems.map(item => ({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: item.productName || 'Untitled',
-            description: `License: ${item.licenseType || 'Standard'}`,
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems.map((item) => ({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: item.product.title || 'Untitled',
+              description: `License: ${item.license?.name || 'Standard'}`,
+            },
+            unit_amount: cents(item.price),
           },
-          unit_amount: Math.round((item.price || 0) * 100),
+          quantity: item.quantity,
+        })),
+        mode: 'payment',
+        success_url: `${process.env.FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL}/checkout-cancel`,
+        metadata: {
+          orderId: String(order.id),
+          userId: String(req.user.id),
         },
-        quantity: 1,
-      })),
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/checkout-cancel`,
-      metadata: {
-        userId: userId || 'guest',
-        fileKeys: allFileKeys.join(','),
-      },
-      customer_email: userEmail || undefined,
-    });
+        customer_email: req.user.email,
+      });
 
-    console.log("✅ Stripe session created:", session.id);
-    console.log("📧 Customer email:", session.customer_email);
-    console.log("📦 Metadata fileKeys:", session.metadata.fileKeys);
+      order.paymentIntentId = session.payment_intent || session.id;
+      await order.save();
 
-    return res.json({ sessionId: session.id });
-  } catch (error) {
-    console.error('🔥 Stripe session creation error:', error);
-    return res.status(500).json({ message: 'Failed to create Stripe checkout session.' });
+      return res.json({ sessionId: session.id });
+    } catch (error) {
+      const status = error.status || 500;
+      return res.status(status).json({ message: status === 500 ? 'Failed to create Stripe checkout session.' : error.message });
+    }
   }
-});
+);
 
-router.post('/free-checkout', requireAuth, async (req, res) => {
-  try {
-    const { cartItems } = req.body;
-    const userEmail = req.user.email;
+router.post(
+  '/free-checkout',
+  requireAuth,
+  rateLimit({ windowMs: 10 * 60 * 1000, max: 6 }),
+  async (req, res) => {
+    try {
+      const { order, totalPrice } = await createOrderFromCart(req.user.id);
 
-    console.log("🆓 Processing free checkout for:", userEmail);
-
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ message: 'Cart is empty.' });
-    }
-
-    const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-
-    if (total > 0) {
-      return res.status(400).json({ message: 'This endpoint is only for free items.' });
-    }
-
-    const allFileKeys = cartItems.flatMap(item => {
-      let downloadUrls = [];
-
-      if (Array.isArray(item.downloadUrls)) {
-        downloadUrls = item.downloadUrls;
-      } else if (typeof item.downloadUrls === 'string') {
-        try {
-          downloadUrls = JSON.parse(item.downloadUrls);
-        } catch (e) {
-          console.error('Failed to parse downloadUrls:', e);
-          return [];
-        }
+      if (totalPrice > 0) {
+        await order.update({ status: 'cancelled' });
+        return res.status(400).json({ message: 'This endpoint is only for free items.' });
       }
 
-      return downloadUrls.map(urlObj => {
-        if (typeof urlObj === 'string' && !urlObj.startsWith('http')) {
-          return urlObj;
-        }
+      const fileKeys = await getOrderFileKeys(order.id);
+      if (!fileKeys.length) {
+        return res.status(400).json({ message: 'No downloadable files found.' });
+      }
 
-        if (urlObj?.key) {
-          return urlObj.key;
-        }
+      const signedUrls = await Promise.all(fileKeys.map((key) => getSignedFileUrl(key)));
+      await sendProductEmail(req.user.email, fileKeys);
+      await clearCartForOrder(order);
 
-        const urlString = urlObj?.url || urlObj;
-        if (!urlString) return null;
-
-        try {
-          const url = new URL(urlString);
-          const rawKey = url.pathname.slice(1);
-          return decodeURIComponent(rawKey.replace(/\+/g, ' '));
-        } catch (err) {
-          console.error('Invalid URL:', urlString);
-          return null;
-        }
-      }).filter(Boolean);
-    });
-
-    console.log("📦 File keys for free download:", allFileKeys);
-
-    if (allFileKeys.length === 0) {
-      return res.status(400).json({ message: 'No downloadable files found.' });
+      return res.json({
+        success: true,
+        message: 'Download links sent to your email.',
+        orderId: order.id,
+        downloadLinks: signedUrls,
+      });
+    } catch (error) {
+      const status = error.status || 500;
+      return res.status(status).json({ message: status === 500 ? 'Failed to process free checkout.' : error.message });
     }
-
-    // Generate signed URLs for the success page
-    const signedUrls = await Promise.all(
-      allFileKeys.map(async (key) => {
-        try {
-          const url = await getSignedFileUrl(key);
-          console.log(`✅ Signed URL for: ${key}`);
-          return url;
-        } catch (err) {
-          console.error('Failed to sign URL:', key, err);
-          return null;
-        }
-      })
-    );
-
-    // Send email with the file keys
-    await sendProductEmail(userEmail, allFileKeys);
-    console.log("✅ Free product email sent to:", userEmail);
-
-    return res.json({
-      success: true,
-      message: 'Download links sent to your email!',
-      downloadLinks: signedUrls.filter(Boolean),
-    });
-
-  } catch (error) {
-    console.error('❌ Free checkout error:', error);
-    return res.status(500).json({ message: 'Failed to process free checkout.' });
   }
-});
+);
 
 module.exports = router;

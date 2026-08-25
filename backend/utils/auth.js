@@ -7,6 +7,16 @@ const { secret, expiresIn } = jwtConfig;
 // backend/utils/auth.js
 // ...
 
+const tokenCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === "production";
+
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+    };
+};
+
 // Sends a JWT Cookie
 const setTokenCookie = (res, user) => {
     // Create the token.
@@ -14,6 +24,7 @@ const setTokenCookie = (res, user) => {
         id: user.id,
         email: user.email,
         username: user.username,
+        tokenVersion: user.tokenVersion || 0,
     };
     const token = jwt.sign(
         { data: safeUser },
@@ -21,14 +32,10 @@ const setTokenCookie = (res, user) => {
         { expiresIn: parseInt(expiresIn) } // 604,800 seconds = 1 week
     );
 
-    const isProduction = process.env.NODE_ENV === "production";
-
     // Set the token cookie
     res.cookie('token', token, {
         maxAge: expiresIn * 1000, // maxAge in milliseconds
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction && "Lax"
+        ...tokenCookieOptions(),
     });
 
     return token;
@@ -48,18 +55,22 @@ const restoreUser = (req, res, next) => {
         }
 
         try {
-            const { id } = jwtPayload.data;
+            const { id, tokenVersion } = jwtPayload.data;
             req.user = await User.findByPk(id, {
                 attributes: {
                     include: ['email', 'createdAt', 'updatedAt']
                 }
             });
+            if (req.user && (req.user.tokenVersion || 0) !== (tokenVersion || 0)) {
+                req.user = null;
+                res.clearCookie('token', tokenCookieOptions());
+            }
         } catch (e) {
-            res.clearCookie('token');
+            res.clearCookie('token', tokenCookieOptions());
             return next();
         }
 
-        if (!req.user) res.clearCookie('token');
+        if (!req.user) res.clearCookie('token', tokenCookieOptions());
 
         return next();
     });
@@ -77,7 +88,17 @@ const requireAuth = function (req, _res, next) {
     return next(err);
 }
 
+const requireAdmin = function (req, res, next) {
+    if (!req.user) return requireAuth(req, res, next);
+    if (req.user.role === 'admin') return next();
+
+    const err = new Error('Admin authorization required');
+    err.title = 'Admin authorization required';
+    err.errors = { message: 'Admin authorization required' };
+    err.status = 403;
+    return next(err);
+}
 
 
 
-module.exports = { setTokenCookie, restoreUser, requireAuth  };
+module.exports = { setTokenCookie, restoreUser, requireAuth, requireAdmin, tokenCookieOptions  };

@@ -151,7 +151,7 @@ const ProductList = () => {
   useEffect(() => { setSearchTerm(urlSearchTerm); }, [urlSearchTerm]);
 
   const allProductsArray = Object.values(allProducts || {});
-  const isAdmin = sessionUser?.role === "admin" || sessionUser?.email === "adamelh1999@gmail.com";
+  const isAdmin = sessionUser?.role === "admin";
 
   const filteredProducts = useMemo(() => {
     return allProductsArray.filter((product) => {

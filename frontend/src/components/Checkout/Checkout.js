@@ -190,23 +190,12 @@ const Checkout = () => {
   );
 
   const formattedCartItems = cartItems.map((item) => {
-    let downloadUrls = [];
-    try {
-      if (Array.isArray(item.downloadUrls)) {
-        downloadUrls = item.downloadUrls;
-      } else if (typeof item.downloadUrls === "string") {
-        downloadUrls = JSON.parse(item.downloadUrls);
-      }
-    } catch (e) {
-      downloadUrls = [];
-    }
     return {
       productName: item.productName || "Untitled",
       licenseType: item.licenseType || "Standard",
       price: parseFloat(item.price) || 0,
       type: item.type || "Unknown",
       image: item.imageUrl || "/default-image.png",
-      downloadUrls,
     };
   });
 

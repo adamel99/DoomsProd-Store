@@ -63,7 +63,7 @@ const UpdateProductPage = () => {
     }
   }, [product]);
 
-  const isAdmin = currentUser?.email === "adamelh1999@gmail.com";
+  const isAdmin = currentUser?.role === "admin";
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -133,7 +133,7 @@ const UpdateProductPage = () => {
                       key={i}
                       href={file.url}
                       target="_blank"
-                      rel="noopener"
+                      rel="noopener noreferrer"
                       underline="hover"
                       display="block"
                       sx={{ color: "#90caf9" }}

@@ -21,7 +21,7 @@ const NewProduct = () => {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  // const [price, setPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [audioPreviewUrl, setAudioPreviewUrl] = useState("");
   const [youtubeLink, setYoutubeLink] = useState("");
   const [genre, setGenre] = useState("");
@@ -35,6 +35,7 @@ const NewProduct = () => {
   const [wavFile, setWavFile] = useState(null);
 
   const [errors, setErrors] = useState([]);
+  const isKit = type === "loop_kit" || type === "drum_kit";
 
   // Handle image file input
   const handleImageChange = (e) => {
@@ -60,9 +61,9 @@ const NewProduct = () => {
       formData.append("youtubeLink", youtubeLink);
       formData.append("genre", genre);
 
-      // if (type !== "beat") {
-      //   formData.append("price", price);
-      // }
+      if (isKit) {
+        formData.append("price", price || "0");
+      }
 
       if (imageFile) formData.append("image", imageFile);
       if (zipFile) formData.append("zipFile", zipFile);
@@ -108,16 +109,6 @@ const NewProduct = () => {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        {/* {type !== "beat" && (
-          <TextField
-            label="Price"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-          />
-        )} */}
-
         <TextField
           label="YouTube Audio Preview URL"
           value={audioPreviewUrl}
@@ -141,8 +132,9 @@ const NewProduct = () => {
             value={type}
             label="Type"
             onChange={(e) => {
-              setType(e.target.value);
-              // if (e.target.value === "beat") setPrice("");
+              const nextType = e.target.value;
+              setType(nextType);
+              if (nextType === "beat") setPrice("");
             }}
           >
             <MenuItem value="beat">Beat</MenuItem>
@@ -150,6 +142,18 @@ const NewProduct = () => {
             <MenuItem value="drum_kit">Drum Kit</MenuItem>
           </Select>
         </FormControl>
+
+        {isKit && (
+          <TextField
+            label="Price"
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            inputProps={{ min: 0, step: "0.01" }}
+            helperText="Use 0 for a free kit."
+            required
+          />
+        )}
 
         {/* Upload image */}
         <label>

@@ -21,9 +21,8 @@ import Checkout from "./components/Checkout/Checkout";
 import CheckoutSuccess from "./components/CheckoutSuccess/CheckoutSuccess";
 import CheckoutCancel from "./components/CheckoutCancel/CheckoutCancel";
 import DownloadPage from "./components/Downloads/DownloadPage";
+import AdminRoute from "./components/ProtectedRoute/ProtectedRoute";
 
-
-// import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
 import { restoreUser } from "./store/session";
 
@@ -44,11 +43,11 @@ function App() {
         <Switch>
           <Route exact path="/" component={LandingPage} />
           <Route exact path="/products" component={ProductList} />
-          <Route exact path="/products/new" component={NewProduct} />
+          <AdminRoute exact path="/products/new" component={NewProduct} />
           <Route exact path="/products/:productId" component={ProductDetail} />
 
           <Route exact path="/cart" component={CartPage} />
-          <Route exact path="/products/:productId/edit" component={UpdateProduct} />
+          <AdminRoute exact path="/products/:productId/edit" component={UpdateProduct} />
           {/* <ProtectedRoute exact path="/orders" component={OrdersPage} /> */}
           {/* <ProtectedRoute exact path="/playback-history" component={PlaybackHistoryPage} /> */}
           <Route exact path="/licenses" component={LicensesPage} />

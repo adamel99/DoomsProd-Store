@@ -7,6 +7,7 @@ const { setTokenCookie, requireAuth } = require('../../utils/auth');
 const { User } = require('../../db/models');
 const { check } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
+const rateLimit = require('../../utils/rateLimit');
 
 
 const validateSignup = [
@@ -32,9 +33,8 @@ const validateSignup = [
 
 
 // Sign up
-router.post("", validateSignup, async (req, res) => {
+router.post("", rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }), validateSignup, async (req, res) => {
     const { firstName, lastName, email, password, username } = req.body;
-    console.log(password);
     const hashedPassword = bcrypt.hashSync(password);
     const user = await User.create({
       firstName,
@@ -50,9 +50,10 @@ router.post("", validateSignup, async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       username: user.username,
+      role: user.role,
     };
 
-    await setTokenCookie(res, safeUser);
+    await setTokenCookie(res, user);
 
     return res.json({
       user: safeUser,

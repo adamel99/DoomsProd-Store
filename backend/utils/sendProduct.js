@@ -10,19 +10,10 @@ const s3 = new S3Client({
   },
 });
 
-// Check if string is a full URL
-function isUrl(string) {
-  try {
-    new URL(string);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-// Generate signed S3 URL from a file key or return URL as-is
 async function getSignedFileUrl(key) {
-  if (isUrl(key)) return key;
+  if (typeof key !== "string" || !key.startsWith("products/")) {
+    throw new Error("Invalid download key");
+  }
 
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -34,14 +25,10 @@ async function getSignedFileUrl(key) {
 
 // Send purchase confirmation email with download links
 async function sendProductEmail(email, fileKeys = []) {
-  console.log("📧 Preparing email to:", email);
-  console.log("🔗 File keys:", fileKeys);
-
   const downloadLinks = await Promise.all(
     fileKeys.map(async (key) => {
       try {
         const url = await getSignedFileUrl(key);
-        console.log(`✅ Signed URL for: ${key}`);
         return url;
       } catch (err) {
         console.error(`❌ Failed for: ${key}`, err);
@@ -70,8 +57,6 @@ async function sendProductEmail(email, fileKeys = []) {
       <p><small>These links expire in 1 hour.</small></p>
     `,
   });
-
-  console.log("✅ Email sent!");
 }
 
 module.exports = { sendProductEmail, getSignedFileUrl };

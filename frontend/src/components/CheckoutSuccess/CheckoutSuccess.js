@@ -175,6 +175,7 @@ export default function CheckoutSuccess() {
                         startIcon={<DownloadIcon />}
                         href={url}
                         target="_blank"
+                        rel="noopener noreferrer"
                         download={fileName}
                         sx={{
                           py: 1.5,

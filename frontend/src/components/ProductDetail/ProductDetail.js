@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getSingleProductThunk, deleteProductThunk } from "../../store/products";
 import { getAllLicensesThunk } from "../../store/licenses";
 import { addToCartThunk } from "../../store/cartItems";
+import { getYouTubeEmbedUrl } from "../../utils/youtube";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -27,8 +28,6 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-const ADMIN_EMAIL = "adamelh1999@gmail.com";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -196,13 +195,10 @@ const ProductDetailPage = () => {
     );
   }
 
-  const { title, description, imageUrl, youtubeLink, downloadUrls, type, price, id, genre, bpm } = product;
+  const { title, description, imageUrl, youtubeLink, audioPreviewUrl, type, price, id, genre, bpm } = product;
+  const audioUrl = audioPreviewUrl || "";
 
-  const audioUrl = Array.isArray(downloadUrls)
-    ? downloadUrls.find((f) => f.type === "mp3")?.url || ""
-    : "";
-
-  const isAdmin = currentUser?.email === ADMIN_EMAIL;
+  const isAdmin = currentUser?.role === "admin";
 
   const handleLicenseChange = (e) => {
     setSelectedLicenseId(e.target.value);
@@ -225,25 +221,24 @@ const ProductDetailPage = () => {
     }
   };
 
-  const toggleAudio = () => {
+  const toggleAudio = async () => {
     if (!audioRef.current) return;
     if (isPlaying) {
       audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+      setIsPlaying(false);
+      return;
     }
-    setIsPlaying(!isPlaying);
+
+    try {
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch (err) {
+      console.error("Failed to play product preview:", err);
+      setIsPlaying(false);
+    }
   };
 
-  const getYouTubeEmbedUrl = (url) => {
-    try {
-      const urlObj = new URL(url);
-      const videoId = urlObj.hostname === "youtu.be"
-        ? urlObj.pathname.slice(1)
-        : urlObj.searchParams.get("v");
-      return `https://www.youtube.com/embed/${videoId}`;
-    } catch { return ""; }
-  };
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(youtubeLink);
 
   const selectedLicense = licenses.find((l) => l.id === selectedLicenseId);
   const displayPrice = type === "beat" && selectedLicense ? selectedLicense.price : price;
@@ -772,7 +767,7 @@ const ProductDetailPage = () => {
           </Grid>
 
           {/* ── YouTube Section ──────────────────────────────────────────── */}
-          {youtubeLink && (
+          {youtubeEmbedUrl && (
             <motion.div
               initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -804,7 +799,7 @@ const ProductDetailPage = () => {
                       boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
                     }}>
                       <iframe
-                        src={getYouTubeEmbedUrl(youtubeLink)}
+                        src={youtubeEmbedUrl}
                         title="YouTube Preview"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

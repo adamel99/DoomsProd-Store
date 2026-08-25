@@ -7,13 +7,12 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const path = require('path');
-const fs = require('fs');
 const routes = require('./routes');
 const { environment } = require('./config');
 const isProduction = environment === 'production';
 const app = express();
 
-app.use(morgan('dev'));
+app.use(morgan(isProduction ? 'combined' : 'dev'));
 app.use(cookieParser());
 
 // Stripe webhook raw parser
@@ -32,21 +31,44 @@ app.use((req, res, next) => {
 });
 
 // Security
-if (!isProduction) {
-  app.use(cors());
-}
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  !isProduction && 'http://localhost:3000',
+  !isProduction && 'http://127.0.0.1:3000',
+].filter(Boolean);
 
-app.use(
-  helmet.crossOriginResourcePolicy({
-    policy: 'cross-origin',
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!isProduction && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '')) {
+      return callback(null, true);
+    }
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: isProduction ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://js.stripe.com"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://checkout.stripe.com", "https://www.youtube.com"],
+      connectSrc: ["'self'", "https://api.stripe.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      mediaSrc: ["'self'", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    },
+  } : false,
+}));
 
 // Create csurf instance ONCE
 const csrfProtection = csurf({
   cookie: {
     secure: isProduction,
-    sameSite: isProduction && 'Lax',
+    sameSite: isProduction ? 'none' : 'lax',
     httpOnly: true,
   },
   value: (req) =>
@@ -63,7 +85,10 @@ app.use((req, res, next) => {
 
 // CSRF restore route (production)
 app.get('/api/csrf/restore', (req, res) => {
-  res.cookie('XSRF-TOKEN', req.csrfToken());
+  res.cookie('XSRF-TOKEN', req.csrfToken(), {
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+  });
   res.status(201).json({});
 });
 
@@ -71,11 +96,8 @@ app.get('/api/csrf/restore', (req, res) => {
 app.use('/api', routes);
 
 // Serve frontend in production
-if (isProduction) {
-  const staticPath = path.resolve(__dirname, '../frontend/build');
-  console.log('📁 Static path:', staticPath);
-  console.log('✅ index.html exists:', fs.existsSync(path.join(staticPath, 'index.html')));
-  console.log('📂 Build folder contents:', fs.existsSync(staticPath) ? fs.readdirSync(staticPath) : 'FOLDER NOT FOUND');
+  if (isProduction) {
+    const staticPath = path.resolve(__dirname, '../frontend/build');
   app.use(express.static(staticPath));
   app.get(/^(?!\/api).*/, (req, res) => {
     res.sendFile(path.join(staticPath, 'index.html'));

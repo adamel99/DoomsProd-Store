@@ -1,67 +1,45 @@
 const express = require('express');
-const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { requireAuth } = require('../../utils/auth');
+const rateLimit = require('../../utils/rateLimit');
+const { Order } = require('../../db/models');
 const { getSignedFileUrl } = require('../../utils/sendProductEmail');
+const { getOrderFileKeys } = require('../../utils/checkout');
 
-function isValidSessionId(id) {
-  return typeof id === 'string' && id.startsWith('cs_');
-}
+const router = express.Router();
 
-router.get('/:sessionId', async (req, res) => {
-  const { sessionId } = req.params;
-  console.log("📥 Incoming request for sessionId:", sessionId);
+const resolveOrderId = async (id) => {
+  if (/^\d+$/.test(id)) return id;
+  if (!id.startsWith('cs_')) return null;
 
-  if (!isValidSessionId(sessionId)) {
-    return res.status(400).json({ message: 'Invalid session ID format.' });
-  }
+  const session = await stripe.checkout.sessions.retrieve(id);
+  if (session.payment_status !== 'paid') return null;
+  return session.metadata?.orderId || null;
+};
 
-  try {
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    console.log("💳 Retrieved Stripe session:", session);
-
-    if (!session || !session.metadata || !session.metadata.fileKeys) {
-      return res.status(400).json({ message: 'Download information missing in Stripe session metadata.' });
-    }
-
-    let fileKeys;
+router.get(
+  '/:orderOrSessionId',
+  requireAuth,
+  rateLimit({ windowMs: 10 * 60 * 1000, max: 20 }),
+  async (req, res) => {
     try {
-      fileKeys = JSON.parse(session.metadata.fileKeys);
+      const orderId = await resolveOrderId(req.params.orderOrSessionId);
+      if (!orderId) return res.status(400).json({ message: 'Invalid download request.' });
+
+      const order = await Order.findByPk(orderId);
+      if (!order) return res.status(404).json({ message: 'Order not found.' });
+      if (order.userId !== req.user.id) return res.status(403).json({ message: 'Unauthorized download request.' });
+      if (order.status !== 'completed') return res.status(403).json({ message: 'Order is not ready for downloads.' });
+
+      const fileKeys = await getOrderFileKeys(order.id);
+      if (!fileKeys.length) return res.status(404).json({ message: 'No downloads available.' });
+
+      const downloadLinks = await Promise.all(fileKeys.map((key) => getSignedFileUrl(key)));
+      return res.json({ orderId: order.id, downloadLinks });
     } catch (err) {
-      console.error("❌ Error parsing fileKeys from metadata:", err);
-      return res.status(400).json({ message: 'Malformed fileKeys in metadata.' });
+      return res.status(500).json({ message: 'Internal server error.' });
     }
-
-    if (!Array.isArray(fileKeys) || fileKeys.length === 0) {
-      return res.status(400).json({ message: 'No valid file keys found.' });
-    }
-
-    const signedUrls = await Promise.all(
-      fileKeys.map(async (key) => {
-        try {
-          const signed = await getSignedFileUrl(key);
-          console.log("🔐 Signed URL for:", key, "=>", signed);
-          return signed;
-        } catch (err) {
-          console.error("❌ Failed to generate signed URL for:", key, err);
-          return null;
-        }
-      })
-    );
-
-    const validUrls = signedUrls.filter(Boolean);
-
-    if (validUrls.length === 0) {
-      return res.status(500).json({ message: 'No downloadable URLs could be generated.' });
-    }
-
-    return res.json({
-      email: session.customer_email || null,
-      downloadLinks: validUrls,
-    });
-  } catch (err) {
-    console.error("🔥 Stripe session fetch error:", err);
-    return res.status(500).json({ message: 'Internal server error.' });
   }
-});
+);
 
 module.exports = router;

@@ -15,13 +15,13 @@ router.get('/', requireAuth, async (req, res, next) => {
     const items = await CartItem.findAll({
       where: { cartId: cart.id },
       include: [
-        { model: Product, attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'downloadUrls', 'imageUrl'] },
+        { model: Product, attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'imageUrl'] },
         { model: License, attributes: ['id', 'name', 'price'] }
       ]
     });
 
     const total = items.reduce((sum, item) => {
-      const basePrice = item.License ? parseFloat(item.License.price) : parseFloat(item.Product.price);
+      const basePrice = item.License ? parseFloat(item.License.price) : parseFloat(item.Product.price || 0);
       return sum + (basePrice * item.quantity);
     }, 0);
 

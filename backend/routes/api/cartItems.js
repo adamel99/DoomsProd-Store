@@ -2,6 +2,75 @@ const express = require('express');
 const router = express.Router();
 const { Cart, CartItem, Product, License } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
+const { check, param } = require('express-validator');
+const { handleValidationErrors } = require('../../utils/validation');
+
+const validateCartItemCreate = [
+  check('productId')
+    .isInt({ min: 1 })
+    .withMessage('productId must be a valid product id.'),
+  check('licenseId')
+    .optional({ nullable: true })
+    .isInt({ min: 1 })
+    .withMessage('licenseId must be a valid license id.'),
+  handleValidationErrors,
+];
+
+const validateCartItemUpdate = [
+  param('id')
+    .isInt({ min: 1 })
+    .withMessage('Cart item id must be valid.'),
+  check('licenseId')
+    .optional({ nullable: true })
+    .isInt({ min: 1 })
+    .withMessage('licenseId must be a valid license id.'),
+  handleValidationErrors,
+];
+
+const validateCartItemId = [
+  param('id')
+    .isInt({ min: 1 })
+    .withMessage('Cart item id must be valid.'),
+  handleValidationErrors,
+];
+
+const validateProductLicenseSelection = async ({ productId, licenseId }) => {
+  const product = await Product.findByPk(productId, {
+    attributes: ['id', 'type', 'price'],
+  });
+  if (!product) {
+    const err = new Error('Product not found.');
+    err.status = 404;
+    throw err;
+  }
+
+  const normalizedLicenseId = licenseId || null;
+  let license = null;
+  if (normalizedLicenseId) {
+    license = await License.findByPk(normalizedLicenseId, {
+      attributes: ['id', 'name', 'price'],
+    });
+    if (!license) {
+      const err = new Error('License not found.');
+      err.status = 404;
+      throw err;
+    }
+  }
+
+  if (product.type === 'beat' && !license) {
+    const err = new Error('A license is required for beat products.');
+    err.status = 400;
+    throw err;
+  }
+
+  if (product.type !== 'beat' && license) {
+    const err = new Error('Licenses can only be selected for beat products.');
+    err.status = 400;
+    throw err;
+  }
+
+  return { product, license };
+};
 
 function formatCartItem(item) {
   const product = item.Product || {};
@@ -12,9 +81,6 @@ function formatCartItem(item) {
       ? license.price
       : product.price || 0;
 
-  // ✅ FIX: Directly use the array
-  const downloadUrls = product.downloadUrls || [];
-
   return {
     id: item.id,
     productId: item.productId,
@@ -24,7 +90,6 @@ function formatCartItem(item) {
     price,
     type: product.type || "unknown",
     imageUrl: product.imageUrl || null,
-    downloadUrls,
   };
 }
 
@@ -41,14 +106,11 @@ router.get('/', requireAuth, async (req, res, next) => {
       include: [
         {
           model: Product,
-          attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'downloadUrls', 'imageUrl'],
+          attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'imageUrl'],
         },
         { model: License, attributes: ['id', 'name', 'price'] },
       ],
     });
-
-    // Debug log: output raw downloadUrls from product
-    console.log("Cart items raw downloadUrls:", items.map(i => i.Product.downloadUrls));
 
     const formattedItems = items.map(formatCartItem);
 
@@ -58,13 +120,11 @@ router.get('/', requireAuth, async (req, res, next) => {
   }
 });
 // POST /api/cart-items - Add item to cart
-router.post('/', requireAuth, async (req, res, next) => {
+router.post('/', requireAuth, validateCartItemCreate, async (req, res, next) => {
   try {
     const { productId, licenseId } = req.body;
 
-    if (!productId) {
-      return res.status(400).json({ message: 'productId is required' });
-    }
+    await validateProductLicenseSelection({ productId, licenseId });
 
     // Auto-create cart if it doesn't exist
     let cart = await Cart.findOne({ where: { userId: req.user.id } });
@@ -100,12 +160,6 @@ router.post('/', requireAuth, async (req, res, next) => {
 
     const formattedSingleItem = formatCartItem(fullItem);
 
-    console.log('➕ Added cart item:', {
-      id: formattedSingleItem.id,
-      productName: formattedSingleItem.productName,
-      downloadUrls: formattedSingleItem.downloadUrls,
-    });
-
     return res.status(201).json({ item: formattedSingleItem });
   } catch (err) {
     console.error('❌ Error adding cart item:', err);
@@ -114,7 +168,7 @@ router.post('/', requireAuth, async (req, res, next) => {
 });
 
 // PUT /api/cart-items/:id - Update cart item (e.g., license change)
-router.put('/:id', requireAuth, async (req, res, next) => {
+router.put('/:id', requireAuth, validateCartItemUpdate, async (req, res, next) => {
   try {
     const { licenseId } = req.body;
     const item = await CartItem.findByPk(req.params.id);
@@ -125,6 +179,7 @@ router.put('/:id', requireAuth, async (req, res, next) => {
     if (!cart) return res.status(403).json({ message: 'Unauthorized' });
 
     if (licenseId !== undefined) {
+      await validateProductLicenseSelection({ productId: item.productId, licenseId });
       item.licenseId = licenseId;
     }
 
@@ -139,12 +194,6 @@ router.put('/:id', requireAuth, async (req, res, next) => {
 
     const formattedUpdatedItem = formatCartItem(updatedItem);
 
-    console.log('✏️ Updated cart item:', {
-      id: formattedUpdatedItem.id,
-      productName: formattedUpdatedItem.productName,
-      downloadUrls: formattedUpdatedItem.downloadUrls,
-    });
-
     return res.json({ item: formattedUpdatedItem });
   } catch (err) {
     console.error('❌ Error updating cart item:', err);
@@ -153,7 +202,7 @@ router.put('/:id', requireAuth, async (req, res, next) => {
 });
 
 // DELETE /api/cart-items/:id - Remove item from cart
-router.delete('/:id', requireAuth, async (req, res, next) => {
+router.delete('/:id', requireAuth, validateCartItemId, async (req, res, next) => {
   try {
     const item = await CartItem.findByPk(req.params.id);
     if (!item) return res.status(404).json({ message: 'Item not found' });
@@ -162,8 +211,6 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
     if (!cart) return res.status(403).json({ message: 'Unauthorized' });
 
     await item.destroy();
-
-    console.log('🗑️ Deleted cart item with id:', item.id);
 
     return res.json({ message: 'Item deleted' });
   } catch (err) {

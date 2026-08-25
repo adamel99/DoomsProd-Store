@@ -1,5 +1,7 @@
 // utils/s3.js
 const { S3Client } = require("@aws-sdk/client-s3");
+const crypto = require("crypto");
+const path = require("path");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
 require("dotenv").config();
@@ -24,13 +26,16 @@ const upload = multer({
       cb(null, { fieldName: file.fieldname });
     },
     key: (req, file, cb) => {
-      const uniqueFileName = `${Date.now()}-${file.originalname}`;
-      console.log("Uploading to S3 key:", uniqueFileName); // 👈 should match what S3 shows
+      const ext = path.extname(file.originalname || "").toLowerCase();
+      const uniqueFileName = `${crypto.randomUUID()}${ext}`;
       cb(null, `products/${uniqueFileName}`);
     },
   }),
   limits: {
-    fileSize: 100 * 1024 * 1024
+    fileSize: 100 * 1024 * 1024,
+    files: 4,
+    fields: 12,
+    fieldSize: 10 * 1024,
   }, // 100MB
 
   fileFilter: (req, file, cb) => {
@@ -46,7 +51,6 @@ const upload = multer({
       "audio/vnd.wave",                // wav (some browsers)
       "application/zip",               // zip
       "application/x-zip-compressed",  // zip
-      "application/octet-stream",      // zip/wav fallback
       "application/x-zip",             // zip (some browsers)
     ];
     if (allowedTypes.includes(file.mimetype)) {

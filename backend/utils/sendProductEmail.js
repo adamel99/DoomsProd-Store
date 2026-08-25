@@ -12,17 +12,20 @@ const s3 = new S3Client({
   },
 });
 
-function isUrl(string) {
-  try {
-    new URL(string);
-    return true;
-  } catch {
-    return false;
-  }
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 async function getSignedFileUrl(key) {
-  if (isUrl(key)) return key;
+  if (typeof key !== "string" || !key.startsWith("products/")) {
+    throw new Error("Invalid download key");
+  }
+
   const command = new GetObjectCommand({
     Bucket: process.env.AWS_S3_BUCKET_NAME,
     Key: key,
@@ -31,15 +34,11 @@ async function getSignedFileUrl(key) {
 }
 
 async function sendProductEmail(email, fileKeys = []) {
-  console.log("📧 Preparing email to:", email);
-  console.log("🔗 File keys:", fileKeys);
-
   const downloadLinks = await Promise.all(
     fileKeys.map(async (key) => {
       try {
         const url = await getSignedFileUrl(key);
-        const fileName = decodeURIComponent(key.split("/").pop());
-        console.log(`✅ Signed URL for: ${key}`);
+        const fileName = escapeHtml(decodeURIComponent(key.split("/").pop()));
         return { url, fileName };
       } catch (err) {
         console.error(`❌ Failed to generate signed URL for: ${key}`, err);
@@ -47,8 +46,6 @@ async function sendProductEmail(email, fileKeys = []) {
       }
     })
   );
-
-  console.log("📤 Final download links:", downloadLinks);
 
   const { data, error } = await resend.emails.send({
     from: "doomsprod <noreply@dooma.studio>",
@@ -144,7 +141,7 @@ async function sendProductEmail(email, fileKeys = []) {
     throw new Error(error.message);
   }
 
-  console.log("✅ Email sent successfully! ID:", data.id);
+  return data;
 }
 
 module.exports = { sendProductEmail, getSignedFileUrl };

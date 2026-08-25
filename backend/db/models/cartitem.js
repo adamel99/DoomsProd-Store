@@ -32,6 +32,19 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'CartItem',
     tableName: 'CartItems',
+    indexes: [
+      {
+        unique: true,
+        fields: ['cartId', 'productId', 'licenseId'],
+      },
+      {
+        unique: true,
+        fields: ['cartId', 'productId'],
+        where: {
+          licenseId: null,
+        },
+      },
+    ],
   });
 
   return CartItem;

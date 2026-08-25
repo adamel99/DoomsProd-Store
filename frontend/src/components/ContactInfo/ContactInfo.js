@@ -50,7 +50,7 @@ const ContactModal = ({ open, onClose }) => {
             <Box display="flex" alignItems="center" gap={1}>
               <InstagramIcon color="secondary" />
               <Typography variant="body1">
-                <Link href="https://instagram.com/vdam_" target="_blank" underline="hover">
+                <Link href="https://instagram.com/vdam_" target="_blank" rel="noopener noreferrer" underline="hover">
                   @vdam_
                 </Link>
               </Typography>
@@ -59,7 +59,7 @@ const ContactModal = ({ open, onClose }) => {
             <Box display="flex" alignItems="center" gap={1}>
               <YouTubeIcon color="error" />
               <Typography variant="body1">
-                <Link href="https://www.youtube.com/@DoomsProduction" target="_blank" underline="hover">
+                <Link href="https://www.youtube.com/@DoomsProduction" target="_blank" rel="noopener noreferrer" underline="hover">
                   YouTube Channel
                 </Link>
               </Typography>

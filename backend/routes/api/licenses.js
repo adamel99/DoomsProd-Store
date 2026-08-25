@@ -1,8 +1,60 @@
 const express = require('express');
-const { requireAuth } = require('../../utils/auth');
+const { requireAuth, requireAdmin } = require('../../utils/auth');
 const { License } = require('../../db/models');
+const { body, param } = require('express-validator');
+const { handleValidationErrors } = require('../../utils/validation');
 
 const router = express.Router();
+
+const validateLicenseId = [
+  param('licenseId')
+    .isInt({ min: 1 })
+    .withMessage('License id must be valid.'),
+  handleValidationErrors,
+];
+
+const validateCreateLicense = [
+  body('name')
+    .trim()
+    .isLength({ min: 1, max: 80 })
+    .withMessage('Name must be between 1 and 80 characters.'),
+  body('price')
+    .isFloat({ min: 0 })
+    .withMessage('Price must be zero or greater.'),
+  body('description')
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 5000 })
+    .withMessage('Description must be 5000 characters or less.'),
+  body('downloadLimit')
+    .optional({ nullable: true })
+    .isInt({ min: 1 })
+    .withMessage('Download limit must be a positive integer.'),
+  handleValidationErrors,
+];
+
+const validateUpdateLicense = [
+  ...validateLicenseId.slice(0, -1),
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 80 })
+    .withMessage('Name must be between 1 and 80 characters.'),
+  body('price')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Price must be zero or greater.'),
+  body('description')
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 5000 })
+    .withMessage('Description must be 5000 characters or less.'),
+  body('downloadLimit')
+    .optional({ nullable: true })
+    .isInt({ min: 1 })
+    .withMessage('Download limit must be a positive integer.'),
+  handleValidationErrors,
+];
 
 // GET all licenses (public)
 router.get('/', async (req, res, next) => {
@@ -18,7 +70,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET a single license by ID (public)
-router.get('/:licenseId', async (req, res, next) => {
+router.get('/:licenseId', validateLicenseId, async (req, res, next) => {
   try {
     const { licenseId } = req.params;
 
@@ -35,12 +87,8 @@ router.get('/:licenseId', async (req, res, next) => {
 });
 
 // POST a new license (admin only)
-router.post('/', requireAuth, async (req, res, next) => {
+router.post('/', requireAuth, requireAdmin, validateCreateLicense, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can create licenses.' });
-    }
-
     const { name, price, description, downloadLimit } = req.body;
 
     const newLicense = await License.create({
@@ -57,12 +105,8 @@ router.post('/', requireAuth, async (req, res, next) => {
 });
 
 // PUT update license (admin only)
-router.put('/:licenseId', requireAuth, async (req, res, next) => {
+router.put('/:licenseId', requireAuth, requireAdmin, validateUpdateLicense, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can update licenses.' });
-    }
-
     const { licenseId } = req.params;
     const license = await License.findByPk(licenseId);
 
@@ -86,12 +130,8 @@ router.put('/:licenseId', requireAuth, async (req, res, next) => {
 });
 
 // DELETE a license (admin only)
-router.delete('/:licenseId', requireAuth, async (req, res, next) => {
+router.delete('/:licenseId', requireAuth, requireAdmin, validateLicenseId, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can delete licenses.' });
-    }
-
     const { licenseId } = req.params;
     const license = await License.findByPk(licenseId);
 
