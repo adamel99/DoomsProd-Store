@@ -39,6 +39,9 @@ const NewProduct = () => {
   const [errors, setErrors] = useState([]);
   const isKit = type === "loop_kit" || type === "drum_kit";
   const isBeat = type === "beat";
+  const isPlugin = type === "plugin";
+  const hasFixedPrice = isKit || isPlugin;
+  const needsAudioFiles = !isPlugin;
 
   // Handle image file input
   const handleImageChange = (e) => {
@@ -67,14 +70,14 @@ const NewProduct = () => {
       formData.append("key", songKey);
       formData.append("artistTags", artistTags);
 
-      if (isKit) {
+      if (hasFixedPrice) {
         formData.append("price", price || "0");
       }
 
       if (imageFile) formData.append("image", imageFile);
       if (zipFile) formData.append("zipFile", zipFile);
-      if (mp3File) formData.append("mp3File", mp3File);
-      if (wavFile) formData.append("wavFile", wavFile);
+      if (needsAudioFiles && mp3File) formData.append("mp3File", mp3File);
+      if (needsAudioFiles && wavFile) formData.append("wavFile", wavFile);
 
       const newProduct = await dispatch(productActions.createProductThunk(formData));
 
@@ -113,6 +116,7 @@ const NewProduct = () => {
           minRows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          required={isPlugin}
         />
 
         <TextField
@@ -120,7 +124,7 @@ const NewProduct = () => {
           value={audioPreviewUrl}
           onChange={(e) => setAudioPreviewUrl(e.target.value)}
           placeholder="https://youtu.be/YA-GG5AWVTs"
-          required
+          helperText={isPlugin ? "Optional for plugins." : ""}
         />
 
         <TextField
@@ -134,7 +138,7 @@ const NewProduct = () => {
           label="Genre"
           value={genre}
           onChange={(e) => setGenre(e.target.value)}
-          helperText={isBeat ? "" : "Optional for kits."}
+          helperText={isBeat ? "" : "Optional for kits and plugins."}
           required={isBeat}
         />
 
@@ -144,7 +148,7 @@ const NewProduct = () => {
           value={bpm}
           onChange={(e) => setBpm(e.target.value)}
           inputProps={{ min: 1, max: 999, step: 1 }}
-          helperText={isBeat ? "" : "Optional for kits."}
+          helperText={isBeat ? "" : "Optional for kits and plugins."}
           required={isBeat}
         />
 
@@ -153,7 +157,7 @@ const NewProduct = () => {
           value={songKey}
           onChange={(e) => setSongKey(e.target.value)}
           placeholder="C minor"
-          helperText={isBeat ? "" : "Optional for kits."}
+          helperText={isBeat ? "" : "Optional for kits and plugins."}
           required={isBeat}
         />
 
@@ -162,7 +166,7 @@ const NewProduct = () => {
           value={artistTags}
           onChange={(e) => setArtistTags(e.target.value)}
           placeholder="Rylo Rodriguez, NoCap, emotional trap"
-          helperText={isBeat ? "Separate tags with commas." : "Optional for kits. Separate tags with commas."}
+          helperText={isBeat ? "Separate tags with commas." : "Optional for kits and plugins. Separate tags with commas."}
           required={isBeat}
         />
 
@@ -175,22 +179,27 @@ const NewProduct = () => {
               const nextType = e.target.value;
               setType(nextType);
               if (nextType === "beat") setPrice("");
+              if (nextType === "plugin") {
+                setMp3File(null);
+                setWavFile(null);
+              }
             }}
           >
             <MenuItem value="beat">Beat</MenuItem>
             <MenuItem value="loop_kit">Loop Kit</MenuItem>
             <MenuItem value="drum_kit">Drum Kit</MenuItem>
+            <MenuItem value="plugin">Plugin</MenuItem>
           </Select>
         </FormControl>
 
-        {isKit && (
+        {hasFixedPrice && (
           <TextField
             label="Price"
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             inputProps={{ min: 0, step: "0.01" }}
-            helperText="Use 0 for a free kit."
+            helperText={isPlugin ? "Set the plugin price." : "Use 0 for a free kit."}
             required
           />
         )}
@@ -207,17 +216,21 @@ const NewProduct = () => {
           <input type="file" accept=".zip" onChange={handleZipFileChange} required />
         </label>
 
-        {/* Upload MP3 file */}
-        <label>
-          MP3 File:
-          <input type="file" accept=".mp3" onChange={handleMp3FileChange} required />
-        </label>
+        {needsAudioFiles && (
+          <>
+            {/* Upload MP3 file */}
+            <label>
+              MP3 File:
+              <input type="file" accept=".mp3" onChange={handleMp3FileChange} required />
+            </label>
 
-        {/* Upload WAV file */}
-        <label>
-          WAV File:
-          <input type="file" accept=".wav" onChange={handleWavFileChange} required />
-        </label>
+            {/* Upload WAV file */}
+            <label>
+              WAV File:
+              <input type="file" accept=".wav" onChange={handleWavFileChange} required />
+            </label>
+          </>
+        )}
 
         <Button
           variant="contained"

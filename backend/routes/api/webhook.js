@@ -30,8 +30,8 @@ router.post("/", async (req, res) => {
     }
 
     let email;
-    let files = [];
-    let receipt;
+    let username;
+    let completedOrderId;
 
     try {
       await sequelize.transaction(async (transaction) => {
@@ -45,6 +45,7 @@ router.post("/", async (req, res) => {
 
         if (!order || order.status === "completed") return;
         email = order.User.email;
+        username = order.User.username;
 
         if (String(order.userId) !== String(session.metadata?.userId)) {
           const err = new Error("Order metadata mismatch");
@@ -52,15 +53,13 @@ router.post("/", async (req, res) => {
           throw err;
         }
 
-        files = await getOrderDownloadFiles(order.id, transaction);
-
         await order.update({
           status: "completed",
           paymentIntentId: session.payment_intent || session.id,
         }, { transaction });
 
         await clearCartForOrder(order, transaction);
-        receipt = await getOrderReceiptDetails(order.id, order.User, transaction);
+        completedOrderId = order.id;
       });
     } catch (err) {
       if (err instanceof UniqueConstraintError) {
@@ -71,8 +70,14 @@ router.post("/", async (req, res) => {
       throw err;
     }
 
-    if (email && files.length) {
+    if (email && completedOrderId) {
       try {
+        const files = await getOrderDownloadFiles(completedOrderId);
+        const receipt = await getOrderReceiptDetails(completedOrderId, { email, username });
+        if (!files.length) {
+          console.error(`Stripe paid checkout completed order ${completedOrderId}, but no download files were found.`);
+          return res.status(200).json({ received: true });
+        }
         await sendProductEmail(email, files, receipt);
       } catch (err) {
         console.error("Stripe paid checkout email failed:", err);

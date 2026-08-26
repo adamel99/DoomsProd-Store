@@ -92,7 +92,15 @@ const getLicenseTerms = (item) => {
   }
 
   if (type === "beat") {
+    if (String(item.License?.name || "").trim().toLowerCase() === "exclusive") {
+      return `${item.License?.description || "Exclusive rights to the beat."} Includes MP3, WAV, ZIP delivery and priority response for purchase questions or concerns.`;
+    }
+
     return item.License?.description || "Usage rights follow the selected beat license for this purchase.";
+  }
+
+  if (type === "plugin") {
+    return "Plugin purchase includes the downloadable ZIP package and installation materials. Redistribution, resale, or sharing of the plugin files is not permitted.";
   }
 
   return "Usage rights apply to this digital product as purchased.";

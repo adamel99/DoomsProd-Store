@@ -73,6 +73,8 @@ const UpdateProductPage = () => {
 
   const isAdmin = currentUser?.role === "admin";
   const isBeat = formData.type === "beat";
+  const isPlugin = formData.type === "plugin";
+  const needsAudioFiles = !isPlugin;
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -106,8 +108,8 @@ const UpdateProductPage = () => {
     dataToSend.append("youtubeLink", formData.youtubeLink);
     if (imageFile) dataToSend.append("image", imageFile);
     if (zipFile) dataToSend.append("zipFile", zipFile);
-    if (mp3File) dataToSend.append("mp3File", mp3File);
-    if (wavFile) dataToSend.append("wavFile", wavFile);
+    if (needsAudioFiles && mp3File) dataToSend.append("mp3File", mp3File);
+    if (needsAudioFiles && wavFile) dataToSend.append("wavFile", wavFile);
 
     const updatedProduct = await dispatch(updateProductThunk(productId, dataToSend));
     if (updatedProduct) {
@@ -177,6 +179,7 @@ const UpdateProductPage = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
+                required={isPlugin}
               />
             </Grid>
 
@@ -187,6 +190,7 @@ const UpdateProductPage = () => {
                   <MenuItem value="beat">Beat</MenuItem>
                   <MenuItem value="loop_kit">Loop Kit</MenuItem>
                   <MenuItem value="drum_kit">Drum Kit</MenuItem>
+                  <MenuItem value="plugin">Plugin</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -212,7 +216,7 @@ const UpdateProductPage = () => {
                 name="genre"
                 value={formData.genre}
                 onChange={handleChange}
-                helperText={isBeat ? "" : "Optional for kits."}
+                helperText={isBeat ? "" : "Optional for kits and plugins."}
                 required={isBeat}
               />
             </Grid>
@@ -226,7 +230,7 @@ const UpdateProductPage = () => {
                 value={formData.bpm}
                 onChange={handleChange}
                 inputProps={{ min: 1, max: 999, step: 1 }}
-                helperText={isBeat ? "" : "Optional for kits."}
+                helperText={isBeat ? "" : "Optional for kits and plugins."}
                 required={isBeat}
               />
             </Grid>
@@ -238,7 +242,7 @@ const UpdateProductPage = () => {
                 name="key"
                 value={formData.key}
                 onChange={handleChange}
-                helperText={isBeat ? "" : "Optional for kits."}
+                helperText={isBeat ? "" : "Optional for kits and plugins."}
                 required={isBeat}
               />
             </Grid>
@@ -251,7 +255,7 @@ const UpdateProductPage = () => {
                 value={formData.artistTags}
                 onChange={handleChange}
                 placeholder="Rylo Rodriguez, NoCap, emotional trap"
-                helperText={isBeat ? "Separate tags with commas." : "Optional for kits. Separate tags with commas."}
+                helperText={isBeat ? "Separate tags with commas." : "Optional for kits and plugins. Separate tags with commas."}
                 required={isBeat}
               />
             </Grid>
@@ -296,19 +300,23 @@ const UpdateProductPage = () => {
       <input type="file" accept=".zip" onChange={handleZipFileChange} />
     </Box>
 
-    <Box>
-      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-        Replace MP3 File:
-      </Typography>
-      <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
-    </Box>
+    {needsAudioFiles && (
+      <>
+        <Box>
+          <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+            Replace MP3 File:
+          </Typography>
+          <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
+        </Box>
 
-    <Box>
-      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-        Replace WAV File:
-      </Typography>
-      <input type="file" accept=".wav" onChange={handleWavFileChange} />
-    </Box>
+        <Box>
+          <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+            Replace WAV File:
+          </Typography>
+          <input type="file" accept=".wav" onChange={handleWavFileChange} />
+        </Box>
+      </>
+    )}
   </Box>
 </Grid>
 

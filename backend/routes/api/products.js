@@ -10,7 +10,7 @@ const { handleValidationErrors } = require('../../utils/validation');
 const router = express.Router();
 const { Op } = require('sequelize');
 const productUploadRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 8 });
-const allowedTypes = ['beat', 'loop_kit', 'drum_kit'];
+const allowedTypes = ['beat', 'loop_kit', 'drum_kit', 'plugin'];
 
 const optionalUrl = (field) => body(field)
   .optional({ nullable: true, checkFalsy: true })
@@ -168,6 +168,11 @@ const getPlayableAudioUrl = (productJson) => {
   return mp3File?.url || null;
 };
 
+const hasZipDownload = (product) => (
+  Array.isArray(product?.downloadUrls)
+  && product.downloadUrls.some((file) => String(file?.type).toLowerCase() === 'zip' && file?.key)
+);
+
 const publicProduct = (product, user) => {
   const productJson = product.toJSON ? product.toJSON() : product;
   productJson.audioPreviewUrl = getPlayableAudioUrl(productJson);
@@ -248,6 +253,11 @@ router.post(
 
       if (!title || !allowedTypes.includes(normalizedType)) return res.status(400).json({ message: 'Invalid product type or title missing.' });
       if (normalizedType === 'beat' && price !== undefined && price !== null && price !== '') return res.status(400).json({ message: 'Beats should not have fixed prices.' });
+      if (normalizedType === 'plugin' && (price === undefined || price === null || price === '')) return res.status(400).json({ message: 'Plugins require a price.' });
+      if (normalizedType === 'plugin' && !description?.trim()) return res.status(400).json({ message: 'Plugins require a description.' });
+      if (normalizedType === 'plugin' && !req.files?.image?.[0]) return res.status(400).json({ message: 'Plugins require an image.' });
+      if (normalizedType === 'plugin' && !req.files?.zipFile?.[0]) return res.status(400).json({ message: 'Plugins require a ZIP file.' });
+      if (normalizedType === 'plugin' && (req.files?.mp3File?.[0] || req.files?.wavFile?.[0])) return res.status(400).json({ message: 'Plugins only accept an image and ZIP file.' });
 
       const imageUrl = req.files?.image?.[0]?.location || null;
       const downloadUrls = [];
@@ -322,6 +332,12 @@ router.put(
       const normalizedType = type?.toLowerCase() || product.type;
       if (!allowedTypes.includes(normalizedType)) return res.status(400).json({ message: 'Invalid product type.' });
       if (normalizedType === 'beat' && price !== undefined && price !== null && price !== '') return res.status(400).json({ message: 'Beats should not have fixed prices.' });
+      if (normalizedType === 'plugin' && (price === undefined || price === null || price === '')) return res.status(400).json({ message: 'Plugins require a price.' });
+      const finalDescription = description !== undefined ? description : product.description;
+      if (normalizedType === 'plugin' && !finalDescription?.trim()) return res.status(400).json({ message: 'Plugins require a description.' });
+      if (normalizedType === 'plugin' && !product.imageUrl && !req.files?.image?.[0]) return res.status(400).json({ message: 'Plugins require an image.' });
+      if (normalizedType === 'plugin' && !hasZipDownload(product) && !req.files?.zipFile?.[0]) return res.status(400).json({ message: 'Plugins require a ZIP file.' });
+      if (normalizedType === 'plugin' && (req.files?.mp3File?.[0] || req.files?.wavFile?.[0])) return res.status(400).json({ message: 'Plugins only accept an image and ZIP file.' });
 
       if (title !== undefined) product.title = title;
       if (description !== undefined) product.description = description;

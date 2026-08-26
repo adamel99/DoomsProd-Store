@@ -30,7 +30,7 @@ module.exports = {
         defaultValue: '',
       },
       type: {
-        type: Sequelize.ENUM('beat', 'loop_kit', 'drum_kit'),
+        type: Sequelize.ENUM('beat', 'loop_kit', 'drum_kit', 'plugin'),
         allowNull: false,
       },
       youtubeLink: {

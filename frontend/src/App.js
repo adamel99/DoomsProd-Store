@@ -5,6 +5,7 @@ import { Switch, Route, Redirect } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import LandingPage from "./components/LandingPage/LandingPage";
 import ProductList from "./components/ProductList/ProductList";
+import PluginsPage from "./components/Plugins/Plugins";
 import NewProduct from "./components/NewProduct/NewProduct";
 import CartPage from "./components/CartPage/CartPage";
 import UpdateProduct from "./components/UpdateProduct/UpdateProduct"
@@ -44,6 +45,7 @@ function App() {
         <Switch>
           <Route exact path="/" component={LandingPage} />
           <Route exact path="/products" component={ProductList} />
+          <Route exact path="/plugins" component={PluginsPage} />
           <AdminRoute exact path="/products/new" component={NewProduct} />
           <Route exact path="/products/:productId" component={ProductDetail} />
 

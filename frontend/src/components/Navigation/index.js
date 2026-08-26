@@ -24,6 +24,7 @@ import LoginFormModal from '../LoginFormModal';
 
 const NAV_LINKS = [
   { path: '/products', label: 'Products' },
+  { path: '/plugins', label: 'Plugins' },
   { path: '/about', label: 'About' },
   { path: '/licenses', label: 'Licenses' },
 ];
@@ -211,7 +212,7 @@ function Navigation({ isLoaded }) {
                   >
                     <SearchIcon sx={{ fontSize: 15, color: 'text.secondary', mr: 1.2, flexShrink: 0 }} />
                     <InputBase
-                      placeholder="Search beats, kits, loops…"
+                      placeholder="Search beats, kits, plugins…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       autoFocus

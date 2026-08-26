@@ -52,6 +52,24 @@ const getDownloadFilesFromProduct = (product) => {
     ));
 };
 
+const beatDownloadTypesForLicense = (license) => {
+  const name = String(license?.name || '').trim().toLowerCase();
+
+  if (name === 'basic') return new Set(['mp3']);
+  if (name === 'premium') return new Set(['mp3', 'wav']);
+  if (name === 'unlimited' || name === 'exclusive') return new Set(['mp3', 'wav', 'zip']);
+
+  return new Set(['mp3']);
+};
+
+const getDownloadFilesForOrderItem = (item) => {
+  const files = getDownloadFilesFromProduct(item.Product);
+  if (item.Product?.type !== 'beat') return files;
+
+  const allowedTypes = beatDownloadTypesForLicense(item.License);
+  return files.filter((file) => allowedTypes.has(file.type));
+};
+
 const getFileKeysFromProduct = (product) => {
   return getDownloadFilesFromProduct(product).map((file) => file.key).filter(Boolean);
 };
@@ -119,21 +137,27 @@ const createOrderFromCart = async (userId) => {
 const getOrderFileKeys = async (orderId, transaction) => {
   const items = await OrderItem.findAll({
     where: { orderId },
-    include: [{ model: Product, attributes: ['downloadUrls'] }],
+    include: [
+      { model: Product, attributes: ['type', 'downloadUrls'] },
+      { model: License, attributes: ['name'] },
+    ],
     transaction,
   });
 
-  return items.flatMap((item) => getFileKeysFromProduct(item.Product));
+  return items.flatMap((item) => getDownloadFilesForOrderItem(item).map((file) => file.key).filter(Boolean));
 };
 
 const getOrderDownloadFiles = async (orderId, transaction) => {
   const items = await OrderItem.findAll({
     where: { orderId },
-    include: [{ model: Product, attributes: ['downloadUrls'] }],
+    include: [
+      { model: Product, attributes: ['type', 'downloadUrls'] },
+      { model: License, attributes: ['name'] },
+    ],
     transaction,
   });
 
-  return items.flatMap((item) => getDownloadFilesFromProduct(item.Product));
+  return items.flatMap(getDownloadFilesForOrderItem);
 };
 
 const getOrderReceiptDetails = async (orderId, user, transaction) => {
@@ -181,7 +205,15 @@ const getLicenseTermsForItem = (product, license) => {
   }
 
   if (type === 'beat') {
+    if (String(license?.name || '').trim().toLowerCase() === 'exclusive') {
+      return `${license?.description || 'Exclusive rights to the beat.'} Includes MP3, WAV, ZIP delivery and priority response for purchase questions or concerns.`;
+    }
+
     return license?.description || 'Usage rights follow the selected beat license for this purchase.';
+  }
+
+  if (type === 'plugin') {
+    return 'Plugin purchase includes the downloadable ZIP package and installation materials. Redistribution, resale, or sharing of the plugin files is not permitted.';
   }
 
   return 'Usage rights apply to this digital product as purchased.';

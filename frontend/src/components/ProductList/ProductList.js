@@ -121,7 +121,7 @@ const ProductList = () => {
               fontSize: { xs: "1rem", md: "1.08rem" },
               maxWidth: 560,
             }}>
-              Browse release-ready beats, kits, and production assets from the DOOMS catalog.
+              Browse release-ready beats, kits, plugins, and production assets from the DOOMS catalog.
             </Typography>
           </Box>
 

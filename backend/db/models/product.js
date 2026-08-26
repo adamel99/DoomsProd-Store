@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '',
     },
     type: {
-      type: DataTypes.ENUM('beat', 'loop_kit', 'drum_kit'),
+      type: DataTypes.ENUM('beat', 'loop_kit', 'drum_kit', 'plugin'),
       allowNull: false,
     },
     youtubeLink: {
