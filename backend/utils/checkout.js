@@ -34,11 +34,26 @@ const validateLineItem = (item) => {
   }
 };
 
-const getFileKeysFromProduct = (product) => {
+const getDownloadFilesFromProduct = (product) => {
   const files = Array.isArray(product?.downloadUrls) ? product.downloadUrls : [];
   return files
-    .map((file) => file?.key)
-    .filter((key) => typeof key === 'string' && key.startsWith('products/'));
+    .map((file) => {
+      const type = String(file?.type || '').toLowerCase();
+      if (['zip', 'wav'].includes(type)) return { type, key: file.key };
+      if (type === 'mp3') return { type, url: file.url };
+      return null;
+    })
+    .filter((file) => (
+      file
+      && (
+        (['zip', 'wav'].includes(file.type) && typeof file.key === 'string' && file.key.startsWith('products/'))
+        || (file.type === 'mp3' && typeof file.url === 'string' && /^https?:\/\//i.test(file.url))
+      )
+    ));
+};
+
+const getFileKeysFromProduct = (product) => {
+  return getDownloadFilesFromProduct(product).map((file) => file.key).filter(Boolean);
 };
 
 const getUserCartItems = async (userId, transaction) => {
@@ -111,6 +126,67 @@ const getOrderFileKeys = async (orderId, transaction) => {
   return items.flatMap((item) => getFileKeysFromProduct(item.Product));
 };
 
+const getOrderDownloadFiles = async (orderId, transaction) => {
+  const items = await OrderItem.findAll({
+    where: { orderId },
+    include: [{ model: Product, attributes: ['downloadUrls'] }],
+    transaction,
+  });
+
+  return items.flatMap((item) => getDownloadFilesFromProduct(item.Product));
+};
+
+const getOrderReceiptDetails = async (orderId, user, transaction) => {
+  const order = await Order.findByPk(orderId, {
+    include: [{
+      model: OrderItem,
+      include: [
+        { model: Product, attributes: ['id', 'title', 'type'] },
+        { model: License, attributes: ['id', 'name', 'description'] },
+      ],
+    }],
+    transaction,
+  });
+
+  if (!order) return null;
+
+  return {
+    orderId: order.id,
+    username: user?.username || 'there',
+    email: user?.email || '',
+    purchasedAt: order.createdAt,
+    status: order.status,
+    totalPaid: Number(order.totalPrice || 0).toFixed(2),
+    items: (order.OrderItems || []).map((item) => ({
+      title: item.Product?.title || 'Deleted product',
+      type: item.Product?.type || null,
+      license: item.License?.name || null,
+      licenseDescription: item.License?.description || null,
+      licenseTerms: getLicenseTermsForItem(item.Product, item.License),
+      quantity: item.quantity || 1,
+      price: Number(item.priceAtPurchase || 0).toFixed(2),
+    })),
+  };
+};
+
+const getLicenseTermsForItem = (product, license) => {
+  const type = product?.type;
+
+  if (type === 'loop_kit') {
+    return 'Not royalty-free. You may use the files in your music, but producer credit and royalty/publishing splits are still required for placements, major releases, syncs, or commercial opportunities.';
+  }
+
+  if (type === 'drum_kit') {
+    return 'Royalty-free. You may use the drum sounds in your own productions without owing additional royalties.';
+  }
+
+  if (type === 'beat') {
+    return license?.description || 'Usage rights follow the selected beat license for this purchase.';
+  }
+
+  return 'Usage rights apply to this digital product as purchased.';
+};
+
 const clearCartForOrder = async (order, transaction) => {
   const cart = await Cart.findOne({ where: { userId: order.userId }, transaction });
   if (!cart) return;
@@ -135,5 +211,7 @@ module.exports = {
   cents,
   clearCartForOrder,
   createOrderFromCart,
+  getOrderDownloadFiles,
   getOrderFileKeys,
+  getOrderReceiptDetails,
 };

@@ -33,7 +33,7 @@ const validateSignup = [
 
 
 // Sign up
-router.post("", rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }), validateSignup, async (req, res) => {
+router.post("", rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), validateSignup, async (req, res) => {
     const { firstName, lastName, email, password, username } = req.body;
     const hashedPassword = bcrypt.hashSync(password);
     const user = await User.create({

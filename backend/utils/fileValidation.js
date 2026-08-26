@@ -36,6 +36,13 @@ const expectedType = (fieldname) => {
   return [];
 };
 
+const maxSizeByField = {
+  image: 10 * 1024 * 1024,
+  mp3File: 30 * 1024 * 1024,
+  wavFile: 200 * 1024 * 1024,
+  zipFile: 500 * 1024 * 1024,
+};
+
 const detectType = (buffer) => {
   if (isJpeg(buffer) || isPng(buffer) || isWebp(buffer)) return "image";
   if (isZip(buffer)) return "zip";
@@ -44,10 +51,17 @@ const detectType = (buffer) => {
   return null;
 };
 
+const publicBucket = process.env.AWS_S3_BUCKET_NAME;
+const privateDownloadsBucket = process.env.AWS_PRIVATE_S3_BUCKET_NAME || "doomsstore-private-downloads";
+
+const bucketForFile = (file) => (
+  ["image", "mp3File"].includes(file.fieldname) ? publicBucket : privateDownloadsBucket
+);
+
 const deleteUploadedFile = async (file) => {
   if (!file?.key) return;
   await s3.send(new DeleteObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Bucket: bucketForFile(file),
     Key: file.key,
   }));
 };
@@ -58,7 +72,7 @@ const validateUploadedFileSignatures = async (req, res, next) => {
 
     for (const file of files) {
       const command = new GetObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Bucket: bucketForFile(file),
         Key: file.key,
       });
       const object = await s3.send(command);
@@ -77,4 +91,22 @@ const validateUploadedFileSignatures = async (req, res, next) => {
   }
 };
 
-module.exports = { validateUploadedFileSignatures };
+const validateUploadedFileSizes = async (req, res, next) => {
+  try {
+    const files = Object.values(req.files || {}).flat();
+
+    for (const file of files) {
+      const maxSize = maxSizeByField[file.fieldname];
+      if (!maxSize || file.size > maxSize) {
+        await Promise.all(files.map(deleteUploadedFile));
+        return res.status(400).json({ message: "Uploaded file is too large." });
+      }
+    }
+
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+};
+
+module.exports = { validateUploadedFileSignatures, validateUploadedFileSizes };

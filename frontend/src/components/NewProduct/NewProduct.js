@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import {
   Box,
@@ -17,7 +17,6 @@ import * as productActions from "../../store/products";
 const NewProduct = () => {
   const dispatch = useDispatch();
   const history = useHistory();
-  const user = useSelector((state) => state.session.user);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -25,6 +24,9 @@ const NewProduct = () => {
   const [audioPreviewUrl, setAudioPreviewUrl] = useState("");
   const [youtubeLink, setYoutubeLink] = useState("");
   const [genre, setGenre] = useState("");
+  const [bpm, setBpm] = useState("");
+  const [songKey, setSongKey] = useState("");
+  const [artistTags, setArtistTags] = useState("");
   const [type, setType] = useState("");
 
   const [imageFile, setImageFile] = useState(null);
@@ -36,6 +38,7 @@ const NewProduct = () => {
 
   const [errors, setErrors] = useState([]);
   const isKit = type === "loop_kit" || type === "drum_kit";
+  const isBeat = type === "beat";
 
   // Handle image file input
   const handleImageChange = (e) => {
@@ -60,6 +63,9 @@ const NewProduct = () => {
       formData.append("audioPreviewUrl", audioPreviewUrl);
       formData.append("youtubeLink", youtubeLink);
       formData.append("genre", genre);
+      formData.append("bpm", bpm);
+      formData.append("key", songKey);
+      formData.append("artistTags", artistTags);
 
       if (isKit) {
         formData.append("price", price || "0");
@@ -124,7 +130,41 @@ const NewProduct = () => {
           placeholder="https://youtube.com/watch?v=..."
         />
 
-        <TextField label="Genre" value={genre} onChange={(e) => setGenre(e.target.value)} required />
+        <TextField
+          label="Genre"
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
+          helperText={isBeat ? "" : "Optional for kits."}
+          required={isBeat}
+        />
+
+        <TextField
+          label="BPM"
+          type="number"
+          value={bpm}
+          onChange={(e) => setBpm(e.target.value)}
+          inputProps={{ min: 1, max: 999, step: 1 }}
+          helperText={isBeat ? "" : "Optional for kits."}
+          required={isBeat}
+        />
+
+        <TextField
+          label="Key"
+          value={songKey}
+          onChange={(e) => setSongKey(e.target.value)}
+          placeholder="C minor"
+          helperText={isBeat ? "" : "Optional for kits."}
+          required={isBeat}
+        />
+
+        <TextField
+          label="Artist / Type-Beat Tags"
+          value={artistTags}
+          onChange={(e) => setArtistTags(e.target.value)}
+          placeholder="Rylo Rodriguez, NoCap, emotional trap"
+          helperText={isBeat ? "Separate tags with commas." : "Optional for kits. Separate tags with commas."}
+          required={isBeat}
+        />
 
         <FormControl fullWidth required>
           <InputLabel>Type</InputLabel>

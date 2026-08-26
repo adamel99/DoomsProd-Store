@@ -3,13 +3,13 @@ const express = require('express');
 const { Product, License } = require('../../db/models');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
 const upload = require('../../utils/s3');
-const { validateUploadedFileSignatures } = require('../../utils/fileValidation');
+const { validateUploadedFileSignatures, validateUploadedFileSizes } = require('../../utils/fileValidation');
 const rateLimit = require('../../utils/rateLimit');
 const { body, param, query } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
 const router = express.Router();
 const { Op } = require('sequelize');
-const productUploadRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 12 });
+const productUploadRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 8 });
 const allowedTypes = ['beat', 'loop_kit', 'drum_kit'];
 
 const optionalUrl = (field) => body(field)
@@ -52,6 +52,25 @@ const validateCreateProduct = [
     .optional({ nullable: true, checkFalsy: true })
     .isFloat({ min: 0 })
     .withMessage('Price must be zero or greater.'),
+  body('genre')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('Genre must be 80 characters or less.'),
+  body('bpm')
+    .optional({ nullable: true, checkFalsy: true })
+    .isInt({ min: 1, max: 999 })
+    .withMessage('BPM must be between 1 and 999.'),
+  body('key')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ max: 20 })
+    .withMessage('Key must be 20 characters or less.'),
+  body('artistTags')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Artist/type-beat tags must be 500 characters or less.'),
   optionalUrl('youtubeLink'),
   optionalUrl('audioPreviewUrl'),
   handleValidationErrors,
@@ -81,6 +100,25 @@ const validateUpdateProduct = [
     .optional({ nullable: true, checkFalsy: true })
     .isFloat({ min: 0 })
     .withMessage('Price must be zero or greater.'),
+  body('genre')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ max: 80 })
+    .withMessage('Genre must be 80 characters or less.'),
+  body('bpm')
+    .optional({ nullable: true, checkFalsy: true })
+    .isInt({ min: 1, max: 999 })
+    .withMessage('BPM must be between 1 and 999.'),
+  body('key')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ max: 20 })
+    .withMessage('Key must be 20 characters or less.'),
+  body('artistTags')
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Artist/type-beat tags must be 500 characters or less.'),
   optionalUrl('youtubeLink'),
   optionalUrl('audioPreviewUrl'),
   handleValidationErrors,
@@ -120,12 +158,14 @@ const isPlayableAudioUrl = (url) => (
 );
 
 const getPlayableAudioUrl = (productJson) => {
+  if (isPlayableAudioUrl(productJson.audioPreviewUrl)) return productJson.audioPreviewUrl;
+
   const files = parseDownloadUrls(productJson.downloadUrls);
-  const audioFile = files.find((file) => (
-    ['mp3', 'wav'].includes(String(file.type).toLowerCase()) && isPlayableAudioUrl(file.url)
+  const mp3File = files.find((file) => (
+    String(file.type).toLowerCase() === 'mp3' && isPlayableAudioUrl(file.url)
   ));
 
-  return audioFile?.url || (isPlayableAudioUrl(productJson.audioPreviewUrl) ? productJson.audioPreviewUrl : null);
+  return mp3File?.url || null;
 };
 
 const publicProduct = (product, user) => {
@@ -144,6 +184,9 @@ router.get('/', validateProductList, async (req, res, next) => {
         [Op.or]: [
           { title: { [Op.iLike]: `%${search}%` } },
           { description: { [Op.iLike]: `%${search}%` } },
+          { genre: { [Op.iLike]: `%${search}%` } },
+          { key: { [Op.iLike]: `%${search}%` } },
+          { artistTags: { [Op.iLike]: `%${search}%` } },
         ],
       }
       : {};
@@ -195,11 +238,12 @@ router.post(
     { name: 'mp3File', maxCount: 1 },
     { name: 'wavFile', maxCount: 1 },
   ]),
+  validateUploadedFileSizes,
   validateUploadedFileSignatures,
   validateCreateProduct,
   async (req, res, next) => {
     try {
-      const { title, description, type, youtubeLink, audioPreviewUrl, price } = req.body;
+      const { title, description, type, youtubeLink, audioPreviewUrl, price, genre, bpm, key, artistTags } = req.body;
       const normalizedType = type?.toLowerCase();
 
       if (!title || !allowedTypes.includes(normalizedType)) return res.status(400).json({ message: 'Invalid product type or title missing.' });
@@ -211,7 +255,6 @@ router.post(
       if (req.files?.zipFile?.[0]) {
         downloadUrls.push({
           type: 'zip',
-          url: req.files.zipFile[0].location,
           key: req.files.zipFile[0].key,
         });
       }
@@ -225,7 +268,6 @@ router.post(
       if (req.files?.wavFile?.[0]) {
         downloadUrls.push({
           type: 'wav',
-          url: req.files.wavFile[0].location,
           key: req.files.wavFile[0].key,
         });
       }
@@ -237,6 +279,10 @@ router.post(
         type: normalizedType,
         youtubeLink: youtubeLink || null,
         audioPreviewUrl: audioPreviewUrl || null,
+        genre: genre || null,
+        bpm: bpm || null,
+        key: key || null,
+        artistTags: artistTags || null,
         price: normalizeProductPrice(normalizedType, price),
         imageUrl,
         downloadUrls: downloadUrls.length > 0 ? downloadUrls : null,
@@ -264,6 +310,7 @@ router.put(
     { name: 'mp3File', maxCount: 1 },
     { name: 'wavFile', maxCount: 1 },
   ]),
+  validateUploadedFileSizes,
   validateUploadedFileSignatures,
   validateUpdateProduct,
   async (req, res, next) => {
@@ -271,7 +318,7 @@ router.put(
       const product = await Product.findByPk(req.params.productId);
       if (!product) return res.status(404).json({ message: 'Product not found.' });
 
-      const { title, description, type, youtubeLink, audioPreviewUrl, price } = req.body;
+      const { title, description, type, youtubeLink, audioPreviewUrl, price, genre, bpm, key, artistTags } = req.body;
       const normalizedType = type?.toLowerCase() || product.type;
       if (!allowedTypes.includes(normalizedType)) return res.status(400).json({ message: 'Invalid product type.' });
       if (normalizedType === 'beat' && price !== undefined && price !== null && price !== '') return res.status(400).json({ message: 'Beats should not have fixed prices.' });
@@ -281,13 +328,17 @@ router.put(
       if (type !== undefined) product.type = normalizedType;
       if (youtubeLink !== undefined) product.youtubeLink = youtubeLink;
       if (audioPreviewUrl !== undefined) product.audioPreviewUrl = audioPreviewUrl;
+      if (genre !== undefined) product.genre = genre || null;
+      if (bpm !== undefined) product.bpm = bpm || null;
+      if (key !== undefined) product.key = key || null;
+      if (artistTags !== undefined) product.artistTags = artistTags || null;
       if (type !== undefined || price !== undefined) product.price = normalizeProductPrice(normalizedType, price, product.price);
       if (req.files?.image?.[0]) product.imageUrl = req.files.image[0].location;
 
       const downloadUrls = [];
-      if (req.files?.zipFile?.[0]) downloadUrls.push({ type: 'zip', url: req.files.zipFile[0].location, key: req.files.zipFile[0].key });
+      if (req.files?.zipFile?.[0]) downloadUrls.push({ type: 'zip', key: req.files.zipFile[0].key });
       if (req.files?.mp3File?.[0]) downloadUrls.push({ type: 'mp3', url: req.files.mp3File[0].location, key: req.files.mp3File[0].key });
-      if (req.files?.wavFile?.[0]) downloadUrls.push({ type: 'wav', url: req.files.wavFile[0].location, key: req.files.wavFile[0].key });
+      if (req.files?.wavFile?.[0]) downloadUrls.push({ type: 'wav', key: req.files.wavFile[0].key });
       if (downloadUrls.length > 0) product.downloadUrls = downloadUrls;
 
       await product.save();

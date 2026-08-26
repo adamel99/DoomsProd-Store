@@ -1,7 +1,9 @@
 const express = require('express');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
-const { Order, User, OrderItem } = require('../../db/models');
-const { createOrderFromCart } = require('../../utils/checkout');
+const { Order, User, OrderItem, Product, License } = require('../../db/models');
+const { createOrderFromCart, getOrderDownloadFiles, getOrderReceiptDetails } = require('../../utils/checkout');
+const { sendProductEmail } = require('../../utils/sendProductEmail');
+const rateLimit = require('../../utils/rateLimit');
 const { body, param } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
 
@@ -30,7 +32,16 @@ const validateOrderUpdate = [
 router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const orders = await Order.findAll({
-      include: { model: User, attributes: ['id', 'username', 'email'] },
+      include: [
+        { model: User, attributes: ['id', 'username', 'email', 'firstName', 'lastName'] },
+        {
+          model: OrderItem,
+          include: [
+            { model: Product, attributes: ['id', 'title', 'type', 'imageUrl'] },
+            { model: License, attributes: ['id', 'name', 'description'] },
+          ],
+        },
+      ],
       order: [['createdAt', 'DESC']],
     });
 
@@ -45,10 +56,49 @@ router.get('/my', requireAuth, async (req, res, next) => {
   try {
     const orders = await Order.findAll({
       where: { userId: req.user.id },
+      include: {
+        model: OrderItem,
+        include: [
+          { model: Product, attributes: ['id', 'title', 'type', 'imageUrl'] },
+          { model: License, attributes: ['id', 'name', 'description'] },
+        ],
+      },
       order: [['createdAt', 'DESC']],
     });
 
     return res.status(200).json({ orders });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Resend receipt and fresh download links for a completed order
+router.post(
+  '/:orderId/resend-receipt',
+  requireAuth,
+  rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }),
+  validateOrderId,
+  async (req, res, next) => {
+  try {
+    const order = await Order.findByPk(req.params.orderId, {
+      include: [{ model: User, attributes: ['id', 'username', 'email'] }],
+    });
+
+    if (!order) return res.status(404).json({ message: 'Order not found.' });
+
+    if (req.user.role !== 'admin' && req.user.id !== order.userId) {
+      return res.status(403).json({ message: 'Unauthorized to resend this receipt.' });
+    }
+
+    if (order.status !== 'completed') {
+      return res.status(400).json({ message: 'Receipts can only be resent for completed orders.' });
+    }
+
+    const files = await getOrderDownloadFiles(order.id);
+    const receipt = await getOrderReceiptDetails(order.id, order.User);
+    await sendProductEmail(order.User.email, files, receipt);
+
+    return res.status(200).json({ message: 'Receipt resent.' });
   } catch (error) {
     next(error);
   }

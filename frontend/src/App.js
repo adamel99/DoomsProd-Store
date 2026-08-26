@@ -5,7 +5,6 @@ import { Switch, Route, Redirect } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import LandingPage from "./components/LandingPage/LandingPage";
 import ProductList from "./components/ProductList/ProductList";
-import ProductCard from "./components/ProductCard/ProductCard";
 import NewProduct from "./components/NewProduct/NewProduct";
 import CartPage from "./components/CartPage/CartPage";
 import UpdateProduct from "./components/UpdateProduct/UpdateProduct"
@@ -21,7 +20,9 @@ import Checkout from "./components/Checkout/Checkout";
 import CheckoutSuccess from "./components/CheckoutSuccess/CheckoutSuccess";
 import CheckoutCancel from "./components/CheckoutCancel/CheckoutCancel";
 import DownloadPage from "./components/Downloads/DownloadPage";
-import AdminRoute from "./components/ProtectedRoute/ProtectedRoute";
+import AdminRoute, { ProtectedRoute } from "./components/ProtectedRoute/ProtectedRoute";
+import AccountPage from "./components/Account/Account";
+import AdminOrders from "./components/AdminOrders/AdminOrders";
 
 
 import { restoreUser } from "./store/session";
@@ -60,6 +61,8 @@ function App() {
           <Route exact path="/checkout-success" component={CheckoutSuccess} />
           <Route exact path="/checkout-cancel" component={CheckoutCancel} />
           <Route exact path="/downloads/:sessionId" component={DownloadPage} />
+          <ProtectedRoute exact path="/account" component={AccountPage} />
+          <AdminRoute exact path="/admin/orders" component={AdminOrders} />
 
           {/* Optional 404 route */}
           <Route render={() => <Redirect to="/" />} />

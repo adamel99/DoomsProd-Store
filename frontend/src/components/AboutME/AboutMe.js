@@ -5,7 +5,6 @@ import {
   Box,
   Avatar,
   Grid,
-  Link as MuiLink,
   Button,
 } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -34,7 +33,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "60vw", md: "45vw" },
       height: { xs: "60vw", md: "45vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle at 40% 40%, rgba(228,63,111,0.28) 0%, rgba(192,45,90,0.12) 50%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle at 40% 40%, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.dark}22 50%, transparent 70%)`,
       filter: "blur(60px)",
       animation: "orbFloat1 22s ease-in-out infinite",
       "@keyframes orbFloat1": {
@@ -50,7 +49,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "55vw", md: "38vw" },
       height: { xs: "55vw", md: "38vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle at 60% 60%, rgba(160,20,60,0.22) 0%, rgba(100,10,40,0.1) 50%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle at 60% 60%, ${theme.palette.secondary.main}44 0%, ${theme.palette.secondary.dark}22 50%, transparent 70%)`,
       filter: "blur(70px)",
       animation: "orbFloat2 28s ease-in-out infinite reverse",
       "@keyframes orbFloat2": {
@@ -65,7 +64,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "40vw", md: "28vw" },
       height: { xs: "40vw", md: "28vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(228,63,111,0.07) 0%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle, ${theme.palette.primary.main}18 0%, transparent 70%)`,
       filter: "blur(80px)",
       animation: "orbFloat3 35s ease-in-out infinite",
       "@keyframes orbFloat3": {
@@ -87,22 +86,13 @@ const LiquidBackground = React.memo(() => (
 // ─── Glass Panel ─────────────────────────────────────────────────────────────
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
-    sx={{
-      background: "rgba(255,255,255,0.03)",
-      backdropFilter: "blur(28px)",
-      WebkitBackdropFilter: "blur(28px)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderTop: "1px solid rgba(255,255,255,0.14)",
-      borderLeft: "1px solid rgba(255,255,255,0.1)",
+    sx={(theme) => ({
+      background: theme.custom.clay.surfaceSoft,
+      border: theme.custom.clay.border,
       borderRadius: "28px",
-      boxShadow: [
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-        "0 24px 64px rgba(0,0,0,0.65)",
-        "8px 8px 20px rgba(0,0,0,0.45)",
-        "-3px -3px 10px rgba(255,255,255,0.015)",
-      ].join(", "),
+      boxShadow: theme.custom.clay.raised,
       ...sx,
-    }}
+    })}
     {...rest}
   >
     {children}
@@ -113,56 +103,47 @@ const GlassPanel = ({ children, sx = {}, ...rest }) => (
 const NeumorphCard = ({ children, sx = {}, expanded = false, onClick }) => (
   <Box
     onClick={onClick}
-    sx={{
-      background: "linear-gradient(145deg, #1c1419, #130f12)",
+    sx={(theme) => ({
+      background: theme.custom.clay.surfaceSoft,
       borderRadius: "28px",
-      border: "1px solid rgba(255,255,255,0.06)",
-      boxShadow: [
-        "6px 6px 20px rgba(0,0,0,0.7)",
-        "-3px -3px 10px rgba(255,255,255,0.025)",
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-      ].join(", "),
+      border: theme.custom.clay.border,
+      boxShadow: theme.custom.clay.raised,
       transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
       cursor: onClick ? "pointer" : "default",
       "&:hover": onClick ? {
         transform: "translateY(-5px)",
-        borderColor: "rgba(228,63,111,0.2)",
-        boxShadow: [
-          "8px 12px 32px rgba(0,0,0,0.75)",
-          "-2px -2px 8px rgba(255,255,255,0.025)",
-          "0 1px 0 rgba(255,255,255,0.09) inset",
-          "0 4px 28px rgba(228,63,111,0.12)",
-        ].join(", "),
+        borderColor: theme.palette.primary.main,
+        boxShadow: theme.custom.clay.floating,
       } : {},
       ...sx,
-    }}
+    })}
   >
     {children}
   </Box>
 );
 
 // ─── Liquid Orb ───────────────────────────────────────────────────────────────
-const LiquidOrb = ({ size = 80, color = "rgba(228,63,111,0.7)", sx = {} }) => (
-  <Box sx={{
+const LiquidOrb = ({ size = 80, color, sx = {} }) => (
+  <Box sx={(theme) => ({
     width: size, height: size, borderRadius: "50%",
-    background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25) 0%, ${color} 45%, rgba(0,0,0,0.4) 100%)`,
+    background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ${color || theme.palette.primary.main} 48%, ${theme.custom.colors.clayDeep} 100%)`,
     boxShadow: [
-      `0 ${size * 0.1}px ${size * 0.3}px rgba(0,0,0,0.6)`,
-      `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.15)`,
-      `inset ${size * 0.03}px ${size * 0.03}px ${size * 0.08}px rgba(255,255,255,0.2)`,
+      `0 ${size * 0.1}px ${size * 0.3}px rgba(151,82,69,0.24)`,
+      `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.45)`,
+      `inset ${size * 0.03}px ${size * 0.03}px ${size * 0.08}px rgba(255,255,255,0.45)`,
     ].join(", "),
     flexShrink: 0,
     ...sx,
-  }} />
+  })} />
 );
 
 // ─── Section icon map ─────────────────────────────────────────────────────────
 const sectionMeta = [
-  { icon: PersonIcon,    accent: "rgba(228,63,111,0.85)" },
-  { icon: CodeIcon,      accent: "rgba(228,63,111,0.75)" },
-  { icon: GraphicEqIcon, accent: "rgba(228,63,111,0.75)" },
-  { icon: MusicNoteIcon, accent: "rgba(228,63,111,0.75)" },
-  { icon: SecurityIcon,  accent: "rgba(228,63,111,0.75)" },
+  { icon: PersonIcon },
+  { icon: CodeIcon },
+  { icon: GraphicEqIcon },
+  { icon: MusicNoteIcon },
+  { icon: SecurityIcon },
 ];
 
 const sections = [
@@ -209,9 +190,9 @@ const AboutMe = () => {
   return (
     <Box sx={{
       position: "relative",
-      backgroundColor: "#0e0b0d",
+      backgroundColor: "background.default",
       minHeight: "100vh",
-      color: "#FFEAEC",
+      color: "text.primary",
       overflowX: "hidden",
       pt: { xs: 10, md: 14 },
       pb: { xs: 10, md: 16 },
@@ -234,7 +215,7 @@ const AboutMe = () => {
             }}>
               <LiquidOrb
                 size={18}
-                color="rgba(228,63,111,0.85)"
+                color="var(--clay-coral)"
                 sx={{
                   animation: "orbBob 6s ease-in-out infinite",
                   "@keyframes orbBob": {
@@ -244,12 +225,12 @@ const AboutMe = () => {
                 }}
               />
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`,
+                fontFamily: (theme) => theme.custom.fonts.body,
                 fontSize: "0.8rem",
                 fontWeight: 600,
                 letterSpacing: "2px",
                 textTransform: "uppercase",
-                color: "rgba(255,234,236,0.65)",
+                color: "text.secondary",
               }}>
                 The Creator
               </Typography>
@@ -261,7 +242,7 @@ const AboutMe = () => {
             {/* Decorative orbs flanking avatar */}
             <LiquidOrb
               size={32}
-              color="rgba(228,63,111,0.6)"
+              color="var(--clay-coral)"
               sx={{
                 position: "absolute",
                 left: -48,
@@ -276,7 +257,7 @@ const AboutMe = () => {
             />
             <LiquidOrb
               size={22}
-              color="rgba(150,20,55,0.7)"
+              color="var(--clay-apricot)"
               sx={{
                 position: "absolute",
                 right: -36,
@@ -295,7 +276,7 @@ const AboutMe = () => {
               width: 140,
               height: 140,
               borderRadius: "50%",
-              background: "radial-gradient(circle, rgba(228,63,111,0.2) 0%, transparent 70%)",
+              background: (theme) => `radial-gradient(circle, ${theme.palette.primary.main}33 0%, transparent 70%)`,
               filter: "blur(16px)",
               position: "absolute",
               top: "50%", left: "50%",
@@ -313,12 +294,8 @@ const AboutMe = () => {
               sx={{
                 width: 120,
                 height: 120,
-                border: "2px solid rgba(228,63,111,0.5)",
-                boxShadow: [
-                  "0 0 0 4px rgba(228,63,111,0.1)",
-                  "0 0 0 8px rgba(228,63,111,0.05)",
-                  "0 12px 40px rgba(0,0,0,0.7)",
-                ].join(", "),
+                border: (theme) => `2px solid ${theme.palette.primary.main}88`,
+                boxShadow: (theme) => theme.custom.clay.floating,
                 position: "relative",
                 zIndex: 1,
               }}
@@ -328,7 +305,8 @@ const AboutMe = () => {
           {/* Name / title */}
           <Typography variant="h1" sx={{
             fontSize: { xs: "2.8rem", sm: "4rem", md: "5rem" },
-            background: "linear-gradient(180deg, #FFEAEC 0%, rgba(255,234,236,0.55) 100%)",
+            color: "text.primary",
+            background: (theme) => `linear-gradient(180deg, ${theme.palette.text.primary} 0%, ${theme.palette.primary.dark} 100%)`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
@@ -338,9 +316,9 @@ const AboutMe = () => {
             Meet the Creator
           </Typography>
           <Typography sx={{
-            fontFamily: `"DM Sans", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.body,
             fontSize: { xs: "1rem", md: "1.1rem" },
-            color: "rgba(255,234,236,0.4)",
+            color: "text.secondary",
             lineHeight: 1.7,
             maxWidth: 440,
             mx: "auto",
@@ -352,7 +330,7 @@ const AboutMe = () => {
         {/* ── Section Cards ── */}
         <Grid container spacing={3}>
           {sections.map((section, i) => {
-            const { icon: Icon, accent } = sectionMeta[i];
+            const { icon: Icon } = sectionMeta[i];
             const isOpen = expanded === i;
             const isFirst = i === 0;
 
@@ -361,14 +339,9 @@ const AboutMe = () => {
                 <NeumorphCard
                   onClick={!isFirst ? () => toggle(i) : undefined}
                   sx={isFirst ? {
-                    background: "linear-gradient(145deg, #221520, #180f14)",
-                    border: "1px solid rgba(228,63,111,0.18)",
-                    boxShadow: [
-                      "6px 6px 20px rgba(0,0,0,0.7)",
-                      "-3px -3px 10px rgba(255,255,255,0.025)",
-                      "0 1px 0 rgba(255,255,255,0.07) inset",
-                      "0 0 40px rgba(228,63,111,0.06)",
-                    ].join(", "),
+                    background: (theme) => theme.custom.clay.surface,
+                    border: (theme) => `1px solid ${theme.palette.primary.main}44`,
+                    boxShadow: (theme) => theme.custom.clay.floating,
                   } : {}}
                 >
                   <Box sx={{ p: { xs: 3, md: 4 } }}>
@@ -386,35 +359,32 @@ const AboutMe = () => {
                         <Box sx={{
                           width: 48, height: 48,
                           borderRadius: "14px",
-                          background: "rgba(228,63,111,0.1)",
-                          border: "1px solid rgba(228,63,111,0.2)",
+                          background: (theme) => `${theme.palette.primary.main}18`,
+                          border: (theme) => `1px solid ${theme.palette.primary.main}44`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           flexShrink: 0,
-                          boxShadow: [
-                            "4px 4px 12px rgba(0,0,0,0.5)",
-                            "-2px -2px 6px rgba(255,255,255,0.02)",
-                          ].join(", "),
+                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
                         }}>
-                          <Icon sx={{ fontSize: 22, color: "#E43F6F" }} />
+                          <Icon sx={{ fontSize: 22, color: "primary.main" }} />
                         </Box>
 
                         <Box>
                           <Typography sx={{
-                            fontFamily: `"Syne", sans-serif`,
+                            fontFamily: (theme) => theme.custom.fonts.display,
                             fontWeight: 800,
                             fontSize: { xs: "1.1rem", md: "1.25rem" },
-                            color: "#FFEAEC",
+                            color: "text.primary",
                             lineHeight: 1.2,
                           }}>
                             {section.title}
                           </Typography>
                           {section.subtitle && (
                             <Typography sx={{
-                              fontFamily: `"DM Sans", sans-serif`,
+                              fontFamily: (theme) => theme.custom.fonts.body,
                               fontSize: "0.78rem",
-                              color: "#E43F6F",
+                              color: "primary.main",
                               fontWeight: 600,
                               letterSpacing: "0.5px",
                               mt: 0.2,
@@ -430,15 +400,15 @@ const AboutMe = () => {
                         <Box sx={{
                           width: 32, height: 32,
                           borderRadius: "10px",
-                          background: "rgba(255,255,255,0.04)",
-                          border: "1px solid rgba(255,255,255,0.07)",
+                          background: (theme) => theme.custom.clay.surfaceSoft,
+                          border: (theme) => theme.custom.clay.border,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           flexShrink: 0,
                           transition: "all 0.3s ease",
                           transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
-                          color: isOpen ? "#E43F6F" : "rgba(255,234,236,0.3)",
+                          color: isOpen ? "primary.main" : "text.disabled",
                         }}>
                           <ArrowForwardIcon sx={{ fontSize: 16 }} />
                         </Box>
@@ -448,12 +418,12 @@ const AboutMe = () => {
                     {/* Body — always visible for first card, toggle for rest */}
                     {(isFirst || isOpen) && (
                       <>
-                        <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)", mb: 3 }} />
+                        <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
                         {section.body.trim().split("\n\n").map((para, pi) => (
                           <Typography key={pi} sx={{
-                            fontFamily: `"DM Sans", sans-serif`,
+                            fontFamily: (theme) => theme.custom.fonts.body,
                             fontSize: "0.95rem",
-                            color: "rgba(255,234,236,0.55)",
+                            color: "text.secondary",
                             lineHeight: 1.85,
                             mb: pi < section.body.trim().split("\n\n").length - 1 ? 2 : 0,
                           }}>
@@ -472,12 +442,12 @@ const AboutMe = () => {
         {/* ── Skills chips strip ── */}
         <GlassPanel sx={{ mt: 5, p: { xs: 3, md: 4 } }}>
           <Typography sx={{
-            fontFamily: `"DM Sans", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.body,
             fontSize: "0.7rem",
             fontWeight: 600,
             letterSpacing: "3px",
             textTransform: "uppercase",
-            color: "#E43F6F",
+            color: "primary.main",
             mb: 2.5,
           }}>
             Tech Stack
@@ -488,24 +458,21 @@ const AboutMe = () => {
                 px: 2,
                 py: 0.7,
                 borderRadius: "100px",
-                background: "rgba(228,63,111,0.08)",
-                border: "1px solid rgba(228,63,111,0.18)",
-                boxShadow: [
-                  "3px 3px 8px rgba(0,0,0,0.4)",
-                  "-1px -1px 4px rgba(255,255,255,0.02)",
-                ].join(", "),
+                background: (theme) => `${theme.palette.primary.main}14`,
+                border: (theme) => `1px solid ${theme.palette.primary.main}44`,
+                boxShadow: (theme) => theme.custom.clay.raisedSmall,
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  background: "rgba(228,63,111,0.14)",
-                  borderColor: "rgba(228,63,111,0.3)",
+                  background: (theme) => `${theme.palette.primary.main}24`,
+                  borderColor: "primary.main",
                   transform: "translateY(-2px)",
                 },
               }}>
                 <Typography sx={{
-                  fontFamily: `"DM Sans", sans-serif`,
+                  fontFamily: (theme) => theme.custom.fonts.body,
                   fontSize: "0.8rem",
                   fontWeight: 600,
-                  color: "rgba(255,234,236,0.65)",
+                  color: "text.secondary",
                   letterSpacing: "0.3px",
                 }}>
                   {skill}
@@ -518,23 +485,23 @@ const AboutMe = () => {
         {/* ── Final CTA ── */}
         <GlassPanel sx={{ mt: 4, p: { xs: 4, md: 5 }, textAlign: "center" }}>
           <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-            <LiquidOrb size={16} color="rgba(228,63,111,0.5)" />
-            <LiquidOrb size={26} color="rgba(228,63,111,0.8)" />
-            <LiquidOrb size={16} color="rgba(228,63,111,0.5)" />
+            <LiquidOrb size={16} color="var(--clay-coral)" />
+            <LiquidOrb size={26} color="var(--clay-coral)" />
+            <LiquidOrb size={16} color="var(--clay-coral)" />
           </Box>
 
           <Typography sx={{
-            fontFamily: `"Syne", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.display,
             fontWeight: 800,
             fontSize: { xs: "1.3rem", md: "1.7rem" },
-            color: "#FFEAEC",
+            color: "text.primary",
             mb: 1,
           }}>
             Want to dive deeper?
           </Typography>
           <Typography sx={{
-            fontFamily: `"DM Sans", sans-serif`,
-            color: "rgba(255,234,236,0.4)",
+            fontFamily: (theme) => theme.custom.fonts.body,
+            color: "text.secondary",
             fontSize: "0.95rem",
             mb: 3.5,
             lineHeight: 1.7,

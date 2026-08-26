@@ -1,9 +1,15 @@
 const express = require('express');
 const Stripe = require('stripe');
 const { requireAuth } = require('../../utils/auth');
-const { sendProductEmail, getSignedFileUrl } = require('../../utils/sendProductEmail');
+const { sendProductEmail, getSignedDownload } = require('../../utils/sendProductEmail');
 const rateLimit = require('../../utils/rateLimit');
-const { cents, clearCartForOrder, createOrderFromCart, getOrderFileKeys } = require('../../utils/checkout');
+const {
+  cents,
+  clearCartForOrder,
+  createOrderFromCart,
+  getOrderDownloadFiles,
+  getOrderReceiptDetails,
+} = require('../../utils/checkout');
 const { Order } = require('../../db/models');
 
 const router = express.Router();
@@ -91,13 +97,18 @@ router.post(
         return res.status(400).json({ message: 'This endpoint is only for free items.' });
       }
 
-      const fileKeys = await getOrderFileKeys(order.id);
-      if (!fileKeys.length) {
+      const files = await getOrderDownloadFiles(order.id);
+      if (!files.length) {
         return res.status(400).json({ message: 'No downloadable files found.' });
       }
 
-      const signedUrls = await Promise.all(fileKeys.map((key) => getSignedFileUrl(key)));
-      await sendProductEmail(req.user.email, fileKeys);
+      const signedUrls = await Promise.all(files.map((file) => getSignedDownload(file)));
+      try {
+        const receipt = await getOrderReceiptDetails(order.id, req.user);
+        await sendProductEmail(req.user.email, files, receipt);
+      } catch (emailError) {
+        console.error('Free checkout email failed:', emailError);
+      }
       await clearCartForOrder(order);
 
       return res.json({
@@ -107,6 +118,7 @@ router.post(
         downloadLinks: signedUrls,
       });
     } catch (error) {
+      console.error('Free checkout failed:', error);
       const status = error.status || 500;
       return res.status(status).json({ message: status === 500 ? 'Failed to process free checkout.' : error.message });
     }

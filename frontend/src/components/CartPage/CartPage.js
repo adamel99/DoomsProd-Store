@@ -2,12 +2,13 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useHistory } from "react-router-dom";
 import { fetchCartItemsThunk, deleteCartItemThunk } from "../../store/cartItems";
-import { Box, Typography, Button, Grid, IconButton } from "@mui/material";
+import { Box, Typography, Button, IconButton } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import { formatProductType } from "../../utils/formatProductType";
 
 // ─── Shared primitives ───────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", top: "-10vh", left: "-8vw",
       width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle at 40% 40%, rgba(228,63,111,0.2) 0%, rgba(192,45,90,0.08) 55%, transparent 72%)",
+      background: (theme) => `radial-gradient(circle at 40% 40%, 33 0%, 22 55%, transparent 72%)`,
       filter: "blur(70px)",
       animation: "orbF1 22s ease-in-out infinite",
       "@keyframes orbF1": {
@@ -29,7 +30,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", bottom: 0, right: "-10vw",
       width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(150,20,60,0.15) 0%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle, 44 0%, transparent 70%)`,
       filter: "blur(80px)",
       animation: "orbF2 30s ease-in-out infinite reverse",
       "@keyframes orbF2": {
@@ -47,37 +48,29 @@ const LiquidBackground = React.memo(() => (
 
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
-    sx={{
-      background: "rgba(255,255,255,0.03)",
-      backdropFilter: "blur(28px)",
-      WebkitBackdropFilter: "blur(28px)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderTop: "1px solid rgba(255,255,255,0.14)",
+    sx={(theme) => ({
+      background: theme.custom.clay.surfaceSoft,
+      border: theme.custom.clay.border,
       borderRadius: "28px",
-      boxShadow: [
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-        "0 24px 64px rgba(0,0,0,0.6)",
-        "8px 8px 20px rgba(0,0,0,0.4)",
-        "-3px -3px 10px rgba(255,255,255,0.015)",
-      ].join(", "),
+      boxShadow: theme.custom.clay.raised,
       ...sx,
-    }}
+    })}
     {...rest}
   >
     {children}
   </Box>
 );
 
-const LiquidOrb = ({ size = 52, color = "rgba(228,63,111,0.7)", sx = {} }) => (
-  <Box sx={{
+const LiquidOrb = ({ size = 52, color, sx = {} }) => (
+  <Box sx={(theme) => ({
     width: size, height: size, borderRadius: "50%", flexShrink: 0,
-    background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25) 0%, ${color} 45%, rgba(0,0,0,0.4) 100%)`,
+    background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ${color || theme.palette.primary.main} 48%, ${theme.custom.colors.clayDeep} 100%)`,
     boxShadow: [
-      `0 ${size * 0.1}px ${size * 0.3}px rgba(0,0,0,0.55)`,
-      `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.15)`,
+      `0 ${size * 0.1}px ${size * 0.3}px rgba(151,82,69,0.24)`,
+      `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.45)`,
     ].join(", "),
     ...sx,
-  }} />
+  })} />
 );
 
 // ─── CartItem card ───────────────────────────────────────────────────────────
@@ -98,25 +91,15 @@ const CartItemCard = ({ item, onRemove }) => {
           display: "flex",
           gap: 2.5,
           alignItems: "center",
-          background: "linear-gradient(160deg, rgba(30,20,24,0.9), rgba(18,12,16,0.95))",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderTop: "1px solid rgba(255,255,255,0.12)",
+          background: (theme) => theme.custom.clay.surfaceSoft,
+          border: (theme) => theme.custom.clay.border,
           borderRadius: "20px",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          boxShadow: [
-            "6px 6px 20px rgba(0,0,0,0.6)",
-            "-2px -2px 8px rgba(255,255,255,0.02)",
-            "0 1px 0 rgba(255,255,255,0.06) inset",
-          ].join(", "),
+          boxShadow: (theme) => theme.custom.clay.raisedSmall,
           p: 2,
           transition: "all 0.3s ease",
           "&:hover": {
-            borderColor: "rgba(228,63,111,0.18)",
-            boxShadow: [
-              "8px 8px 28px rgba(0,0,0,0.65)",
-              "0 4px 20px rgba(228,63,111,0.1)",
-            ].join(", "),
+            borderColor: "primary.main",
+            boxShadow: (theme) => theme.custom.clay.floating,
           },
         }}
       >
@@ -125,8 +108,8 @@ const CartItemCard = ({ item, onRemove }) => {
           width: 72, height: 72, flexShrink: 0,
           borderRadius: "14px",
           overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "4px 4px 12px rgba(0,0,0,0.5)",
+          border: (theme) => theme.custom.clay.border,
+          boxShadow: (theme) => theme.custom.clay.raisedSmall,
           position: "relative",
         }}>
           <Box
@@ -142,26 +125,26 @@ const CartItemCard = ({ item, onRemove }) => {
           {/* Type badge */}
           <Box sx={{
             display: "inline-flex", alignItems: "center", gap: 0.6, mb: 0.75,
-            background: "rgba(228,63,111,0.15)",
-            border: "1px solid rgba(228,63,111,0.25)",
+            background: (theme) => `${theme.palette.primary.main}22`,
+            border: (theme) => `1px solid ${theme.palette.primary.main}44`,
             borderRadius: "100px",
             px: 1.2, py: 0.3,
           }}>
-            <MusicNoteIcon sx={{ fontSize: 11, color: "#E43F6F" }} />
+            <MusicNoteIcon sx={{ fontSize: 11, color: "primary.main" }} />
             <Typography sx={{
-              fontFamily: `"DM Sans", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.body,
               fontSize: "0.6rem", fontWeight: 700,
-              letterSpacing: "1.5px", color: "#E43F6F", textTransform: "uppercase",
+              letterSpacing: "1.5px", color: "primary.main", textTransform: "uppercase",
             }}>
-              {type || "Product"}
+              {formatProductType(type)}
             </Typography>
           </Box>
 
           <Typography sx={{
-            fontFamily: `"Syne", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.display,
             fontWeight: 700,
             fontSize: "1rem",
-            color: "#FFEAEC",
+            color: "text.primary",
             lineHeight: 1.2,
             mb: 0.4,
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
@@ -171,9 +154,9 @@ const CartItemCard = ({ item, onRemove }) => {
 
           {licenseType && (
             <Typography sx={{
-              fontFamily: `"DM Sans", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.body,
               fontSize: "0.78rem",
-              color: "rgba(255,234,236,0.35)",
+              color: "text.secondary",
             }}>
               {licenseType}
             </Typography>
@@ -183,10 +166,10 @@ const CartItemCard = ({ item, onRemove }) => {
         {/* Price + remove */}
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1.5, flexShrink: 0 }}>
           <Typography sx={{
-            fontFamily: `"Syne", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.display,
             fontWeight: 800,
             fontSize: "1.15rem",
-            color: "#FFEAEC",
+            color: "text.primary",
           }}>
             ${parseFloat(price || 0).toFixed(2)}
           </Typography>
@@ -195,14 +178,14 @@ const CartItemCard = ({ item, onRemove }) => {
             size="small"
             sx={{
               width: 34, height: 34,
-              background: "rgba(228,63,111,0.08)",
-              border: "1px solid rgba(228,63,111,0.2)",
+              background: (theme) => `${theme.palette.primary.main}14`,
+              border: (theme) => `1px solid ${theme.palette.primary.main}44`,
               borderRadius: "10px",
-              color: "#E43F6F",
+              color: "primary.main",
               transition: "all 0.25s ease",
               "&:hover": {
-                background: "rgba(228,63,111,0.18)",
-                borderColor: "rgba(228,63,111,0.45)",
+                background: (theme) => `${theme.palette.primary.main}24`,
+                borderColor: "primary.main",
                 transform: "scale(1.08)",
               },
             }}
@@ -242,11 +225,11 @@ const CartPage = () => {
 
   return (
     <Box sx={{
-      backgroundColor: "#0e0b0d",
+      backgroundColor: "background.default",
       minHeight: "100vh",
       pt: { xs: 5, md: 8 },
       pb: { xs: 10, md: 16 },
-      color: "#FFEAEC",
+      color: "text.primary",
       position: "relative",
       overflow: "hidden",
     }}>
@@ -261,20 +244,19 @@ const CartPage = () => {
             onClick={() => history.push("/products")}
             sx={{
               mb: 5,
-              fontFamily: `"DM Sans", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.body,
               fontWeight: 600, fontSize: "0.875rem",
-              color: "rgba(255,234,236,0.4)",
-              background: "rgba(255,255,255,0.03)",
-              backdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.07)",
+              color: "text.secondary",
+              background: (theme) => theme.custom.clay.surfaceSoft,
+              border: (theme) => theme.custom.clay.border,
               borderRadius: "100px",
               px: 2.5, py: 1,
-              boxShadow: "3px 3px 10px rgba(0,0,0,0.4), -1px -1px 5px rgba(255,255,255,0.02)",
+              boxShadow: (theme) => theme.custom.clay.raisedSmall,
               transition: "all 0.25s ease",
               "&:hover": {
-                color: "#FFEAEC",
-                borderColor: "rgba(228,63,111,0.3)",
-                background: "rgba(228,63,111,0.07)",
+                color: "text.primary",
+                borderColor: "primary.main",
+                background: (theme) => `${theme.palette.primary.main}14`,
               },
             }}
           >
@@ -285,12 +267,12 @@ const CartPage = () => {
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 6 }}>
-            <Box sx={{ width: 4, height: 36, borderRadius: "2px", bgcolor: "#E43F6F", boxShadow: "0 2px 14px rgba(228,63,111,0.5)" }} />
+            <Box sx={{ width: 4, height: 36, borderRadius: "2px", bgcolor: "primary.main", boxShadow: (theme) => `0 2px 14px ${theme.palette.primary.main}80` }} />
             <Typography sx={{
-              fontFamily: `"Syne", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.display,
               fontWeight: 800,
               fontSize: { xs: "1.8rem", md: "2.4rem" },
-              color: "#FFEAEC", lineHeight: 1.1,
+              color: "text.primary", lineHeight: 1.1,
             }}>
               Your Cart
             </Typography>
@@ -298,11 +280,11 @@ const CartPage = () => {
               <Box sx={{
                 ml: 0.5,
                 px: 1.5, py: 0.4,
-                background: "rgba(228,63,111,0.15)",
-                border: "1px solid rgba(228,63,111,0.3)",
+                background: (theme) => `${theme.palette.primary.main}22`,
+                border: (theme) => `1px solid ${theme.palette.primary.main}55`,
                 borderRadius: "100px",
               }}>
-                <Typography sx={{ fontFamily: `"DM Sans", sans-serif`, fontSize: "0.8rem", fontWeight: 700, color: "#E43F6F" }}>
+                <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.body, fontSize: "0.8rem", fontWeight: 700, color: "primary.main" }}>
                   {cartItems.length}
                 </Typography>
               </Box>
@@ -316,22 +298,22 @@ const CartPage = () => {
             <GlassPanel sx={{ p: { xs: 6, md: 10 }, textAlign: "center" }}>
               <Box sx={{
                 width: 72, height: 72, borderRadius: "50%", mx: "auto", mb: 3,
-                background: "rgba(228,63,111,0.08)",
-                border: "1px solid rgba(228,63,111,0.2)",
+                background: (theme) => `${theme.palette.primary.main}14`,
+                border: (theme) => `1px solid ${theme.palette.primary.main}44`,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <ShoppingCartIcon sx={{ fontSize: 32, color: "rgba(228,63,111,0.5)" }} />
+                <ShoppingCartIcon sx={{ fontSize: 32, color: "primary.main" }} />
               </Box>
               <Typography sx={{
-                fontFamily: `"Syne", sans-serif`,
+                fontFamily: (theme) => theme.custom.fonts.display,
                 fontWeight: 700, fontSize: "1.3rem",
-                color: "#FFEAEC", mb: 1,
+                color: "text.primary", mb: 1,
               }}>
                 Your cart is empty
               </Typography>
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`,
-                color: "rgba(255,234,236,0.35)", fontSize: "0.9rem", mb: 4,
+                fontFamily: (theme) => theme.custom.fonts.body,
+                color: "text.secondary", fontSize: "0.9rem", mb: 4,
               }}>
                 Browse the collection and add something you love.
               </Typography>
@@ -339,9 +321,9 @@ const CartPage = () => {
                 variant="outlined"
                 onClick={() => history.push("/products")}
                 sx={{
-                  borderColor: "rgba(228,63,111,0.3)", color: "#E43F6F",
+                  borderColor: (theme) => `${theme.palette.primary.main}66`, color: "primary.main",
                   borderRadius: "100px", px: 3, py: 1,
-                  "&:hover": { borderColor: "#E43F6F", bgcolor: "rgba(228,63,111,0.08)" },
+                  "&:hover": { borderColor: "primary.main", bgcolor: (theme) => `${theme.palette.primary.main}14` },
                 }}
               >
                 Browse Collection
@@ -367,27 +349,27 @@ const CartPage = () => {
             >
               <GlassPanel sx={{ p: 3 }}>
                 {/* Divider line */}
-                <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)", mb: 3 }} />
+                <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
 
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
                   <Box>
                     <Typography sx={{
-                      fontFamily: `"DM Sans", sans-serif`,
-                      color: "rgba(255,234,236,0.35)",
+                      fontFamily: (theme) => theme.custom.fonts.body,
+                      color: "text.secondary",
                       fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "2px", mb: 0.5,
                     }}>
                       Total
                     </Typography>
                     <Typography sx={{
-                      fontFamily: `"Syne", sans-serif`,
+                      fontFamily: (theme) => theme.custom.fonts.display,
                       fontWeight: 800,
                       fontSize: { xs: "2rem", md: "2.6rem" },
-                      color: "#FFEAEC", lineHeight: 1,
+                      color: "text.primary", lineHeight: 1,
                     }}>
                       ${totalPrice}
                     </Typography>
                   </Box>
-                  <LiquidOrb size={52} color="rgba(228,63,111,0.7)" />
+                  <LiquidOrb size={52} color="var(--clay-coral)" />
                 </Box>
 
                 <Button
@@ -398,15 +380,15 @@ const CartPage = () => {
                   onClick={handleCheckout}
                   sx={{
                     py: 1.8,
-                    fontFamily: `"Syne", sans-serif`,
+                    fontFamily: (theme) => theme.custom.fonts.display,
                     fontWeight: 700,
                     fontSize: "1rem",
                     borderRadius: "14px",
-                    background: "linear-gradient(135deg, #E43F6F, #c02d5a)",
-                    boxShadow: "0 6px 24px rgba(228,63,111,0.35)",
+                    background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                    boxShadow: (theme) => theme.custom.clay.raisedSmall,
                     "&:hover": {
-                      background: "linear-gradient(135deg, #f0537f, #d03568)",
-                      boxShadow: "0 8px 32px rgba(228,63,111,0.5)",
+                      background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                      boxShadow: (theme) => theme.custom.clay.floating,
                       transform: "translateY(-2px)",
                     },
                     transition: "all 0.3s ease",

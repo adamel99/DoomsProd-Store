@@ -10,17 +10,20 @@ const s3 = new S3Client({
   },
 });
 
+const privateDownloadsBucket = process.env.AWS_PRIVATE_S3_BUCKET_NAME || "doomsstore-private-downloads";
+const SIGNED_URL_EXPIRES_IN_SECONDS = 900;
+
 async function getSignedFileUrl(key) {
   if (typeof key !== "string" || !key.startsWith("products/")) {
     throw new Error("Invalid download key");
   }
 
   const command = new GetObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Bucket: privateDownloadsBucket,
     Key: key,
   });
 
-  return await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour
+  return await getSignedUrl(s3, command, { expiresIn: SIGNED_URL_EXPIRES_IN_SECONDS });
 }
 
 // Send purchase confirmation email with download links

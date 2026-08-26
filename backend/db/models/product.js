@@ -36,6 +36,22 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    genre: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    bpm: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    key: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    artistTags: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     price: { // nullable for beats, fixed for kits
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,

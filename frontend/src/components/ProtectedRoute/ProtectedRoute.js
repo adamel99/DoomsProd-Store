@@ -15,4 +15,17 @@ export const AdminRoute = ({ component: Component, ...rest }) => {
   );
 };
 
+export const ProtectedRoute = ({ component: Component, ...rest }) => {
+  const user = useSelector((state) => state.session.user);
+
+  return (
+    <Route
+      {...rest}
+      render={(props) => (
+        user ? <Component {...props} /> : <Redirect to="/" />
+      )}
+    />
+  );
+};
+
 export default AdminRoute;

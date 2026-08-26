@@ -14,10 +14,32 @@ const s3 = new S3Client({
   },
 });
 
+const publicBucket = process.env.AWS_S3_BUCKET_NAME;
+const privateDownloadsBucket = process.env.AWS_PRIVATE_S3_BUCKET_NAME || "doomsstore-private-downloads";
+const allowedUploadFields = new Set(["image", "zipFile", "mp3File", "wavFile"]);
+const allowedMimeTypesByField = {
+  image: new Set(["image/jpeg", "image/png", "image/webp", "image/jpg"]),
+  mp3File: new Set(["audio/mpeg", "audio/mp3"]),
+  wavFile: new Set(["audio/wav", "audio/wave", "audio/x-wav", "audio/vnd.wave"]),
+  zipFile: new Set(["application/zip", "application/x-zip-compressed", "application/x-zip"]),
+};
+const allowedExtensionsByField = {
+  image: new Set([".jpg", ".jpeg", ".png", ".webp"]),
+  mp3File: new Set([".mp3"]),
+  wavFile: new Set([".wav"]),
+  zipFile: new Set([".zip"]),
+};
+
+const bucketForUpload = (file) => (
+  ["image", "mp3File"].includes(file.fieldname) ? publicBucket : privateDownloadsBucket
+);
+
 const upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: process.env.AWS_S3_BUCKET_NAME,
+    bucket: (req, file, cb) => {
+      cb(null, bucketForUpload(file));
+    },
     // Remove or comment out the line below:
     // acl: "public-read",
 
@@ -32,32 +54,29 @@ const upload = multer({
     },
   }),
   limits: {
-    fileSize: 100 * 1024 * 1024,
+    fileSize: 500 * 1024 * 1024,
     files: 4,
     fields: 12,
     fieldSize: 10 * 1024,
-  }, // 100MB
+    parts: 20,
+  },
 
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/jpg",
-      "audio/mpeg",                    // mp3
-      "audio/wav",                     // wav
-      "audio/wave",                    // wav (some browsers)
-      "audio/x-wav",                   // wav (some browsers)
-      "audio/vnd.wave",                // wav (some browsers)
-      "application/zip",               // zip
-      "application/x-zip-compressed",  // zip
-      "application/x-zip",             // zip (some browsers)
-    ];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type. Only JPEG, PNG, WEBP, JPG, MP3, WAV, and ZIP allowed."));
+    const ext = path.extname(file.originalname || "").toLowerCase();
+
+    if (!allowedUploadFields.has(file.fieldname)) {
+      return cb(new Error("Invalid upload field."));
     }
+
+    if (!allowedMimeTypesByField[file.fieldname]?.has(file.mimetype)) {
+      return cb(new Error("Invalid file type for this upload field."));
+    }
+
+    if (!allowedExtensionsByField[file.fieldname]?.has(ext)) {
+      return cb(new Error("Invalid file extension for this upload field."));
+    }
+
+    return cb(null, true);
   },
 });
 

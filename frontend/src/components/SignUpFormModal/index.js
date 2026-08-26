@@ -6,29 +6,38 @@ import { Box, Button, TextField, Typography, Alert, Grid, IconButton, InputAdorn
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
-const fieldSx = {
+const fieldSx = (theme) => ({
   "& .MuiOutlinedInput-root": {
-    backgroundColor: "rgba(255,255,255,0.03)",
+    background: theme.custom.clay.surfaceSoft,
     borderRadius: "14px",
-    color: "#FFEAEC",
-    fontFamily: `"DM Sans", sans-serif`,
-    backdropFilter: "blur(8px)",
-    boxShadow: "4px 4px 12px rgba(0,0,0,0.4), -1px -1px 4px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.05)",
+    color: theme.palette.text.primary,
+    fontFamily: theme.custom.fonts.body,
+    boxShadow: theme.custom.clay.pressed,
     transition: "all 0.2s ease",
-    "& fieldset": { borderColor: "rgba(255,255,255,0.08)" },
-    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+    "& fieldset": { borderColor: theme.palette.divider },
+    "&:hover fieldset": { borderColor: `${theme.palette.primary.main}55` },
     "&.Mui-focused fieldset": {
-      borderColor: "rgba(228,63,111,0.5)",
-      boxShadow: "0 0 0 3px rgba(228,63,111,0.08)",
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 3px ${theme.palette.primary.main}22`,
     },
   },
   "& .MuiInputLabel-root": {
-    fontFamily: `"DM Sans", sans-serif`,
-    color: "rgba(255,234,236,0.35)",
-    "&.Mui-focused": { color: "#E43F6F" },
+    fontFamily: theme.custom.fonts.body,
+    color: theme.palette.text.secondary,
+    "&.Mui-focused": { color: theme.palette.primary.main },
   },
-  input: { color: "#FFEAEC" },
-};
+  input: { color: theme.palette.text.primary },
+});
+
+const errorAlertSx = (theme) => ({
+  mt: 1,
+  bgcolor: `${theme.palette.primary.main}18`,
+  color: theme.palette.primary.dark,
+  border: `1px solid ${theme.palette.primary.main}44`,
+  borderRadius: "12px",
+  boxShadow: theme.custom.clay.raisedSmall,
+  "& .MuiAlert-icon": { color: theme.palette.primary.main },
+});
 
 function SignupFormModal() {
   const dispatch = useDispatch();
@@ -68,25 +77,17 @@ function SignupFormModal() {
   ];
 
   return (
-    <Box sx={{
+    <Box sx={(theme) => ({
       width: { xs: 340, sm: 460 },
-      background: "linear-gradient(160deg, rgba(28,20,24,0.97), rgba(16,11,14,0.98))",
-      backdropFilter: "blur(40px)",
-      WebkitBackdropFilter: "blur(40px)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderTop: "1px solid rgba(255,255,255,0.14)",
+      background: theme.custom.clay.surfaceSoft,
+      border: theme.custom.clay.border,
       borderRadius: "28px",
-      boxShadow: [
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-        "0 32px 80px rgba(0,0,0,0.8)",
-        "10px 10px 32px rgba(0,0,0,0.5)",
-        "-3px -3px 12px rgba(255,255,255,0.015)",
-      ].join(", "),
+      boxShadow: theme.custom.clay.floating,
       px: { xs: 3, sm: 4.5 },
       py: 5,
       position: "relative",
       overflow: "hidden",
-    }}>
+    })}>
 
       {/* Top glow */}
       <Box sx={{
@@ -95,30 +96,30 @@ function SignupFormModal() {
         transform: "translateX(-50%)",
         width: 220, height: 100,
         borderRadius: "50%",
-        background: "radial-gradient(ellipse, rgba(228,63,111,0.18) 0%, transparent 70%)",
+        background: (theme) => `radial-gradient(ellipse, ${theme.palette.primary.main}33 0%, transparent 70%)`,
         pointerEvents: "none",
       }} />
 
       <Box sx={{ textAlign: "center", mb: 4 }}>
         <Box sx={{
           width: 10, height: 10, borderRadius: "50%",
-          bgcolor: "#E43F6F",
-          boxShadow: "0 0 10px rgba(228,63,111,1), 0 0 24px rgba(228,63,111,0.5)",
+          bgcolor: "primary.main",
+          boxShadow: (theme) => `0 0 10px ${theme.palette.primary.main}, 0 0 24px ${theme.palette.primary.main}80`,
           mx: "auto", mb: 2,
         }} />
         <Typography sx={{
-          fontFamily: `"Syne", sans-serif`,
+          fontFamily: (theme) => theme.custom.fonts.display,
           fontWeight: 900,
           fontSize: "1.75rem",
-          color: "#FFEAEC",
-          letterSpacing: "-0.5px",
+          color: "text.primary",
+          letterSpacing: 0,
         }}>
           Create Account
         </Typography>
         <Typography sx={{
-          fontFamily: `"DM Sans", sans-serif`,
+          fontFamily: (theme) => theme.custom.fonts.body,
           fontSize: "0.85rem",
-          color: "rgba(255,234,236,0.35)",
+          color: "text.secondary",
           mt: 0.75,
         }}>
           Join and start creating
@@ -143,7 +144,7 @@ function SignupFormModal() {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton onClick={() => setShow((p) => !p)} edge="end" size="small"
-                          sx={{ color: "rgba(255,234,236,0.3)", "&:hover": { color: "#E43F6F" } }}>
+                          sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}>
                           {show ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
                         </IconButton>
                       </InputAdornment>
@@ -151,7 +152,7 @@ function SignupFormModal() {
                   } : undefined}
                 />
                 {error && (
-                  <Alert severity="error" sx={{ mt: 1, bgcolor: "rgba(228,63,111,0.1)", color: "#E43F6F", border: "1px solid rgba(228,63,111,0.2)", borderRadius: "12px", "& .MuiAlert-icon": { color: "#E43F6F" } }}>
+                  <Alert severity="error" sx={errorAlertSx}>
                     {error}
                   </Alert>
                 )}
@@ -163,26 +164,26 @@ function SignupFormModal() {
         <Button
           type="submit"
           fullWidth
-          sx={{
+          sx={(theme) => ({
             mt: 3,
             py: 1.5,
-            fontFamily: `"Syne", sans-serif`,
+            fontFamily: theme.custom.fonts.display,
             fontWeight: 800,
             fontSize: "0.9rem",
             letterSpacing: "0.5px",
             textTransform: "none",
             borderRadius: "14px",
-            background: "linear-gradient(135deg, #E43F6F, #c02d5a)",
-            color: "#fff",
-            border: "1px solid rgba(228,63,111,0.4)",
-            boxShadow: "0 6px 20px rgba(228,63,111,0.4), 4px 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+            color: theme.palette.primary.contrastText,
+            border: `1px solid ${theme.palette.primary.main}66`,
+            boxShadow: theme.custom.clay.raisedSmall,
             transition: "all 0.25s ease",
             "&:hover": {
-              background: "linear-gradient(135deg, #f0537f, #d03568)",
+              background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
               transform: "translateY(-1px)",
-              boxShadow: "0 10px 28px rgba(228,63,111,0.5), 4px 6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
+              boxShadow: theme.custom.clay.floating,
             },
-          }}
+          })}
         >
           Create Account
         </Button>

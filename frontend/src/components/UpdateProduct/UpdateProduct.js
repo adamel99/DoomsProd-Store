@@ -34,6 +34,10 @@ const UpdateProductPage = () => {
     price: "",
     audioPreviewUrl: "",
     youtubeLink: "",
+    genre: "",
+    bpm: "",
+    key: "",
+    artistTags: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -52,8 +56,12 @@ const UpdateProductPage = () => {
         description: product.description || "",
         type: product.type || "beat",
         price: product.price || "",
-        audioPreviewUrl: product.youtubeLink || "",
+        audioPreviewUrl: product.audioPreviewUrl || "",
         youtubeLink: product.youtubeLink || "",
+        genre: product.genre || "",
+        bpm: product.bpm || "",
+        key: product.key || "",
+        artistTags: product.artistTags || "",
       });
 
       setImageFile(null);
@@ -64,6 +72,7 @@ const UpdateProductPage = () => {
   }, [product]);
 
   const isAdmin = currentUser?.role === "admin";
+  const isBeat = formData.type === "beat";
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -84,12 +93,17 @@ const UpdateProductPage = () => {
     dataToSend.append("title", formData.title);
     dataToSend.append("description", formData.description);
     dataToSend.append("type", formData.type);
+    dataToSend.append("genre", formData.genre);
+    dataToSend.append("bpm", formData.bpm);
+    dataToSend.append("key", formData.key);
+    dataToSend.append("artistTags", formData.artistTags);
     if (formData.type !== "beat") {
       dataToSend.append("price", formData.price);
     } else {
       dataToSend.append("price", "");
     }
-    dataToSend.append("youtubeLink", formData.audioPreviewUrl);
+    dataToSend.append("audioPreviewUrl", formData.audioPreviewUrl);
+    dataToSend.append("youtubeLink", formData.youtubeLink);
     if (imageFile) dataToSend.append("image", imageFile);
     if (zipFile) dataToSend.append("zipFile", zipFile);
     if (mp3File) dataToSend.append("mp3File", mp3File);
@@ -191,12 +205,73 @@ const UpdateProductPage = () => {
               </Grid>
             )}
 
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Genre"
+                name="genre"
+                value={formData.genre}
+                onChange={handleChange}
+                helperText={isBeat ? "" : "Optional for kits."}
+                required={isBeat}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="BPM"
+                name="bpm"
+                value={formData.bpm}
+                onChange={handleChange}
+                inputProps={{ min: 1, max: 999, step: 1 }}
+                helperText={isBeat ? "" : "Optional for kits."}
+                required={isBeat}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Key"
+                name="key"
+                value={formData.key}
+                onChange={handleChange}
+                helperText={isBeat ? "" : "Optional for kits."}
+                required={isBeat}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Artist / Type-Beat Tags"
+                name="artistTags"
+                value={formData.artistTags}
+                onChange={handleChange}
+                placeholder="Rylo Rodriguez, NoCap, emotional trap"
+                helperText={isBeat ? "Separate tags with commas." : "Optional for kits. Separate tags with commas."}
+                required={isBeat}
+              />
+            </Grid>
+
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="YouTube Audio Preview URL"
                 name="audioPreviewUrl"
                 value={formData.audioPreviewUrl}
+                onChange={handleChange}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="YouTube Full Video Link"
+                name="youtubeLink"
+                value={formData.youtubeLink}
                 onChange={handleChange}
               />
             </Grid>

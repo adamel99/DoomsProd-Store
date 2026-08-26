@@ -28,26 +28,35 @@ const NAV_LINKS = [
   { path: '/licenses', label: 'Licenses' },
 ];
 
-const iconBtnSx = {
+const ADMIN_LINK = { path: '/admin/orders', label: 'Admin' };
+
+const iconBtnSx = (theme) => ({
   width: 34, height: 34,
-  border: '1px solid rgba(255,255,255,0.07)',
+  border: theme.custom.clay.border,
   borderRadius: '10px',
-  color: 'rgba(255,234,236,0.4)',
+  color: theme.palette.text.secondary,
+  background: theme.palette.background.paper,
+  boxShadow: theme.custom.clay.raisedSmall,
   transition: 'all 0.2s ease',
   '&:hover': {
-    color: '#FFEAEC',
-    borderColor: 'rgba(255,255,255,0.15)',
-    background: 'rgba(255,255,255,0.05)',
+    color: theme.palette.primary.main,
+    borderColor: `${theme.palette.primary.main}66`,
+    background: theme.custom.clay.surfaceSoft,
+    boxShadow: theme.custom.clay.floating,
   },
-};
+});
 
 function Navigation({ isLoaded }) {
   const dispatch = useDispatch();
   const history = useHistory();
 
   const sessionUser = useSelector((state) => state.session.user);
+  const isAdmin = sessionUser?.role === 'admin';
   const cartItems = useSelector((state) => state.cartItems.allItems || {});
   const cartCount = useMemo(() => Object.keys(cartItems).length, [cartItems]);
+  const navLinks = useMemo(() => (
+    isAdmin ? [...NAV_LINKS, ADMIN_LINK] : NAV_LINKS
+  ), [isAdmin]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -97,24 +106,21 @@ function Navigation({ isLoaded }) {
     <>
       <Box
         component="nav"
-        sx={{
+        sx={(theme) => ({
           position: 'sticky',
           top: 0,
           zIndex: 1200,
           background: scrolled
-            ? 'linear-gradient(180deg, rgba(22,14,18,0.98) 0%, rgba(14,10,13,0.97) 100%)'
-            : 'linear-gradient(180deg, rgba(22,14,18,0.82) 0%, rgba(14,10,13,0.78) 100%)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+            ? theme.palette.background.paper
+            : `${theme.palette.background.paper}cc`,
+          backdropFilter: 'blur(28px) saturate(150%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(150%)',
+          borderBottom: theme.custom.clay.border,
           boxShadow: scrolled
-            ? [
-                '0 1px 0 rgba(255,255,255,0.055) inset',
-                '0 16px 48px rgba(0,0,0,0.65)',
-              ].join(', ')
-            : '0 1px 0 rgba(255,255,255,0.035) inset',
+            ? theme.custom.clay.floating
+            : `0 1px 0 ${theme.custom.colors.cream}73 inset`,
           transition: 'all 0.4s ease',
-        }}
+        })}
       >
         {/* Noise grain */}
         <Box sx={{
@@ -129,7 +135,7 @@ function Navigation({ isLoaded }) {
           left: '50%', transform: 'translateX(-50%)',
           width: scrolled ? '60%' : '30%',
           height: '1px',
-          background: 'linear-gradient(90deg, transparent, rgba(228,63,111,0.7), transparent)',
+          background: (theme) => `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
           opacity: scrolled ? 1 : 0.55,
           transition: 'all 0.5s ease',
           pointerEvents: 'none',
@@ -158,15 +164,15 @@ function Navigation({ isLoaded }) {
           >
             <Box sx={{
               width: 7, height: 7, borderRadius: '50%',
-              bgcolor: '#E43F6F', flexShrink: 0,
-              boxShadow: '0 0 8px rgba(228,63,111,1), 0 0 18px rgba(228,63,111,0.5)',
+              bgcolor: 'primary.main', flexShrink: 0,
+              boxShadow: (theme) => `0 0 8px ${theme.palette.primary.main}, 0 0 18px ${theme.palette.primary.main}80`,
             }} />
             <Typography sx={{
-              fontFamily: `"Syne", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.display,
               fontWeight: 800,
               fontSize: { xs: '1.1rem', sm: '1.25rem' },
-              color: '#FFEAEC',
-              letterSpacing: '-0.5px',
+              color: 'text.primary',
+              letterSpacing: 0,
             }}>
               doomsprod
             </Typography>
@@ -186,36 +192,24 @@ function Navigation({ isLoaded }) {
                   <Box
                     component="form"
                     onSubmit={onSearchSubmit}
-                    sx={{
+                    sx={(theme) => ({
                       display: 'flex',
                       alignItems: 'center',
-                      background: 'rgba(255,255,255,0.05)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderTop: '1px solid rgba(255,255,255,0.16)',
+                      background: theme.custom.clay.surfaceSoft,
+                      border: theme.custom.clay.border,
                       borderRadius: '100px',
                       pl: 2, pr: 0.75,
                       height: 38,
                       width: '100%',
-                      boxShadow: [
-                        '4px 4px 14px rgba(0,0,0,0.4)',
-                        '-1px -1px 6px rgba(255,255,255,0.02)',
-                        'inset 0 1px 0 rgba(255,255,255,0.06)',
-                      ].join(', '),
+                      boxShadow: theme.custom.clay.pressed,
                       transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                       '&:focus-within': {
-                        borderColor: 'rgba(228,63,111,0.45)',
-                        borderTopColor: 'rgba(228,63,111,0.6)',
-                        boxShadow: [
-                          '4px 4px 14px rgba(0,0,0,0.4)',
-                          '0 0 0 3px rgba(228,63,111,0.08)',
-                          'inset 0 1px 0 rgba(255,255,255,0.06)',
-                        ].join(', '),
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `${theme.custom.clay.pressed}, 0 0 0 3px ${theme.palette.primary.main}33`,
                       },
-                    }}
+                    })}
                   >
-                    <SearchIcon sx={{ fontSize: 15, color: 'rgba(255,234,236,0.35)', mr: 1.2, flexShrink: 0 }} />
+                    <SearchIcon sx={{ fontSize: 15, color: 'text.secondary', mr: 1.2, flexShrink: 0 }} />
                     <InputBase
                       placeholder="Search beats, kits, loops…"
                       value={searchTerm}
@@ -223,10 +217,10 @@ function Navigation({ isLoaded }) {
                       autoFocus
                       sx={{
                         flex: 1,
-                        fontFamily: `"DM Sans", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.body,
                         fontSize: '0.875rem',
-                        color: '#FFEAEC',
-                        '& input::placeholder': { color: 'rgba(255,234,236,0.22)' },
+                        color: 'text.primary',
+                        '& input::placeholder': { color: 'text.disabled' },
                       }}
                     />
                     <IconButton
@@ -235,12 +229,12 @@ function Navigation({ isLoaded }) {
                       sx={{
                         width: 28, height: 28,
                         borderRadius: '100px',
-                        color: 'rgba(255,234,236,0.3)',
+                        color: 'text.secondary',
                         flexShrink: 0,
                         transition: 'all 0.15s ease',
                         '&:hover': {
-                          color: '#FFEAEC',
-                          background: 'rgba(255,255,255,0.07)',
+                          color: 'primary.main',
+                          background: (theme) => `${theme.custom.colors.cream}80`,
                         },
                       }}
                     >
@@ -257,17 +251,17 @@ function Navigation({ isLoaded }) {
                   transition={{ duration: 0.15 }}
                   style={{ display: 'flex', alignItems: 'center', gap: '2px' }}
                 >
-                  {NAV_LINKS.map(({ path, label }) => (
+                  {navLinks.map(({ path, label }) => (
                     <Button
                       key={path}
                       component={NavLink}
                       to={path}
                       variant="text"
                       sx={{
-                        fontFamily: `"DM Sans", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.body,
                         fontWeight: 500,
                         fontSize: '0.875rem',
-                        color: 'rgba(255,234,236,0.4)',
+                        color: 'text.secondary',
                         textTransform: 'none',
                         px: 2, py: 0.85,
                         minWidth: 'auto',
@@ -275,15 +269,15 @@ function Navigation({ isLoaded }) {
                         border: '1px solid transparent',
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          color: '#FFEAEC',
-                          background: 'rgba(255,255,255,0.05)',
-                          borderColor: 'rgba(255,255,255,0.07)',
+                          color: 'text.primary',
+                          background: (theme) => `${theme.custom.colors.cream}80`,
+                          borderColor: (theme) => theme.palette.divider,
                         },
                         '&.active': {
-                          color: '#E43F6F',
+                          color: 'primary.main',
                           fontWeight: 700,
-                          background: 'rgba(228,63,111,0.08)',
-                          borderColor: 'rgba(228,63,111,0.2)',
+                          background: (theme) => `${theme.palette.primary.main}18`,
+                          borderColor: (theme) => `${theme.palette.primary.main}55`,
                         },
                       }}
                     >
@@ -302,14 +296,14 @@ function Navigation({ isLoaded }) {
             <IconButton
               onClick={() => setShowSearch((prev) => !prev)}
               size="small"
-              sx={{
-                ...iconBtnSx,
+              sx={(theme) => ({
+                ...iconBtnSx(theme),
                 ...(showSearch && {
-                  color: '#E43F6F',
-                  borderColor: 'rgba(228,63,111,0.3)',
-                  background: 'rgba(228,63,111,0.08)',
+                  color: theme.palette.primary.main,
+                  borderColor: `${theme.palette.primary.main}66`,
+                  background: `${theme.palette.primary.main}18`,
                 }),
-              }}
+              })}
               aria-label="search"
             >
               <SearchIcon sx={{ fontSize: 17 }} />
@@ -320,14 +314,14 @@ function Navigation({ isLoaded }) {
               component={NavLink}
               to="/cart"
               size="small"
-              sx={{
-                ...iconBtnSx,
+              sx={(theme) => ({
+                ...iconBtnSx(theme),
                 '&.active': {
-                  color: '#E43F6F',
-                  borderColor: 'rgba(228,63,111,0.3)',
-                  background: 'rgba(228,63,111,0.08)',
+                  color: theme.palette.primary.main,
+                  borderColor: `${theme.palette.primary.main}66`,
+                  background: `${theme.palette.primary.main}18`,
                 },
-              }}
+              })}
               aria-label="cart"
             >
               <Badge
@@ -336,8 +330,8 @@ function Navigation({ isLoaded }) {
                 sx={{
                   '& .MuiBadge-badge': {
                     fontSize: '0.58rem', height: 14, minWidth: 14,
-                    bgcolor: '#E43F6F', color: '#fff',
-                    fontFamily: `"DM Sans", sans-serif`, fontWeight: 700,
+                    bgcolor: 'primary.main', color: 'primary.contrastText',
+                    fontFamily: (theme) => theme.custom.fonts.body, fontWeight: 700,
                   },
                 }}
               >
@@ -349,7 +343,7 @@ function Navigation({ isLoaded }) {
             {isLoaded && (
               <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '6px' }}>
 
-                <Box sx={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', mx: '2px' }} />
+                <Box sx={{ width: 1, height: 20, background: (theme) => theme.palette.divider, mx: '2px' }} />
 
                 {sessionUser ? (
                   <>
@@ -359,39 +353,35 @@ function Navigation({ isLoaded }) {
                       sx={{
                         display: 'flex', alignItems: 'center', gap: 0.9,
                         px: 1.4, height: 34,
-                        background: profileOpen
-                          ? 'rgba(228,63,111,0.09)'
-                          : 'rgba(255,255,255,0.04)',
+                        background: (theme) => profileOpen
+                          ? `${theme.palette.primary.main}18`
+                          : theme.palette.background.paper,
                         border: '1px solid',
-                        borderColor: profileOpen
-                          ? 'rgba(228,63,111,0.3)'
-                          : 'rgba(255,255,255,0.08)',
+                        borderColor: (theme) => profileOpen
+                          ? `${theme.palette.primary.main}66`
+                          : theme.custom.colors.cream,
                         borderRadius: '10px',
                         cursor: 'pointer',
                         userSelect: 'none',
-                        boxShadow: [
-                          '3px 3px 10px rgba(0,0,0,0.3)',
-                          '-1px -1px 4px rgba(255,255,255,0.02)',
-                          '0 1px 0 rgba(255,255,255,0.05) inset',
-                        ].join(', '),
+                        boxShadow: (theme) => theme.custom.clay.raisedSmall,
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          borderColor: 'rgba(228,63,111,0.3)',
-                          background: 'rgba(228,63,111,0.07)',
+                          borderColor: (theme) => `${theme.palette.primary.main}66`,
+                          background: (theme) => `${theme.palette.primary.main}14`,
                         },
                       }}
                     >
                       <Avatar sx={{
                         width: 20, height: 20, fontSize: '0.58rem',
-                        bgcolor: '#E43F6F', color: '#fff', fontWeight: 700,
-                        fontFamily: `"Syne", sans-serif`,
+                        bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 700,
+                        fontFamily: (theme) => theme.custom.fonts.display,
                       }}>
                         {sessionUser.username?.[0]?.toUpperCase() || 'U'}
                       </Avatar>
                       <Typography sx={{
-                        fontFamily: `"DM Sans", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.body,
                         fontSize: '0.8rem', fontWeight: 600,
-                        color: 'rgba(255,234,236,0.6)',
+                        color: 'text.secondary',
                         maxWidth: 88, overflow: 'hidden',
                         textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>
@@ -410,18 +400,10 @@ function Navigation({ isLoaded }) {
                         sx: {
                           mt: 1,
                           minWidth: 220,
-                          background: 'rgba(16,11,14,0.97)',
-                          backdropFilter: 'blur(32px)',
-                          WebkitBackdropFilter: 'blur(32px)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          borderTop: '1px solid rgba(255,255,255,0.13)',
+                          background: (theme) => theme.custom.clay.surfaceSoft,
+                          border: (theme) => theme.custom.clay.border,
                           borderRadius: '16px',
-                          boxShadow: [
-                            '0 24px 60px rgba(0,0,0,0.75)',
-                            '6px 6px 20px rgba(0,0,0,0.4)',
-                            '-2px -2px 8px rgba(255,255,255,0.01)',
-                            '0 1px 0 rgba(255,255,255,0.06) inset',
-                          ].join(', '),
+                          boxShadow: (theme) => theme.custom.clay.floating,
                           overflow: 'hidden',
                           '& .MuiList-root': { py: 0 },
                         },
@@ -430,30 +412,30 @@ function Navigation({ isLoaded }) {
                       {/* User info header */}
                       <Box sx={{
                         px: 2.5, py: 2,
-                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                         display: 'flex', alignItems: 'center', gap: 1.5,
                       }}>
                         <Avatar sx={{
                           width: 36, height: 36, fontSize: '0.85rem',
-                          bgcolor: '#E43F6F', color: '#fff', fontWeight: 700,
-                          fontFamily: `"Syne", sans-serif`,
-                          boxShadow: '0 4px 12px rgba(228,63,111,0.4)',
+                          bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 700,
+                          fontFamily: (theme) => theme.custom.fonts.display,
+                          boxShadow: (theme) => `0 4px 12px ${theme.palette.primary.main}66`,
                         }}>
                           {sessionUser.username?.[0]?.toUpperCase() || 'U'}
                         </Avatar>
                         <Box sx={{ minWidth: 0 }}>
                           <Typography sx={{
-                            fontFamily: `"Syne", sans-serif`,
+                            fontFamily: (theme) => theme.custom.fonts.display,
                             fontWeight: 700, fontSize: '0.9rem',
-                            color: '#FFEAEC', lineHeight: 1.3,
+                            color: 'text.primary', lineHeight: 1.3,
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
                             {sessionUser.username}
                           </Typography>
                           <Typography sx={{
-                            fontFamily: `"DM Sans", sans-serif`,
+                            fontFamily: (theme) => theme.custom.fonts.body,
                             fontSize: '0.72rem',
-                            color: 'rgba(255,234,236,0.35)',
+                            color: 'text.secondary',
                             lineHeight: 1.3,
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
@@ -466,15 +448,32 @@ function Navigation({ isLoaded }) {
                       <MenuItem
                         onClick={() => {
                           handleProfileClose();
+                          history.push('/account');
+                        }}
+                        sx={{
+                          fontFamily: (theme) => theme.custom.fonts.body,
+                          fontSize: '0.875rem', fontWeight: 600,
+                          color: 'text.secondary',
+                          py: 1.4, px: 2.5,
+                          transition: 'background 0.15s ease',
+                          '&:hover': { color: 'text.primary', background: (theme) => `${theme.custom.colors.cream}80` },
+                        }}
+                      >
+                        Account
+                      </MenuItem>
+
+                      <MenuItem
+                        onClick={() => {
+                          handleProfileClose();
                           handleLogout();
                         }}
                         sx={{
-                          fontFamily: `"DM Sans", sans-serif`,
+                          fontFamily: (theme) => theme.custom.fonts.body,
                           fontSize: '0.875rem', fontWeight: 600,
-                          color: '#E43F6F',
+                          color: 'primary.main',
                           py: 1.4, px: 2.5,
                           transition: 'background 0.15s ease',
-                          '&:hover': { background: 'rgba(228,63,111,0.08)' },
+                          '&:hover': { background: (theme) => `${theme.palette.primary.main}14` },
                         }}
                       >
                         Logout
@@ -490,24 +489,20 @@ function Navigation({ isLoaded }) {
                         variant: 'text',
                         size: 'small',
                         sx: {
-                          fontFamily: `"DM Sans", sans-serif`,
+                          fontFamily: (theme) => theme.custom.fonts.body,
                           fontWeight: 600, fontSize: '0.8rem',
                           px: 1.8, height: 34,
                           textTransform: 'none',
-                          color: 'rgba(255,234,236,0.5)',
+                          color: 'text.secondary',
                           borderRadius: '10px',
-                          border: '1px solid rgba(255,255,255,0.09)',
-                          background: 'rgba(255,255,255,0.04)',
-                          boxShadow: [
-                            '3px 3px 10px rgba(0,0,0,0.3)',
-                            '-1px -1px 4px rgba(255,255,255,0.02)',
-                            '0 1px 0 rgba(255,255,255,0.06) inset',
-                          ].join(', '),
+                          border: (theme) => theme.custom.clay.border,
+                          background: (theme) => theme.palette.background.paper,
+                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
                           transition: 'all 0.2s ease',
                           '&:hover': {
-                            color: '#FFEAEC',
-                            borderColor: 'rgba(255,255,255,0.18)',
-                            background: 'rgba(255,255,255,0.07)',
+                            color: 'text.primary',
+                            borderColor: (theme) => `${theme.palette.primary.main}66`,
+                            background: (theme) => theme.custom.clay.surfaceSoft,
                           },
                         },
                       }}
@@ -520,25 +515,18 @@ function Navigation({ isLoaded }) {
                         variant: 'contained',
                         size: 'small',
                         sx: {
-                          fontFamily: `"DM Sans", sans-serif`,
+                          fontFamily: (theme) => theme.custom.fonts.body,
                           fontWeight: 700, fontSize: '0.8rem',
                           px: 1.8, height: 34,
                           textTransform: 'none',
                           borderRadius: '10px',
-                          background: 'linear-gradient(135deg, #E43F6F, #c02d5a)',
-                          border: '1px solid rgba(228,63,111,0.4)',
-                          boxShadow: [
-                            '0 4px 14px rgba(228,63,111,0.35)',
-                            '3px 3px 10px rgba(0,0,0,0.3)',
-                            '0 1px 0 rgba(255,255,255,0.15) inset',
-                          ].join(', '),
+                          background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                          border: (theme) => `1px solid ${theme.palette.primary.main}66`,
+                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
                           transition: 'all 0.2s ease',
                           '&:hover': {
-                            background: 'linear-gradient(135deg, #f0537f, #d03568)',
-                            boxShadow: [
-                              '0 6px 20px rgba(228,63,111,0.5)',
-                              '4px 4px 14px rgba(0,0,0,0.35)',
-                            ].join(', '),
+                            background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                            boxShadow: (theme) => theme.custom.clay.floating,
                             transform: 'translateY(-1px)',
                           },
                         },
@@ -554,7 +542,7 @@ function Navigation({ isLoaded }) {
               edge="end"
               onClick={handleMenuOpen}
               size="small"
-              sx={{ ...iconBtnSx, display: { xs: 'flex', md: 'none' } }}
+              sx={(theme) => ({ ...iconBtnSx(theme), display: { xs: 'flex', md: 'none' } })}
               aria-label="menu"
             >
               <MenuIcon sx={{ fontSize: 17 }} />
@@ -574,64 +562,56 @@ function Navigation({ isLoaded }) {
           sx: {
             mt: 1,
             minWidth: 210,
-            background: 'rgba(16,11,14,0.97)',
-            backdropFilter: 'blur(32px)',
-            WebkitBackdropFilter: 'blur(32px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderTop: '1px solid rgba(255,255,255,0.13)',
+            background: (theme) => theme.custom.clay.surfaceSoft,
+            border: (theme) => theme.custom.clay.border,
             borderRadius: '16px',
-            boxShadow: [
-              '0 24px 60px rgba(0,0,0,0.75)',
-              '6px 6px 20px rgba(0,0,0,0.4)',
-              '-2px -2px 8px rgba(255,255,255,0.01)',
-              '0 1px 0 rgba(255,255,255,0.06) inset',
-            ].join(', '),
+            boxShadow: (theme) => theme.custom.clay.floating,
             overflow: 'hidden',
             '& .MuiList-root': { py: 1.5 },
           },
         }}
       >
-        {NAV_LINKS.map(({ path, label }) => (
+        {navLinks.map(({ path, label }) => (
           <MenuItem
             key={path}
             onClick={() => handleNav(path)}
             sx={{
-              fontFamily: `"DM Sans", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.body,
               fontSize: '0.875rem', fontWeight: 500,
-              color: 'rgba(255,234,236,0.48)',
+              color: 'text.secondary',
               py: 1.2, px: 2.5,
               transition: 'all 0.15s ease',
-              '&:hover': { color: '#FFEAEC', background: 'rgba(255,255,255,0.05)' },
+              '&:hover': { color: 'text.primary', background: (theme) => `${theme.custom.colors.cream}80` },
             }}
           >
             {label}
           </MenuItem>
         ))}
 
-        <Box sx={{ height: '1px', background: 'rgba(255,255,255,0.06)', mx: 2, my: 0.75 }} />
+        <Box sx={{ height: '1px', background: (theme) => theme.palette.divider, mx: 2, my: 0.75 }} />
 
         <MenuItem
           onClick={() => handleNav('/cart')}
           sx={{
-            fontFamily: `"DM Sans", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.body,
             fontSize: '0.875rem', fontWeight: 500,
-            color: 'rgba(255,234,236,0.48)',
+            color: 'text.secondary',
             py: 1.2, px: 2.5,
             display: 'flex', justifyContent: 'space-between',
-            '&:hover': { color: '#FFEAEC', background: 'rgba(255,255,255,0.05)' },
+            '&:hover': { color: 'text.primary', background: (theme) => `${theme.custom.colors.cream}80` },
           }}
         >
           Cart
           {cartCount > 0 && (
             <Box sx={{
               px: 1, py: 0.15,
-              background: 'rgba(228,63,111,0.15)',
-              border: '1px solid rgba(228,63,111,0.3)',
+              background: (theme) => `${theme.palette.primary.main}22`,
+              border: (theme) => `1px solid ${theme.palette.primary.main}66`,
               borderRadius: '100px',
             }}>
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`,
-                fontSize: '0.68rem', fontWeight: 700, color: '#E43F6F',
+                fontFamily: (theme) => theme.custom.fonts.body,
+                fontSize: '0.68rem', fontWeight: 700, color: 'primary.main',
               }}>
                 {cartCount}
               </Typography>
@@ -641,7 +621,7 @@ function Navigation({ isLoaded }) {
 
         {isLoaded && (
           <>
-            <Box sx={{ height: '1px', background: 'rgba(255,255,255,0.06)', mx: 2, my: 0.75 }} />
+            <Box sx={{ height: '1px', background: (theme) => theme.palette.divider, mx: 2, my: 0.75 }} />
 
             {sessionUser ? (
               <>
@@ -649,29 +629,29 @@ function Navigation({ isLoaded }) {
                 <Box sx={{
                   px: 2.5, py: 1.5,
                   display: 'flex', alignItems: 'center', gap: 1.2,
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
                   mb: 0.5,
                 }}>
                   <Avatar sx={{
                     width: 28, height: 28, fontSize: '0.7rem',
-                    bgcolor: '#E43F6F', fontWeight: 700,
-                    boxShadow: '0 3px 10px rgba(228,63,111,0.35)',
+                    bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 700,
+                    boxShadow: (theme) => `0 3px 10px ${theme.palette.primary.main}55`,
                   }}>
                     {sessionUser.username?.[0]?.toUpperCase() || 'U'}
                   </Avatar>
                   <Box sx={{ minWidth: 0 }}>
                     <Typography sx={{
-                      fontFamily: `"Syne", sans-serif`,
+                      fontFamily: (theme) => theme.custom.fonts.display,
                       fontWeight: 700, fontSize: '0.82rem',
-                      color: '#FFEAEC', lineHeight: 1.2,
+                      color: 'text.primary', lineHeight: 1.2,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {sessionUser.username}
                     </Typography>
                     <Typography sx={{
-                      fontFamily: `"DM Sans", sans-serif`,
+                      fontFamily: (theme) => theme.custom.fonts.body,
                       fontSize: '0.68rem',
-                      color: 'rgba(255,234,236,0.32)',
+                      color: 'text.secondary',
                       lineHeight: 1.2,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
@@ -681,15 +661,28 @@ function Navigation({ isLoaded }) {
                 </Box>
 
                 <MenuItem
+                  onClick={() => handleNav('/account')}
+                  sx={{
+                    fontFamily: (theme) => theme.custom.fonts.body,
+                    fontSize: '0.875rem', fontWeight: 600,
+                    color: 'text.secondary',
+                    py: 1.2, px: 2.5,
+                    '&:hover': { color: 'text.primary', background: (theme) => `${theme.custom.colors.cream}80` },
+                  }}
+                >
+                  Account
+                </MenuItem>
+
+                <MenuItem
                   onClick={() => {
                     handleMenuClose();
                     handleLogout();
                   }}
                   sx={{
-                    fontFamily: `"DM Sans", sans-serif`,
+                    fontFamily: (theme) => theme.custom.fonts.body,
                     fontSize: '0.875rem', fontWeight: 600,
-                    color: '#E43F6F', py: 1.2, px: 2.5,
-                    '&:hover': { background: 'rgba(228,63,111,0.08)' },
+                    color: 'primary.main', py: 1.2, px: 2.5,
+                    '&:hover': { background: (theme) => `${theme.palette.primary.main}14` },
                   }}
                 >
                   Logout
@@ -700,7 +693,7 @@ function Navigation({ isLoaded }) {
                 <MenuItem sx={{
                   py: 1.2, px: 2.5,
                   display: 'flex', justifyContent: 'center',
-                  '&:hover': { background: 'rgba(255,255,255,0.05)' },
+                  '&:hover': { background: (theme) => `${theme.custom.colors.cream}80` },
                 }}>
                   <OpenModalMenuItem
                     itemText="Log In"
@@ -708,9 +701,9 @@ function Navigation({ isLoaded }) {
                     onItemClick={handleMenuClose}
                     buttonProps={{
                       sx: {
-                        fontFamily: `"DM Sans", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.body,
                         fontSize: '0.875rem', fontWeight: 500,
-                        color: 'rgba(255,234,236,0.48)',
+                        color: 'text.secondary',
                         textAlign: 'center',
                       },
                     }}
@@ -720,7 +713,7 @@ function Navigation({ isLoaded }) {
                 <MenuItem sx={{
                   py: 1.2, px: 2.5,
                   display: 'flex', justifyContent: 'center',
-                  '&:hover': { background: 'rgba(228,63,111,0.08)' },
+                  '&:hover': { background: (theme) => `${theme.palette.primary.main}14` },
                 }}>
                   <OpenModalMenuItem
                     itemText="Sign Up"
@@ -728,9 +721,9 @@ function Navigation({ isLoaded }) {
                     onItemClick={handleMenuClose}
                     buttonProps={{
                       sx: {
-                        fontFamily: `"DM Sans", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.body,
                         fontSize: '0.875rem', fontWeight: 700,
-                        color: '#E43F6F', textAlign: 'center',
+                        color: 'primary.main', textAlign: 'center',
                       },
                     }}
                   />

@@ -8,6 +8,7 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "./theme"; // import your custom theme
 
 import { ModalProvider, Modal } from "./context/Modal";
+import { AudioPlayerProvider } from "./context/AudioPlayer";
 import App from "./App";
 import configureStore from "./store";
 import { restoreCSRF, csrfFetch } from "./store/csrf";
@@ -31,8 +32,10 @@ function Root() {
       <ModalProvider>
         <Provider store={store}>
           <BrowserRouter>
-            <App />
-            <Modal />
+            <AudioPlayerProvider>
+              <App />
+              <Modal />
+            </AudioPlayerProvider>
           </BrowserRouter>
         </Provider>
       </ModalProvider>

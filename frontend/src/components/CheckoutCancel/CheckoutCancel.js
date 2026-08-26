@@ -13,7 +13,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", top: "-10vh", left: "-8vw",
       width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle at 40% 40%, rgba(228,63,111,0.2) 0%, rgba(192,45,90,0.08) 55%, transparent 72%)",
+      background: (theme) => `radial-gradient(circle at 40% 40%, 33 0%, 22 55%, transparent 72%)`,
       filter: "blur(70px)",
       animation: "orbF1 22s ease-in-out infinite",
       "@keyframes orbF1": {
@@ -25,7 +25,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", bottom: 0, right: "-10vw",
       width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(150,20,60,0.15) 0%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle, 44 0%, transparent 70%)`,
       filter: "blur(80px)",
       animation: "orbF2 30s ease-in-out infinite reverse",
       "@keyframes orbF2": {
@@ -43,21 +43,13 @@ const LiquidBackground = React.memo(() => (
 
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
-    sx={{
-      background: "rgba(255,255,255,0.03)",
-      backdropFilter: "blur(28px)",
-      WebkitBackdropFilter: "blur(28px)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderTop: "1px solid rgba(255,255,255,0.14)",
+    sx={(theme) => ({
+      background: theme.custom.clay.surfaceSoft,
+      border: theme.custom.clay.border,
       borderRadius: "28px",
-      boxShadow: [
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-        "0 24px 64px rgba(0,0,0,0.6)",
-        "8px 8px 20px rgba(0,0,0,0.4)",
-        "-3px -3px 10px rgba(255,255,255,0.015)",
-      ].join(", "),
+      boxShadow: theme.custom.clay.raised,
       ...sx,
-    }}
+    })}
     {...rest}
   >
     {children}
@@ -69,12 +61,12 @@ export default function CheckoutCancel() {
 
   return (
     <Box sx={{
-      backgroundColor: "#0e0b0d",
+      backgroundColor: "background.default",
       minHeight: "100vh",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      color: "#FFEAEC",
+      color: "text.primary",
       position: "relative",
       overflow: "hidden",
       px: 2,
@@ -93,17 +85,17 @@ export default function CheckoutCancel() {
             <Box sx={{ display: "inline-flex", mb: 4 }}>
               <Box sx={{
                 width: 88, height: 88, borderRadius: "50%",
-                background: "rgba(228,63,111,0.08)",
-                border: "1px solid rgba(228,63,111,0.25)",
+                background: (theme) => `${theme.palette.primary.main}14`,
+                border: (theme) => `1px solid ${theme.palette.primary.main}44`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 0 32px rgba(228,63,111,0.15), inset 0 1px 0 rgba(255,255,255,0.08)",
+                boxShadow: (theme) => theme.custom.clay.raisedSmall,
               }}>
                 <motion.div
                   initial={{ scale: 0, rotate: 20 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 0.2, duration: 0.5, type: "spring", stiffness: 200 }}
                 >
-                  <HighlightOffIcon sx={{ fontSize: 48, color: "#E43F6F" }} />
+                  <HighlightOffIcon sx={{ fontSize: 48, color: "primary.main" }} />
                 </motion.div>
               </Box>
             </Box>
@@ -114,18 +106,18 @@ export default function CheckoutCancel() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.5 }}
             >
-              <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "#E43F6F", mx: "auto", mb: 3, boxShadow: "0 2px 12px rgba(228,63,111,0.5)" }} />
+              <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "primary.main", mx: "auto", mb: 3, boxShadow: (theme) => `0 2px 12px ${theme.palette.primary.main}80` }} />
               <Typography sx={{
-                fontFamily: `"Syne", sans-serif`,
+                fontFamily: (theme) => theme.custom.fonts.display,
                 fontWeight: 800,
                 fontSize: { xs: "1.8rem", md: "2.2rem" },
-                color: "#FFEAEC", lineHeight: 1.15, mb: 2,
+                color: "text.primary", lineHeight: 1.15, mb: 2,
               }}>
                 Payment Canceled
               </Typography>
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`,
-                color: "rgba(255,234,236,0.45)",
+                fontFamily: (theme) => theme.custom.fonts.body,
+                color: "text.secondary",
                 fontSize: "0.95rem", lineHeight: 1.7, mb: 4,
               }}>
                 No worries — your cart is still saved. You can return and complete
@@ -148,15 +140,15 @@ export default function CheckoutCancel() {
                 sx={{
                   mb: 2,
                   py: 1.8,
-                  fontFamily: `"Syne", sans-serif`,
+                  fontFamily: (theme) => theme.custom.fonts.display,
                   fontWeight: 700,
                   fontSize: "1rem",
                   borderRadius: "14px",
-                  background: "linear-gradient(135deg, #E43F6F, #c02d5a)",
-                  boxShadow: "0 6px 24px rgba(228,63,111,0.35)",
+                  background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  boxShadow: (theme) => theme.custom.clay.raisedSmall,
                   "&:hover": {
-                    background: "linear-gradient(135deg, #f0537f, #d03568)",
-                    boxShadow: "0 8px 32px rgba(228,63,111,0.5)",
+                    background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                    boxShadow: (theme) => theme.custom.clay.floating,
                     transform: "translateY(-2px)",
                   },
                   transition: "all 0.3s ease",
@@ -178,18 +170,17 @@ export default function CheckoutCancel() {
                 onClick={() => history.push("/products")}
                 sx={{
                   py: 1.4,
-                  fontFamily: `"DM Sans", sans-serif`,
+                  fontFamily: (theme) => theme.custom.fonts.body,
                   fontWeight: 600, fontSize: "0.875rem",
-                  color: "rgba(255,234,236,0.4)",
-                  background: "rgba(255,255,255,0.03)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.07)",
+                  color: "text.secondary",
+                  background: (theme) => theme.custom.clay.surfaceSoft,
+                  border: (theme) => theme.custom.clay.border,
                   borderRadius: "14px",
                   transition: "all 0.25s ease",
                   "&:hover": {
-                    color: "#FFEAEC",
-                    borderColor: "rgba(228,63,111,0.3)",
-                    background: "rgba(228,63,111,0.07)",
+                    color: "text.primary",
+                    borderColor: "primary.main",
+                    background: (theme) => `${theme.palette.primary.main}14`,
                   },
                 }}
               >

@@ -1,6 +1,7 @@
 const { Resend } = require("resend");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const emailTheme = require("./emailTheme");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,6 +12,9 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
+const privateDownloadsBucket = process.env.AWS_PRIVATE_S3_BUCKET_NAME || "doomsstore-private-downloads";
+const SIGNED_URL_EXPIRES_IN_SECONDS = 900;
 
 function escapeHtml(value) {
   return String(value)
@@ -27,21 +31,68 @@ async function getSignedFileUrl(key) {
   }
 
   const command = new GetObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Bucket: privateDownloadsBucket,
     Key: key,
   });
-  return await getSignedUrl(s3, command, { expiresIn: 3600 });
+  return await getSignedUrl(s3, command, { expiresIn: SIGNED_URL_EXPIRES_IN_SECONDS });
 }
 
-async function sendProductEmail(email, fileKeys = []) {
+async function getSignedDownload(file) {
+  const key = typeof file === "string" ? file : file?.key;
+  const type = typeof file === "string" ? null : file?.type;
+  if (file?.url) return { type, url: file.url };
+  const url = await getSignedFileUrl(key);
+  return { type, url };
+}
+
+function formatCurrency(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function formatPurchaseTime(value) {
+  if (!value) return "Unknown";
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
+function formatReceiptItem(item) {
+  const details = [
+    item.type ? item.type.replace("_", " ") : null,
+    item.license,
+    item.quantity > 1 ? `Qty ${item.quantity}` : null,
+  ].filter(Boolean).join(" · ");
+
+  return {
+    title: escapeHtml(item.title || "Product"),
+    details: escapeHtml(details || "Digital download"),
+    terms: escapeHtml(item.licenseTerms || item.licenseDescription || ""),
+    price: formatCurrency(item.price),
+  };
+}
+
+async function sendProductEmail(email, files = [], receipt = {}) {
+  const { colors, clay } = emailTheme;
+  receipt = receipt || {};
+  const username = escapeHtml(receipt.username || "there");
+  const receiptItems = Array.isArray(receipt.items) ? receipt.items.map(formatReceiptItem) : [];
+  const totalPaid = formatCurrency(receipt.totalPaid);
+  const purchaseTime = formatPurchaseTime(receipt.purchasedAt);
   const downloadLinks = await Promise.all(
-    fileKeys.map(async (key) => {
+    files.map(async (file) => {
       try {
-        const url = await getSignedFileUrl(key);
-        const fileName = escapeHtml(decodeURIComponent(key.split("/").pop()));
-        return { url, fileName };
+        const key = typeof file === "string" ? file : file?.key;
+        const type = typeof file === "string" ? null : file?.type;
+        const url = file?.url || await getSignedFileUrl(key);
+        const fileName = escapeHtml(decodeURIComponent((key || file?.url || "").split("?")[0].split("/").pop()));
+        return { type, url, fileName };
       } catch (err) {
-        console.error(`❌ Failed to generate signed URL for: ${key}`, err);
+        console.error("❌ Failed to generate signed URL for download:", err);
         throw err;
       }
     })
@@ -50,7 +101,7 @@ async function sendProductEmail(email, fileKeys = []) {
   const { data, error } = await resend.emails.send({
     from: "doomsprod <noreply@dooma.studio>",
     to: email,
-    subject: "Your download from doomsprod is ready",
+    subject: "Your doomsprod receipt and downloads",
     html: `
       <!DOCTYPE html>
       <html>
@@ -58,42 +109,88 @@ async function sendProductEmail(email, fileKeys = []) {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body style="margin:0;padding:0;background-color:#0e0b0d;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0e0b0d;padding:40px 0;">
+        <body style="margin:0;padding:0;background-color:${colors.linen};font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:${colors.brown};">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:${colors.linen};padding:40px 0;">
             <tr>
               <td align="center">
-                <table width="560" cellpadding="0" cellspacing="0" style="background-color:#1a1118;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;max-width:560px;width:100%;">
+                <table width="560" cellpadding="0" cellspacing="0" style="background:${colors.cream};background-image:${clay.surfaceSoft};border-radius:20px;border:${clay.border};box-shadow:${clay.raised};overflow:hidden;max-width:560px;width:100%;">
 
                   <!-- Header -->
                   <tr>
-                    <td style="background:linear-gradient(135deg,#1a0a12,#2a0f1c);padding:40px 40px 32px;text-align:center;border-bottom:1px solid rgba(228,63,111,0.2);">
-                      <div style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:#E43F6F;box-shadow:0 0 12px rgba(228,63,111,0.8);margin-bottom:16px;"></div>
-                      <h1 style="margin:0;font-size:26px;font-weight:800;color:#FFEAEC;letter-spacing:-0.5px;">doomsprod</h1>
-                      <p style="margin:8px 0 0;font-size:13px;color:rgba(255,234,236,0.4);letter-spacing:1px;text-transform:uppercase;">Beat Store</p>
+                    <td style="background:${clay.surface};padding:40px 40px 32px;text-align:center;border-bottom:${clay.hairline};">
+                      <div style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${colors.pink};box-shadow:0 0 12px rgba(225,90,151,0.45);margin-bottom:16px;"></div>
+                      <h1 style="margin:0;font-size:26px;font-weight:800;color:${colors.brown};letter-spacing:-0.5px;">doomsprod</h1>
+                      <p style="margin:8px 0 0;font-size:13px;color:${colors.muted};letter-spacing:1px;text-transform:uppercase;">Beat Store</p>
                     </td>
                   </tr>
 
                   <!-- Body -->
                   <tr>
                     <td style="padding:40px;">
-                      <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#FFEAEC;">Your files are ready to download</h2>
-                      <p style="margin:0 0 28px;font-size:15px;color:rgba(255,234,236,0.5);line-height:1.6;">
-                        Thank you for your purchase. Your download links are below and will expire in <strong style="color:rgba(255,234,236,0.7);">1 hour</strong>. Please save your files before they expire.
+                      <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${colors.brown};">Hey ${username}, thanks for purchasing</h2>
+                      <p style="margin:0 0 28px;font-size:15px;color:${colors.muted};line-height:1.6;">
+                        Your files are ready below. Private ZIP/WAV download links expire in <strong style="color:${colors.brown};">15 minutes</strong>. Public MP3 links may remain available.
                       </p>
 
+                      <!-- Receipt -->
+                      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;background:rgba(241,218,191,0.38);border:${clay.hairline};border-radius:14px;overflow:hidden;">
+                        <tr>
+                          <td style="padding:18px 20px;border-bottom:${clay.hairline};">
+                            <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:${colors.muted};text-transform:uppercase;letter-spacing:0.5px;">Receipt</p>
+                            <p style="margin:0;font-size:18px;font-weight:800;color:${colors.brown};">Order #${escapeHtml(receipt.orderId || "")}</p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0 20px 16px;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                              <tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.muted};">Username</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.brown};">${username}</td>
+                              </tr>
+                              <tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.muted};">Purchased</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.brown};">${escapeHtml(purchaseTime)}</td>
+                              </tr>
+                              <tr>
+                                <td style="padding:14px 0;font-size:13px;color:${colors.muted};">Paid</td>
+                                <td align="right" style="padding:14px 0;font-size:13px;font-weight:800;color:${colors.brown};">${escapeHtml(totalPaid)}</td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        ${receiptItems.length ? `
+                          <tr>
+                            <td style="padding:0 20px 20px;">
+                              ${receiptItems.map((item) => `
+                                <table width="100%" cellpadding="0" cellspacing="0" style="border-top:${clay.hairline};">
+                                  <tr>
+                                    <td style="padding:14px 0;">
+                                      <p style="margin:0 0 4px;font-size:14px;font-weight:800;color:${colors.brown};">${item.title}</p>
+                                      <p style="margin:0;font-size:12px;color:${colors.muted};text-transform:capitalize;">${item.details}</p>
+                                      ${item.terms ? `<p style="margin:8px 0 0;font-size:12px;color:${colors.inkSoft};line-height:1.5;">${item.terms}</p>` : ""}
+                                    </td>
+                                    <td align="right" style="padding:14px 0 14px 16px;font-size:14px;font-weight:800;color:${colors.brown};">${item.price}</td>
+                                  </tr>
+                                </table>
+                              `).join("")}
+                            </td>
+                          </tr>
+                        ` : ""}
+                      </table>
+
                       <!-- Download buttons -->
-                      ${downloadLinks.map(({ url, fileName }) => `
+                      ${downloadLinks.map(({ type, url, fileName }) => `
                         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
                           <tr>
-                            <td style="background-color:rgba(228,63,111,0.08);border:1px solid rgba(228,63,111,0.25);border-radius:12px;padding:16px 20px;">
+                            <td style="background:${clay.surfaceCool};border:${clay.hairline};border-radius:14px;padding:16px 20px;box-shadow:${clay.raisedSmall};">
                               <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                   <td>
-                                    <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,234,236,0.5);text-transform:uppercase;letter-spacing:0.5px;">Download</p>
-                                    <p style="margin:0;font-size:14px;font-weight:700;color:#FFEAEC;word-break:break-all;">${fileName}</p>
+                                    <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:${colors.muted};text-transform:uppercase;letter-spacing:0.5px;">Download</p>
+                                    <p style="margin:0;font-size:14px;font-weight:700;color:${colors.brown};word-break:break-all;">${type ? type.toUpperCase() : fileName}</p>
                                   </td>
                                   <td align="right" style="padding-left:16px;">
-                                    <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,#E43F6F,#c02d5a);color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;white-space:nowrap;">
+                                    <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,${colors.pink},${colors.brown});color:${colors.cream};text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;white-space:nowrap;">
                                       Download
                                     </a>
                                   </td>
@@ -107,8 +204,8 @@ async function sendProductEmail(email, fileKeys = []) {
                       <!-- Note -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;">
                         <tr>
-                          <td style="background-color:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:16px 20px;">
-                            <p style="margin:0;font-size:13px;color:rgba(255,234,236,0.4);line-height:1.6;">
+                          <td style="background-color:rgba(241,218,191,0.38);border:${clay.hairline};border-radius:12px;padding:16px 20px;">
+                            <p style="margin:0;font-size:13px;color:${colors.muted};line-height:1.6;">
                               If you have any issues with your download, reply to this email and we'll get it sorted. We'd love to hear what you create — feel free to send back any finished tracks!
                             </p>
                           </td>
@@ -119,10 +216,10 @@ async function sendProductEmail(email, fileKeys = []) {
 
                   <!-- Footer -->
                   <tr>
-                    <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-                      <p style="margin:0;font-size:12px;color:rgba(255,234,236,0.2);line-height:1.6;">
+                    <td style="padding:24px 40px;border-top:${clay.hairline};text-align:center;">
+                      <p style="margin:0;font-size:12px;color:${colors.quiet};line-height:1.6;">
                         You received this email because you made a purchase at doomsprod.<br/>
-                        &copy; ${new Date().getFullYear()} doomsprod &middot; <a href="https://dooma.studio" style="color:rgba(228,63,111,0.5);text-decoration:none;">dooma.studio</a>
+                        &copy; ${new Date().getFullYear()} doomsprod &middot; <a href="https://dooma.studio" style="color:${colors.pink};text-decoration:none;">dooma.studio</a>
                       </p>
                     </td>
                   </tr>
@@ -144,4 +241,4 @@ async function sendProductEmail(email, fileKeys = []) {
   return data;
 }
 
-module.exports = { sendProductEmail, getSignedFileUrl };
+module.exports = { sendProductEmail, getSignedFileUrl, getSignedDownload };

@@ -29,7 +29,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "60vw", md: "45vw" },
       height: { xs: "60vw", md: "45vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle at 40% 40%, rgba(228,63,111,0.28) 0%, rgba(192,45,90,0.12) 50%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle at 40% 40%, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.dark}22 50%, transparent 70%)`,
       filter: "blur(60px)",
       animation: "orbFloat1 22s ease-in-out infinite",
       "@keyframes orbFloat1": {
@@ -47,7 +47,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "55vw", md: "38vw" },
       height: { xs: "55vw", md: "38vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle at 60% 60%, rgba(160,20,60,0.22) 0%, rgba(100,10,40,0.1) 50%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle at 60% 60%, ${theme.palette.secondary.main}44 0%, ${theme.palette.secondary.dark}22 50%, transparent 70%)`,
       filter: "blur(70px)",
       animation: "orbFloat2 28s ease-in-out infinite reverse",
       "@keyframes orbFloat2": {
@@ -64,7 +64,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "40vw", md: "28vw" },
       height: { xs: "40vw", md: "28vw" },
       borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(228,63,111,0.07) 0%, transparent 70%)",
+      background: (theme) => `radial-gradient(circle, ${theme.palette.primary.main}18 0%, transparent 70%)`,
       filter: "blur(80px)",
       animation: "orbFloat3 35s ease-in-out infinite",
       "@keyframes orbFloat3": {
@@ -88,22 +88,13 @@ const LiquidBackground = React.memo(() => (
 // ─── Glass Panel ─────────────────────────────────────────────────────────────
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
-    sx={{
-      background: "rgba(255,255,255,0.03)",
-      backdropFilter: "blur(28px)",
-      WebkitBackdropFilter: "blur(28px)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderTop: "1px solid rgba(255,255,255,0.14)",
-      borderLeft: "1px solid rgba(255,255,255,0.1)",
+    sx={(theme) => ({
+      background: theme.custom.clay.surfaceSoft,
+      border: theme.custom.clay.border,
       borderRadius: "28px",
-      boxShadow: [
-        "0 1px 0 rgba(255,255,255,0.07) inset",
-        "0 24px 64px rgba(0,0,0,0.65)",
-        "8px 8px 20px rgba(0,0,0,0.45)",
-        "-3px -3px 10px rgba(255,255,255,0.015)",
-      ].join(", "),
+      boxShadow: theme.custom.clay.raised,
       ...sx,
-    }}
+    })}
     {...rest}
   >
     {children}
@@ -114,26 +105,17 @@ const GlassPanel = ({ children, sx = {}, ...rest }) => (
 const NeumorphCard = ({ children, sx = {}, highlighted = false, onClick }) => (
   <Box
     onClick={onClick}
-    sx={{
+    sx={(theme) => ({
       background: highlighted
-        ? "linear-gradient(145deg, #221520, #180f14)"
-        : "linear-gradient(145deg, #1c1419, #130f12)",
+        ? theme.custom.clay.surface
+        : theme.custom.clay.surfaceSoft,
       borderRadius: "28px",
       border: highlighted
-        ? "1px solid rgba(228,63,111,0.3)"
-        : "1px solid rgba(255,255,255,0.06)",
+        ? `1px solid ${theme.palette.primary.main}66`
+        : theme.custom.clay.border,
       boxShadow: highlighted
-        ? [
-            "6px 6px 20px rgba(0,0,0,0.7)",
-            "-3px -3px 10px rgba(255,255,255,0.025)",
-            "0 1px 0 rgba(255,255,255,0.07) inset",
-            "0 0 40px rgba(228,63,111,0.08)",
-          ].join(", ")
-        : [
-            "6px 6px 20px rgba(0,0,0,0.7)",
-            "-3px -3px 10px rgba(255,255,255,0.025)",
-            "0 1px 0 rgba(255,255,255,0.07) inset",
-          ].join(", "),
+        ? theme.custom.clay.floating
+        : theme.custom.clay.raised,
       transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
       cursor: onClick ? "pointer" : "default",
       height: "100%",
@@ -141,37 +123,32 @@ const NeumorphCard = ({ children, sx = {}, highlighted = false, onClick }) => (
       flexDirection: "column",
       "&:hover": {
         transform: "translateY(-6px)",
-        borderColor: "rgba(228,63,111,0.25)",
-        boxShadow: [
-          "8px 12px 32px rgba(0,0,0,0.75)",
-          "-2px -2px 8px rgba(255,255,255,0.025)",
-          "0 1px 0 rgba(255,255,255,0.09) inset",
-          "0 4px 32px rgba(228,63,111,0.15)",
-        ].join(", "),
+        borderColor: theme.palette.primary.main,
+        boxShadow: theme.custom.clay.floating,
       },
       ...sx,
-    }}
+    })}
   >
     {children}
   </Box>
 );
 
 // ─── Liquid Orb ───────────────────────────────────────────────────────────────
-const LiquidOrb = ({ size = 80, color = "rgba(228,63,111,0.7)", sx = {} }) => (
+const LiquidOrb = ({ size = 80, color, sx = {} }) => (
   <Box
-    sx={{
+    sx={(theme) => ({
       width: size,
       height: size,
       borderRadius: "50%",
-      background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25) 0%, ${color} 45%, rgba(0,0,0,0.4) 100%)`,
+      background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ${color || theme.palette.primary.main} 48%, ${theme.custom.colors.clayDeep} 100%)`,
       boxShadow: [
-        `0 ${size * 0.1}px ${size * 0.3}px rgba(0,0,0,0.6)`,
-        `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.15)`,
-        `inset ${size * 0.03}px ${size * 0.03}px ${size * 0.08}px rgba(255,255,255,0.2)`,
+        `0 ${size * 0.1}px ${size * 0.3}px rgba(151,82,69,0.24)`,
+        `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.45)`,
+        `inset ${size * 0.03}px ${size * 0.03}px ${size * 0.08}px rgba(255,255,255,0.45)`,
       ].join(", "),
       flexShrink: 0,
       ...sx,
-    }}
+    })}
   />
 );
 
@@ -182,7 +159,7 @@ const FeatureRow = ({ label, value, allowed }) => (
     alignItems: "flex-start",
     gap: 1.5,
     py: 1.1,
-    borderBottom: "1px solid rgba(255,255,255,0.04)",
+    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
     "&:last-child": { borderBottom: "none" },
   }}>
     <Box sx={{
@@ -193,31 +170,31 @@ const FeatureRow = ({ label, value, allowed }) => (
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: allowed ? "rgba(228,63,111,0.12)" : "rgba(255,255,255,0.04)",
+      background: allowed ? (theme) => `${theme.palette.primary.main}22` : (theme) => theme.custom.clay.surfaceSoft,
       border: allowed
-        ? "1px solid rgba(228,63,111,0.25)"
-        : "1px solid rgba(255,255,255,0.06)",
+        ? (theme) => `1px solid ${theme.palette.primary.main}44`
+        : (theme) => theme.custom.clay.hairline,
     }}>
       {allowed
-        ? <CheckIcon sx={{ fontSize: 12, color: "#E43F6F" }} />
-        : <CloseIcon sx={{ fontSize: 12, color: "rgba(255,234,236,0.2)" }} />}
+        ? <CheckIcon sx={{ fontSize: 12, color: "primary.main" }} />
+        : <CloseIcon sx={{ fontSize: 12, color: "text.disabled" }} />}
     </Box>
     <Box>
       <Typography sx={{
-        fontFamily: `"DM Sans", sans-serif`,
+        fontFamily: (theme) => theme.custom.fonts.body,
         fontSize: "0.75rem",
         fontWeight: 600,
         letterSpacing: "0.8px",
         textTransform: "uppercase",
-        color: "rgba(255,234,236,0.3)",
+        color: "text.disabled",
         lineHeight: 1.2,
       }}>
         {label}
       </Typography>
       <Typography sx={{
-        fontFamily: `"DM Sans", sans-serif`,
+        fontFamily: (theme) => theme.custom.fonts.body,
         fontSize: "0.88rem",
-        color: allowed ? "rgba(255,234,236,0.7)" : "rgba(255,234,236,0.28)",
+        color: allowed ? "text.primary" : "text.disabled",
         lineHeight: 1.4,
         mt: 0.2,
       }}>
@@ -301,9 +278,9 @@ const LicensesPage = () => {
   return (
     <Box sx={{
       position: "relative",
-      backgroundColor: "#0e0b0d",
+      backgroundColor: "background.default",
       minHeight: "100vh",
-      color: "#FFEAEC",
+      color: "text.primary",
       overflowX: "hidden",
       pt: { xs: 10, md: 14 },
       pb: { xs: 10, md: 16 },
@@ -328,7 +305,7 @@ const LicensesPage = () => {
             }}>
               <LiquidOrb
                 size={18}
-                color="rgba(228,63,111,0.85)"
+                color="var(--clay-coral)"
                 sx={{
                   animation: "orbBob 6s ease-in-out infinite",
                   "@keyframes orbBob": {
@@ -338,12 +315,12 @@ const LicensesPage = () => {
                 }}
               />
               <Typography sx={{
-                fontFamily: `"DM Sans", sans-serif`,
+                fontFamily: (theme) => theme.custom.fonts.body,
                 fontSize: "0.8rem",
                 fontWeight: 600,
                 letterSpacing: "2px",
                 textTransform: "uppercase",
-                color: "rgba(255,234,236,0.65)",
+                color: "text.secondary",
               }}>
                 Flexible Licensing
               </Typography>
@@ -354,7 +331,7 @@ const LicensesPage = () => {
           <Box sx={{ position: "relative", display: "inline-block", width: "100%" }}>
             <LiquidOrb
               size={64}
-              color="rgba(228,63,111,0.6)"
+              color="var(--clay-coral)"
               sx={{
                 position: "absolute",
                 left: { xs: "2%", md: "8%" },
@@ -369,7 +346,7 @@ const LicensesPage = () => {
             />
             <LiquidOrb
               size={40}
-              color="rgba(150,20,55,0.7)"
+              color="var(--clay-apricot)"
               sx={{
                 position: "absolute",
                 right: { xs: "2%", md: "10%" },
@@ -384,7 +361,7 @@ const LicensesPage = () => {
             />
             <LiquidOrb
               size={28}
-              color="rgba(228,63,111,0.5)"
+              color="var(--clay-coral)"
               sx={{
                 position: "absolute",
                 right: { xs: "5%", md: "7%" },
@@ -400,7 +377,8 @@ const LicensesPage = () => {
 
             <Typography variant="h1" sx={{
               fontSize: { xs: "2.8rem", sm: "4rem", md: "5.5rem" },
-              background: "linear-gradient(180deg, #FFEAEC 0%, rgba(255,234,236,0.55) 100%)",
+              color: "text.primary",
+              background: (theme) => `linear-gradient(180deg, ${theme.palette.text.primary} 0%, ${theme.palette.primary.dark} 100%)`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -412,9 +390,9 @@ const LicensesPage = () => {
           </Box>
 
           <Typography sx={{
-            fontFamily: `"DM Sans", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.body,
             fontSize: { xs: "1rem", md: "1.15rem" },
-            color: "rgba(255,234,236,0.4)",
+            color: "text.secondary",
             maxWidth: 480,
             mx: "auto",
             lineHeight: 1.7,
@@ -444,17 +422,17 @@ const LicensesPage = () => {
                           alignItems: "center",
                           px: 1.4,
                           py: 0.3,
-                          background: "rgba(228,63,111,0.15)",
-                          border: "1px solid rgba(228,63,111,0.3)",
+                          background: (theme) => `${theme.palette.primary.main}22`,
+                          border: (theme) => `1px solid ${theme.palette.primary.main}66`,
                           borderRadius: "100px",
                         }}>
                           <Typography sx={{
-                            fontFamily: `"DM Sans", sans-serif`,
+                            fontFamily: (theme) => theme.custom.fonts.body,
                             fontSize: "0.65rem",
                             fontWeight: 700,
                             letterSpacing: "1.5px",
                             textTransform: "uppercase",
-                            color: "#E43F6F",
+                            color: "primary.main",
                           }}>
                             {details.badge}
                           </Typography>
@@ -464,29 +442,29 @@ const LicensesPage = () => {
 
                     {/* Name + price */}
                     <Typography sx={{
-                      fontFamily: `"Syne", sans-serif`,
+                      fontFamily: (theme) => theme.custom.fonts.display,
                       fontWeight: 800,
                       fontSize: "1.5rem",
-                      color: "#FFEAEC",
+                      color: "text.primary",
                       mb: 0.5,
                     }}>
                       {license.name}
                     </Typography>
                     <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5, mb: 3 }}>
                       <Typography sx={{
-                        fontFamily: `"Syne", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.display,
                         fontWeight: 800,
                         fontSize: "2rem",
-                        color: "#E43F6F",
+                        color: "primary.main",
                         lineHeight: 1,
                       }}>
                         ${license.price}
                       </Typography>
                       {!isExclusive && (
                         <Typography sx={{
-                          fontFamily: `"DM Sans", sans-serif`,
+                          fontFamily: (theme) => theme.custom.fonts.body,
                           fontSize: "0.78rem",
-                          color: "rgba(255,234,236,0.3)",
+                          color: "text.disabled",
                         }}>
                           / beat
                         </Typography>
@@ -494,7 +472,7 @@ const LicensesPage = () => {
                     </Box>
 
                     {/* Divider */}
-                    <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)", mb: 3 }} />
+                    <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
 
                     {/* Feature rows */}
                     <Box sx={{ flex: 1 }}>
@@ -512,34 +490,31 @@ const LicensesPage = () => {
                       sx={{
                         mt: 3,
                         py: 1.4,
-                        fontFamily: `"Syne", sans-serif`,
+                        fontFamily: (theme) => theme.custom.fonts.display,
                         fontWeight: 700,
                         fontSize: "0.85rem",
                         textTransform: "none",
                         borderRadius: "14px",
                         transition: "all 0.25s ease",
                         ...(isExclusive ? {
-                          background: "linear-gradient(135deg, #E43F6F, #c02d5a)",
-                          color: "#fff",
-                          border: "1px solid rgba(228,63,111,0.4)",
-                          boxShadow: "0 6px 20px rgba(228,63,111,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
+                          background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                          color: "primary.contrastText",
+                          border: (theme) => `1px solid ${theme.palette.primary.main}66`,
+                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
                           "&:hover": {
-                            background: "linear-gradient(135deg, #f0537f, #d03568)",
+                            background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
                             transform: "translateY(-1px)",
-                            boxShadow: "0 10px 28px rgba(228,63,111,0.5), inset 0 1px 0 rgba(255,255,255,0.15)",
+                            boxShadow: (theme) => theme.custom.clay.floating,
                           },
                         } : {
-                          background: "rgba(255,255,255,0.04)",
-                          color: "rgba(255,234,236,0.45)",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          boxShadow: [
-                            "4px 4px 12px rgba(0,0,0,0.4)",
-                            "-1px -1px 4px rgba(255,255,255,0.02)",
-                          ].join(", "),
+                          background: (theme) => theme.custom.clay.surfaceSoft,
+                          color: "text.secondary",
+                          border: (theme) => theme.custom.clay.border,
+                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
                           cursor: "default",
                           "&:hover": {
-                            background: "rgba(255,255,255,0.06)",
-                            borderColor: "rgba(255,255,255,0.12)",
+                            background: (theme) => theme.custom.clay.surfaceSoft,
+                            borderColor: "divider",
                           },
                         }),
                       }}
@@ -561,30 +536,27 @@ const LicensesPage = () => {
               width: 44,
               height: 44,
               borderRadius: "14px",
-              background: "rgba(228,63,111,0.1)",
-              border: "1px solid rgba(228,63,111,0.2)",
+              background: (theme) => `${theme.palette.primary.main}18`,
+              border: (theme) => `1px solid ${theme.palette.primary.main}44`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: [
-                "4px 4px 12px rgba(0,0,0,0.5)",
-                "-2px -2px 6px rgba(255,255,255,0.02)",
-              ].join(", "),
+              boxShadow: (theme) => theme.custom.clay.raisedSmall,
               flexShrink: 0,
             }}>
-              <GavelIcon sx={{ fontSize: 22, color: "#E43F6F" }} />
+              <GavelIcon sx={{ fontSize: 22, color: "primary.main" }} />
             </Box>
             <Typography sx={{
-              fontFamily: `"Syne", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.display,
               fontWeight: 800,
               fontSize: "1.3rem",
-              color: "#FFEAEC",
+              color: "text.primary",
             }}>
               Legal Notice &amp; Copyright
             </Typography>
           </Box>
 
-          <Box sx={{ height: "1px", background: "rgba(255,255,255,0.06)", mb: 3 }} />
+          <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
 
           {[
             "All instrumentals and audio content sold on this platform are protected under copyright law. Unauthorized use, reproduction, distribution, or commercial exploitation of any beat without a valid license agreement is strictly prohibited. Violation of these terms may result in copyright takedowns, legal action, and removal of your content from streaming platforms.",
@@ -592,9 +564,9 @@ const LicensesPage = () => {
             "Sync licensing (use in film, TV, games, or advertising) requires separate written approval. Licensing is granted for use as-is; resale of the beat or creating derivative products (e.g. sample kits) is not permitted unless explicitly allowed in writing.",
           ].map((para, i) => (
             <Typography key={i} sx={{
-              fontFamily: `"DM Sans", sans-serif`,
+              fontFamily: (theme) => theme.custom.fonts.body,
               fontSize: "0.9rem",
-              color: "rgba(255,234,236,0.45)",
+              color: "text.secondary",
               lineHeight: 1.8,
               mb: i < 2 ? 2 : 0,
             }}>
@@ -606,22 +578,22 @@ const LicensesPage = () => {
         {/* ── Final CTA strip ── */}
         <GlassPanel sx={{ mt: { xs: 5, md: 6 }, p: { xs: 4, md: 5 }, textAlign: "center" }}>
           <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-            <LiquidOrb size={16} color="rgba(228,63,111,0.5)" />
-            <LiquidOrb size={26} color="rgba(228,63,111,0.8)" />
-            <LiquidOrb size={16} color="rgba(228,63,111,0.5)" />
+            <LiquidOrb size={16} color="var(--clay-coral)" />
+            <LiquidOrb size={26} color="var(--clay-coral)" />
+            <LiquidOrb size={16} color="var(--clay-coral)" />
           </Box>
           <Typography sx={{
-            fontFamily: `"Syne", sans-serif`,
+            fontFamily: (theme) => theme.custom.fonts.display,
             fontWeight: 800,
             fontSize: { xs: "1.3rem", md: "1.7rem" },
-            color: "#FFEAEC",
+            color: "text.primary",
             mb: 1,
           }}>
             Not sure which license fits?
           </Typography>
           <Typography sx={{
-            fontFamily: `"DM Sans", sans-serif`,
-            color: "rgba(255,234,236,0.4)",
+            fontFamily: (theme) => theme.custom.fonts.body,
+            color: "text.secondary",
             fontSize: "0.95rem",
             mb: 3,
             lineHeight: 1.7,

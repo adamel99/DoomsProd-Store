@@ -12,6 +12,8 @@ const { environment } = require('./config');
 const isProduction = environment === 'production';
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(morgan(isProduction ? 'combined' : 'dev'));
 app.use(cookieParser());
 

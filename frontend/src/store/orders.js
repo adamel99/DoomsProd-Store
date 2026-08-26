@@ -25,7 +25,7 @@ const deleteOrder = (orderId) => ({
 
 export const getUserOrdersThunk = () => async (dispatch) => {
   try {
-    const res = await csrfFetch(`/api/orders`);
+    const res = await csrfFetch(`/api/orders/my`);
     const data = await res.json();
     dispatch(getUserOrders(data.orders));
     return data.orders;
