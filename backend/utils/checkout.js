@@ -89,7 +89,7 @@ const getUserCartItems = async (userId, transaction) => {
       { model: License, attributes: ['id', 'name', 'price'] },
     ],
     transaction,
-    lock: transaction ? true : undefined,
+    lock: transaction ? { level: transaction.LOCK.UPDATE, of: CartItem } : undefined,
   });
 };
 
