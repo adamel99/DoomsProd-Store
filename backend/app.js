@@ -34,17 +34,23 @@ app.use((req, res, next) => {
 
 // Security
 const allowedOrigins = [
+  ...(process.env.FRONTEND_URLS || '').split(',').map((origin) => origin.trim()),
   process.env.FRONTEND_URL,
+  process.env.RENDER_EXTERNAL_URL,
   !isProduction && 'http://localhost:3000',
   !isProduction && 'http://127.0.0.1:3000',
-].filter(Boolean);
+]
+  .filter(Boolean)
+  .map((origin) => origin.replace(/\/$/, ''));
 
 app.use(cors({
   origin: (origin, callback) => {
+    const requestOrigin = origin?.replace(/\/$/, '');
     if (!isProduction && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || '')) {
       return callback(null, true);
     }
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!requestOrigin || allowedOrigins.includes(requestOrigin)) return callback(null, true);
+    console.warn('Blocked by CORS:', requestOrigin, 'Allowed origins:', allowedOrigins);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
