@@ -11,10 +11,16 @@ const tableName = (name) => (
     : `"${name}"`
 );
 
+const serialSequenceTableName = (name) => (
+  options.schema
+    ? `"${options.schema}"."${name}"`
+    : `"${name}"`
+);
+
 const resetSequence = async (sequelize, table) => {
   await sequelize.query(`
     SELECT setval(
-      pg_get_serial_sequence('${options.schema ? `${options.schema}.` : ''}${table}', 'id'),
+      pg_get_serial_sequence('${serialSequenceTableName(table)}', 'id'),
       COALESCE((SELECT MAX(id) FROM ${tableName(table)}), 0) + 1,
       false
     );
