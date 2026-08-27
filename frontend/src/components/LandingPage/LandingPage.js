@@ -821,6 +821,7 @@ const LandingPage = () => {
                   <iframe
                     src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
                     title={`Video by ${name}`}
+                    referrerPolicy="strict-origin-when-cross-origin"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     loading="lazy"

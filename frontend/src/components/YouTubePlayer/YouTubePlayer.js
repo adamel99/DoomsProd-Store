@@ -16,6 +16,7 @@ const YouTubePlayer = ({ url }) => {
         src={embedUrl}
         title="YouTube Beat Preview"
         frameBorder="0"
+        referrerPolicy="strict-origin-when-cross-origin"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />

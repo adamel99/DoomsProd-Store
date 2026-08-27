@@ -418,6 +418,7 @@ const ProductDetailPage = () => {
                   src={youtubeEmbedUrl}
                   title="YouTube Preview"
                   frameBorder="0"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
