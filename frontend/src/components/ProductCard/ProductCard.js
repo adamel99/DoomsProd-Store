@@ -85,11 +85,13 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
       onClick={() => history.push(`/products/${id}`)}
       sx={(theme) => ({
         height: "100%",
+        width: "100%",
+        minWidth: 0,
         display: "grid",
-        gridTemplateColumns: isList ? { xs: "1fr", md: "180px minmax(0, 1fr)" } : "1fr",
-        gridTemplateRows: isList ? "1fr" : "168px 1fr",
-        minHeight: isList ? { xs: 0, md: 210 } : 382,
-        maxHeight: isList ? "none" : 382,
+        gridTemplateColumns: isList ? { xs: "1fr", md: "190px minmax(0, 1fr)" } : "1fr",
+        gridTemplateRows: isList ? { xs: "170px auto", md: "210px" } : "210px 220px",
+        minHeight: isList ? { xs: 0, md: 190 } : 430,
+        maxHeight: isList ? "none" : 430,
         cursor: "pointer",
         overflow: "hidden",
         borderRadius: "16px",
@@ -106,10 +108,12 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
     >
       <Box sx={{
         position: "relative",
-        aspectRatio: isList ? { xs: "16/11", md: "1 / 1" } : "1 / 1",
-        height: isList ? { xs: 180, md: "100%" } : 168,
+        width: "100%",
+        minWidth: 0,
+        height: "100%",
+        minHeight: isList ? { xs: 170, md: 190 } : 210,
         overflow: "hidden",
-        background: (theme) => theme.custom.clay.surface,
+        background: (theme) => `linear-gradient(135deg, ${theme.palette.background.paper}, ${theme.custom.clay.surface})`,
       }}>
         <Box
           component="img"
@@ -118,10 +122,13 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
           loading="lazy"
           sx={{
             width: "100%",
+            maxWidth: "100%",
+            minWidth: 0,
             height: "100%",
+            maxHeight: "100%",
             objectFit: "contain",
+            objectPosition: "center",
             display: "block",
-            p: 1.25,
             transition: "transform 220ms ease",
             ".MuiBox-root:hover > &": { transform: "scale(1.02)" },
           }}
@@ -184,12 +191,21 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
         )}
       </Box>
 
-      <Box sx={{ p: 2, display: "flex", flexDirection: "column", gap: 1.25, minHeight: 0 }}>
+      <Box sx={{
+        p: { xs: 2, md: isList ? 2 : 2 },
+        display: "flex",
+        flexDirection: "column",
+        gap: isList ? 1 : 1.25,
+        minWidth: 0,
+        minHeight: 0,
+        overflow: "hidden",
+      }}>
         <Box>
           <Typography variant="h4" sx={{
             fontSize: { xs: "1.05rem", md: isList ? "1.25rem" : "1.08rem" },
             lineHeight: 1.18,
             mb: 0.75,
+            overflowWrap: "anywhere",
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
@@ -203,6 +219,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
               color: "text.secondary",
               fontSize: "0.78rem",
               lineHeight: 1.45,
+              overflowWrap: "anywhere",
               display: "-webkit-box",
               WebkitLineClamp: isList ? 2 : 2,
               WebkitBoxOrient: "vertical",
@@ -214,7 +231,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
         </Box>
 
         {(genre || bpm || productKey || artistTags) && (
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", minWidth: 0 }}>
             {genre && <MetaPill>{genre}</MetaPill>}
             {bpm && <MetaPill>{bpm} BPM</MetaPill>}
             {productKey && <MetaPill>{productKey}</MetaPill>}
@@ -223,7 +240,15 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
         )}
 
         {type === "beat" && licenses.length > 0 && (
-          <FormControl size="small" onClick={(e) => e.stopPropagation()} sx={{ display: isList ? "flex" : "none" }}>
+          <FormControl
+            size="small"
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              display: isList ? "flex" : "none",
+              width: { xs: "100%", md: 320 },
+              maxWidth: "100%",
+            }}
+          >
             <InputLabel>License</InputLabel>
             <Select
               value={selectedLicenseId}
@@ -253,8 +278,9 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
           gridTemplateColumns: "1fr auto",
           gap: 1.25,
           alignItems: "center",
+          minWidth: 0,
         }}>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.mono,
               color: "text.disabled",
@@ -304,6 +330,8 @@ const MetaPill = ({ children }) => (
   <Box sx={(theme) => ({
     px: 1.3,
     py: 0.55,
+    minWidth: 0,
+    maxWidth: "100%",
     borderRadius: "999px",
     background: "rgba(241,218,191,0.46)",
     border: theme.custom.clay.hairline,
@@ -314,6 +342,9 @@ const MetaPill = ({ children }) => (
       letterSpacing: "1px",
       color: "text.secondary",
       textTransform: "uppercase",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
     }}>
       {children}
     </Typography>

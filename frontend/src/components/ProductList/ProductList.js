@@ -5,7 +5,6 @@ import {
   Typography,
   Container,
   Button,
-  Grid,
   InputBase,
   IconButton,
   ToggleButtonGroup,
@@ -258,21 +257,29 @@ const ProductList = () => {
 
           <Box>
             {filteredProducts.length > 0 ? (
-              <Grid container spacing={2.25}>
+              <Box sx={{
+                display: "grid",
+                gap: 2.25,
+                gridTemplateColumns: viewMode === "list"
+                  ? "1fr"
+                  : {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                    md: "repeat(4, minmax(0, 1fr))",
+                    lg: "repeat(5, minmax(0, 1fr))",
+                    xl: "repeat(6, minmax(0, 1fr))",
+                  },
+                alignItems: "stretch",
+              }}>
                 {filteredProducts.map((product) => (
-                  <Grid
-                    item
-                    xs={12}
-                    sm={viewMode === "list" ? 12 : 6}
-                    md={viewMode === "list" ? 12 : 4}
-                    lg={viewMode === "list" ? 12 : 3}
-                    xl={viewMode === "list" ? 12 : 2.4}
+                  <Box
                     key={product.id}
+                    sx={{ display: "flex", minWidth: 0, maxWidth: "100%" }}
                   >
                     <ProductCard customProduct={product} viewMode={viewMode} />
-                  </Grid>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             ) : (
               <Box sx={(theme) => ({
                 p: { xs: 4, md: 6 },
