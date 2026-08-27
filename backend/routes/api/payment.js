@@ -15,6 +15,16 @@ const { Order } = require('../../db/models');
 const router = express.Router();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
+const requireCheckoutEnv = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Missing STRIPE_SECRET_KEY environment variable.');
+  }
+
+  if (!process.env.FRONTEND_URL) {
+    throw new Error('Missing FRONTEND_URL environment variable.');
+  }
+};
+
 const getReusableCheckoutSessionId = async (userId) => {
   const pendingOrder = await Order.findOne({
     where: { userId, status: 'pending' },
@@ -41,6 +51,8 @@ router.post(
   rateLimit({ windowMs: 10 * 60 * 1000, max: 10 }),
   async (req, res) => {
     try {
+      requireCheckoutEnv();
+
       const reusableSessionId = await getReusableCheckoutSessionId(req.user.id);
       if (reusableSessionId) return res.json({ sessionId: reusableSessionId });
 
@@ -78,6 +90,15 @@ router.post(
 
       return res.json({ sessionId: session.id });
     } catch (error) {
+      console.error('Stripe checkout session creation failed:', {
+        userId: req.user?.id,
+        status: error.status,
+        name: error.name,
+        message: error.message,
+        stripeCode: error.code,
+        stripeType: error.type,
+        stack: error.stack,
+      });
       const status = error.status || 500;
       return res.status(status).json({ message: status === 500 ? 'Failed to create Stripe checkout session.' : error.message });
     }
