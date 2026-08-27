@@ -40,7 +40,7 @@ router.post("/", async (req, res) => {
         const order = await Order.findByPk(orderId, {
           include: [{ model: User, attributes: ["email", "username"] }],
           transaction,
-          lock: true,
+          lock: { level: transaction.LOCK.UPDATE, of: Order },
         });
 
         if (!order || order.status === "completed") return;
