@@ -19,6 +19,25 @@ import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getSingleProductThunk, updateProductThunk } from "../../store/products";
 
+const Panel = ({ children, sx = {} }) => (
+  <Box sx={(theme) => ({
+    background: theme.custom.clay.surfaceSoft,
+    border: theme.custom.clay.border,
+    borderRadius: "20px",
+    boxShadow: theme.custom.clay.raised,
+    ...sx,
+  })}>
+    {children}
+  </Box>
+);
+
+const uploadBoxSx = (theme) => ({
+  p: 2,
+  border: theme.custom.clay.hairline,
+  borderRadius: "14px",
+  background: "rgba(241,218,191,0.32)",
+});
+
 const UpdateProductPage = () => {
   const { productId } = useParams();
   const dispatch = useDispatch();
@@ -117,24 +136,56 @@ const UpdateProductPage = () => {
     }
   };
 
-  if (!isAdmin) return <Typography>You are not authorized to edit this product.</Typography>;
+  if (!isAdmin) {
+    return (
+      <Box sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        bgcolor: "background.default",
+        p: 3,
+      }}>
+        <Panel sx={{ p: 4, maxWidth: 520, textAlign: "center" }}>
+          <Typography variant="h4" sx={{ mb: 1 }}>
+            Access restricted
+          </Typography>
+          <Typography sx={{ color: "text.secondary" }}>
+            You are not authorized to edit this product.
+          </Typography>
+        </Panel>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ backgroundColor: "#0d0d0d", minHeight: "100vh", py: 10 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: { xs: 6, md: 10 } }}>
       <Container maxWidth="md">
-        <Typography variant="h4" fontWeight={800} textAlign="center" color="primary.main" gutterBottom>
-          Update Product
-        </Typography>
+        <Box sx={{ mb: 4, textAlign: "center" }}>
+          <Typography variant="h5" sx={{ mb: 1 }}>
+            Catalog Admin
+          </Typography>
+          <Typography variant="h2" sx={{ fontSize: { xs: "2.35rem", md: "3.4rem" } }}>
+            Update Product
+          </Typography>
+        </Box>
 
         {/* File previews */}
         {product && (
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {product.imageUrl && (
               <Grid item xs={12} sm={6}>
-                <Card>
+                <Card sx={(theme) => ({
+                  overflow: "hidden",
+                  background: theme.custom.clay.surfaceSoft,
+                  border: theme.custom.clay.border,
+                  boxShadow: theme.custom.clay.raised,
+                })}>
                   <CardMedia component="img" height="200" image={product.imageUrl} alt="Current product image" />
                   <CardContent>
-                    <Typography variant="subtitle1" textAlign="center">Current Image</Typography>
+                    <Typography variant="subtitle1" textAlign="center" sx={{ fontWeight: 800 }}>
+                      Current Image
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -142,8 +193,16 @@ const UpdateProductPage = () => {
 
             {product.downloadUrls?.length > 0 && (
               <Grid item xs={12} sm={6}>
-                <Card sx={{ p: 2 }}>
-                  <Typography variant="subtitle1">Current Files:</Typography>
+                <Card sx={(theme) => ({
+                  p: 2.5,
+                  height: "100%",
+                  background: theme.custom.clay.surfaceSoft,
+                  border: theme.custom.clay.border,
+                  boxShadow: theme.custom.clay.raised,
+                })}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
+                    Current Files
+                  </Typography>
                   {product.downloadUrls.map((file, i) => (
                     <Link
                       key={i}
@@ -152,7 +211,12 @@ const UpdateProductPage = () => {
                       rel="noopener noreferrer"
                       underline="hover"
                       display="block"
-                      sx={{ color: "#90caf9" }}
+                      sx={{
+                        color: "primary.dark",
+                        fontFamily: (theme) => theme.custom.fonts.mono,
+                        fontSize: "0.82rem",
+                        py: 0.4,
+                      }}
                     >
                       {file.type.toUpperCase()} File
                     </Link>
@@ -164,7 +228,18 @@ const UpdateProductPage = () => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+          sx={(theme) => ({
+            p: { xs: 2.5, md: 4 },
+            background: theme.custom.clay.surfaceSoft,
+            border: theme.custom.clay.border,
+            borderRadius: "24px",
+            boxShadow: theme.custom.clay.raised,
+          })}
+        >
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField fullWidth label="Title" name="title" value={formData.title} onChange={handleChange} required />
@@ -281,68 +356,69 @@ const UpdateProductPage = () => {
             </Grid>
 
             <Grid item xs={12}>
-  <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-    Replace Files (optional)
-  </Typography>
+              <Typography variant="h5" gutterBottom>
+                Replace Files (optional)
+              </Typography>
 
-  <Box sx={{ display: "grid", gap: 2 }}>
-    <Box>
-      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-        Replace Image File:
-      </Typography>
-      <input type="file" accept="image/*" onChange={handleImageChange} />
-    </Box>
+              <Box sx={{ display: "grid", gap: 2 }}>
+                <Box sx={uploadBoxSx}>
+                  <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                    Replace Image File:
+                  </Typography>
+                  <input type="file" accept="image/*" onChange={handleImageChange} />
+                </Box>
 
-    <Box>
-      <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-        Replace ZIP File:
-      </Typography>
-      <input type="file" accept=".zip" onChange={handleZipFileChange} />
-    </Box>
+                <Box sx={uploadBoxSx}>
+                  <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                    Replace ZIP File:
+                  </Typography>
+                  <input type="file" accept=".zip" onChange={handleZipFileChange} />
+                </Box>
 
-    {needsAudioFiles && (
-      <>
-        <Box>
-          <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-            Replace MP3 File:
-          </Typography>
-          <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
-        </Box>
+                {needsAudioFiles && (
+                  <>
+                    <Box sx={uploadBoxSx}>
+                      <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                        Replace MP3 File:
+                      </Typography>
+                      <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
+                    </Box>
 
-        <Box>
-          <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-            Replace WAV File:
-          </Typography>
-          <input type="file" accept=".wav" onChange={handleWavFileChange} />
-        </Box>
-      </>
-    )}
-  </Box>
-</Grid>
-
+                    <Box sx={uploadBoxSx}>
+                      <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                        Replace WAV File:
+                      </Typography>
+                      <input type="file" accept=".wav" onChange={handleWavFileChange} />
+                    </Box>
+                  </>
+                )}
+              </Box>
+            </Grid>
 
             <Grid item xs={12}>
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
-                sx={{
+                sx={(theme) => ({
                   py: 1.5,
                   fontWeight: 700,
                   borderRadius: "30px",
-                  background: "linear-gradient(135deg, #ff4081, #ff6699)",
-                  boxShadow: "0 8px 30px rgba(255, 64, 129, 0.3)",
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  border: `1px solid ${theme.palette.primary.main}66`,
+                  boxShadow: theme.custom.clay.raisedSmall,
                   "&:hover": {
-                    background: "linear-gradient(135deg, #ff6699, #ff4081)",
+                    background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                    boxShadow: theme.custom.clay.floating,
                   },
                   mt: 2,
-                }}
+                })}
               >
                 Update Product
               </Button>
             </Grid>
           </Grid>
-        </form>
+        </Box>
       </Container>
     </Box>
   );
