@@ -25,8 +25,16 @@ const validateSignup = [
         .withMessage('Username cannot be an email.'),
     check('password')
         .exists({ checkFalsy: true })
-        .isLength({ min: 6 })
-        .withMessage('Password must be 6 characters or more.'),
+        .isLength({ min: 12, max: 128 })
+        .withMessage('Password must be between 12 and 128 characters.')
+        .matches(/[a-z]/)
+        .withMessage('Password must include at least one lowercase letter.')
+        .matches(/[A-Z]/)
+        .withMessage('Password must include at least one uppercase letter.')
+        .matches(/\d/)
+        .withMessage('Password must include at least one number.')
+        .matches(/[^A-Za-z0-9]/)
+        .withMessage('Password must include at least one symbol.'),
     handleValidationErrors
 ];
 

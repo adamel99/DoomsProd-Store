@@ -7,7 +7,7 @@ router.use('/', apiRouter);
 // Add XSRF-TOKEN cookie in development
 if (process.env.NODE_ENV !== 'production') {
   router.get('/csrf/restore', (req, res) => {
-    res.cookie('XSRF-TOKEN', req.csrfToken(), {
+    res.cookie('XSRF-TOKEN', req.csrfToken({ overwrite: true }), {
       secure: false,
       sameSite: 'lax',
     });

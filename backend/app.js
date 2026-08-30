@@ -2,7 +2,7 @@ const express = require('express');
 require('express-async-errors');
 const morgan = require('morgan');
 const cors = require('cors');
-const csurf = require('csurf');
+const { doubleCsrf } = require('csrf-csrf');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -73,30 +73,41 @@ app.use(helmet({
   } : false,
 }));
 
-// Create csurf instance ONCE
-const csrfProtection = csurf({
-  cookie: {
+const { doubleCsrfProtection, generateCsrfToken } = doubleCsrf({
+  getSecret: () => process.env.CSRF_SECRET || process.env.JWT_SECRET,
+  getSessionIdentifier: () => 'csrf-token',
+  cookieName: 'XSRF-TOKEN',
+  cookieOptions: {
     secure: isProduction,
     sameSite: isProduction ? 'none' : 'lax',
-    httpOnly: true,
+    httpOnly: false,
   },
-  value: (req) =>
+  getCsrfTokenFromRequest: (req) =>
     req.headers['xsrf-token'] ||
     req.headers['XSRF-TOKEN'] ||
     req.headers['x-xsrf-token'],
+  errorConfig: {
+    statusCode: 403,
+    message: 'Invalid CSRF token',
+    code: 'EBADCSRFTOKEN',
+  },
 });
 
 // CSRF
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/webhook') return next();
-  csrfProtection(req, res, next);
+  doubleCsrfProtection(req, res, next);
 });
 
 // CSRF restore route (production)
 app.get('/api/csrf/restore', (req, res) => {
-  res.cookie('XSRF-TOKEN', req.csrfToken(), {
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+  generateCsrfToken(req, res, {
+    overwrite: true,
+    cookieOptions: {
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      httpOnly: false,
+    },
   });
   res.status(201).json({});
 });

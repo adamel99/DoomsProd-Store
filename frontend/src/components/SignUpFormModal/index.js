@@ -57,6 +57,16 @@ function SignupFormModal() {
     e.preventDefault();
     if (password !== confirmPassword)
       return setErrors({ confirmPassword: "Passwords do not match" });
+    if (password.length < 12 || password.length > 128)
+      return setErrors({ password: "Password must be between 12 and 128 characters." });
+    if (!/[a-z]/.test(password))
+      return setErrors({ password: "Password must include at least one lowercase letter." });
+    if (!/[A-Z]/.test(password))
+      return setErrors({ password: "Password must include at least one uppercase letter." });
+    if (!/\d/.test(password))
+      return setErrors({ password: "Password must include at least one number." });
+    if (!/[^A-Za-z0-9]/.test(password))
+      return setErrors({ password: "Password must include at least one symbol." });
     setErrors({});
     try {
       await dispatch(sessionActions.signup({ email, username, firstName, lastName, password }));

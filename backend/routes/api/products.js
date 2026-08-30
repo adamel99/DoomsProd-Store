@@ -2,7 +2,7 @@
 const express = require('express');
 const { Product, License } = require('../../db/models');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
-const upload = require('../../utils/s3');
+const { upload, uploadValidatedFilesToS3 } = require('../../utils/s3');
 const { validateUploadedFileSignatures, validateUploadedFileSizes } = require('../../utils/fileValidation');
 const rateLimit = require('../../utils/rateLimit');
 const { body, param, query } = require('express-validator');
@@ -246,6 +246,7 @@ router.post(
   validateUploadedFileSizes,
   validateUploadedFileSignatures,
   validateCreateProduct,
+  uploadValidatedFilesToS3,
   async (req, res, next) => {
     try {
       const { title, description, type, youtubeLink, audioPreviewUrl, price, genre, bpm, key, artistTags } = req.body;
@@ -323,6 +324,7 @@ router.put(
   validateUploadedFileSizes,
   validateUploadedFileSignatures,
   validateUpdateProduct,
+  uploadValidatedFilesToS3,
   async (req, res, next) => {
     try {
       const product = await Product.findByPk(req.params.productId);
