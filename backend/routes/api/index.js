@@ -10,6 +10,7 @@ const cartItemsRouter = require('./cartItems');
 const paymentRouter = require('./payment');
 const webhookRouter = require('./webhook');
 const downloadRouter = require('./downloads'); // <-- ADD THIS
+const adminRouter = require('./admin');
 
 const { restoreUser, requireAuth } = require('../../utils/auth.js');
 
@@ -26,6 +27,7 @@ router.use('/cart-items', cartItemsRouter);
 router.use('/payment', paymentRouter);
 router.use('/webhook', webhookRouter);
 router.use('/downloads', downloadRouter); // <-- ADD THIS
+router.use('/admin', adminRouter);
 
 // Test route for debugging
 if (process.env.NODE_ENV !== 'production') {

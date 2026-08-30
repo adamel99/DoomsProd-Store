@@ -1,5 +1,6 @@
 const express = require('express');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
+const { Op } = require('sequelize');
 const { Order, User, OrderItem, Product, License } = require('../../db/models');
 const { createOrderFromCart, getOrderDownloadFiles, getOrderReceiptDetails } = require('../../utils/checkout');
 const { sendProductEmail } = require('../../utils/sendProductEmail');
@@ -9,6 +10,42 @@ const { handleValidationErrors } = require('../../utils/validation');
 
 const router = express.Router();
 const allowedStatuses = ['pending', 'completed', 'cancelled'];
+const getSortOrder = (sort, direction) => {
+  if (sort === 'totalPrice') return [['totalPrice', direction]];
+  if (sort === 'status') return [['status', direction]];
+  if (sort === 'customer') return [[User, 'firstName', direction], [User, 'lastName', direction]];
+  return [['createdAt', direction]];
+};
+
+const adminUserAttributes = [
+  'id',
+  'username',
+  'email',
+  'firstName',
+  'lastName',
+  'totalPurchases',
+  'rewardDiscount',
+  'isSubscribedToEmails',
+  'createdAt',
+  'updatedAt',
+];
+
+const adminProductAttributes = [
+  'id',
+  'title',
+  'description',
+  'type',
+  'price',
+  'genre',
+  'bpm',
+  'key',
+  'artistTags',
+  'imageUrl',
+  'youtubeLink',
+  'audioPreviewUrl',
+  'createdAt',
+  'updatedAt',
+];
 
 const validateOrderId = [
   param('orderId')
@@ -31,21 +68,82 @@ const validateOrderUpdate = [
 // Admin: Get all orders with user info, newest first
 router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
   try {
-    const orders = await Order.findAll({
-      include: [
-        { model: User, attributes: ['id', 'username', 'email', 'firstName', 'lastName'] },
+    const {
+      status,
+      type,
+      search,
+      sort = 'createdAt',
+      direction = 'DESC',
+    } = req.query;
+    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+    const size = Math.min(Math.max(parseInt(req.query.size || '25', 10), 1), 100);
+    const orderWhere = {};
+    const productWhere = {};
+    const userWhere = {};
+    const normalizedDirection = String(direction).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    const likeOperator = Order.sequelize.getDialect() === 'postgres' ? Op.iLike : Op.like;
+
+    if (allowedStatuses.includes(status)) orderWhere.status = status;
+    if (type && type !== 'all') productWhere.type = type;
+
+    if (search?.trim()) {
+      const term = `%${search.trim()}%`;
+      orderWhere[Op.or] = [
+        { paymentIntentId: { [likeOperator]: term } },
+        { '$User.username$': { [likeOperator]: term } },
+        { '$User.email$': { [likeOperator]: term } },
+        { '$User.firstName$': { [likeOperator]: term } },
+        { '$User.lastName$': { [likeOperator]: term } },
+        { '$OrderItems.Product.title$': { [likeOperator]: term } },
+        { '$OrderItems.License.name$': { [likeOperator]: term } },
+      ];
+
+      const numericSearch = Number(search);
+      if (Number.isInteger(numericSearch)) {
+        orderWhere[Op.or].push({ id: numericSearch });
+      }
+    }
+
+    const include = [
+        {
+          model: User,
+          attributes: adminUserAttributes,
+          where: userWhere,
+        },
         {
           model: OrderItem,
+          required: Boolean(type && type !== 'all'),
           include: [
-            { model: Product, attributes: ['id', 'title', 'type', 'imageUrl'] },
+            {
+              model: Product,
+              attributes: adminProductAttributes,
+              where: productWhere,
+              required: Boolean(type && type !== 'all'),
+            },
             { model: License, attributes: ['id', 'name', 'description'] },
           ],
         },
-      ],
-      order: [['createdAt', 'DESC']],
+      ];
+
+    const { count, rows: orders } = await Order.findAndCountAll({
+      where: orderWhere,
+      include,
+      order: getSortOrder(sort, normalizedDirection),
+      limit: size,
+      offset: (page - 1) * size,
+      distinct: true,
+      subQuery: false,
     });
 
-    return res.status(200).json({ orders });
+    return res.status(200).json({
+      orders,
+      pagination: {
+        page,
+        size,
+        total: count,
+        totalPages: Math.ceil(count / size),
+      },
+    });
   } catch (error) {
     next(error);
   }
