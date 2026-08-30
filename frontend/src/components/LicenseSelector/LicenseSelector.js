@@ -29,7 +29,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "60vw", md: "45vw" },
       height: { xs: "60vw", md: "45vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle at 40% 40%, ${theme.palette.primary.main}33 0%, ${theme.palette.primary.dark}22 50%, transparent 70%)`,
+      background: (theme) => theme.custom.effects.orb.rose,
       filter: "blur(60px)",
       animation: "orbFloat1 22s ease-in-out infinite",
       "@keyframes orbFloat1": {
@@ -47,7 +47,7 @@ const LiquidBackground = React.memo(() => (
       width: { xs: "55vw", md: "38vw" },
       height: { xs: "55vw", md: "38vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle at 60% 60%, ${theme.palette.secondary.main}44 0%, ${theme.palette.secondary.dark}22 50%, transparent 70%)`,
+      background: (theme) => theme.custom.effects.orb.brown,
       filter: "blur(70px)",
       animation: "orbFloat2 28s ease-in-out infinite reverse",
       "@keyframes orbFloat2": {
@@ -89,10 +89,8 @@ const LiquidBackground = React.memo(() => (
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
     sx={(theme) => ({
-      background: theme.custom.clay.surfaceSoft,
-      border: theme.custom.clay.border,
-      borderRadius: "28px",
-      boxShadow: theme.custom.clay.raised,
+      ...theme.custom.patterns.surface.raised,
+      borderRadius: "var(--radius-panel)",
       ...sx,
     })}
     {...rest}
@@ -109,14 +107,14 @@ const NeumorphCard = ({ children, sx = {}, highlighted = false, onClick }) => (
       background: highlighted
         ? theme.custom.clay.surface
         : theme.custom.clay.surfaceSoft,
-      borderRadius: "28px",
+      borderRadius: "var(--radius-panel)",
       border: highlighted
         ? `1px solid ${theme.palette.primary.main}66`
         : theme.custom.clay.border,
       boxShadow: highlighted
         ? theme.custom.clay.floating
         : theme.custom.clay.raised,
-      transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+      transition: "var(--motion-lift)",
       cursor: onClick ? "pointer" : "default",
       height: "100%",
       display: "flex",
@@ -298,7 +296,7 @@ const LicensesPage = () => {
           <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
             <GlassPanel sx={{
               px: 2.5, py: 1,
-              borderRadius: "100px",
+              borderRadius: "999px",
               display: "inline-flex",
               alignItems: "center",
               gap: 1.5,
@@ -422,9 +420,9 @@ const LicensesPage = () => {
                           alignItems: "center",
                           px: 1.4,
                           py: 0.3,
-                          background: (theme) => `${theme.palette.primary.main}22`,
-                          border: (theme) => `1px solid ${theme.palette.primary.main}66`,
-                          borderRadius: "100px",
+                          background: "rgba(225,90,151,0.13)",
+                          border: "1px solid var(--clay-coral)",
+                          borderRadius: "999px",
                         }}>
                           <Typography sx={{
                             fontFamily: (theme) => theme.custom.fonts.body,
@@ -494,23 +492,23 @@ const LicensesPage = () => {
                         fontWeight: 700,
                         fontSize: "0.85rem",
                         textTransform: "none",
-                        borderRadius: "14px",
-                        transition: "all 0.25s ease",
+                        borderRadius: "var(--radius-md)",
+                        transition: "var(--motion-interactive)",
                         ...(isExclusive ? {
-                          background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                          background: "var(--gradient-brand-soft)",
                           color: "primary.contrastText",
-                          border: (theme) => `1px solid ${theme.palette.primary.main}66`,
-                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
+                          border: "1px solid var(--clay-coral)",
+                          boxShadow: "var(--clay-raised-small)",
                           "&:hover": {
-                            background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                            background: "linear-gradient(135deg, #F08ABD, var(--clay-coral))",
                             transform: "translateY(-1px)",
-                            boxShadow: (theme) => theme.custom.clay.floating,
+                            boxShadow: "var(--clay-floating)",
                           },
                         } : {
                           background: (theme) => theme.custom.clay.surfaceSoft,
                           color: "text.secondary",
-                          border: (theme) => theme.custom.clay.border,
-                          boxShadow: (theme) => theme.custom.clay.raisedSmall,
+                          border: "var(--clay-border)",
+                          boxShadow: "var(--clay-raised-small)",
                           cursor: "default",
                           "&:hover": {
                             background: (theme) => theme.custom.clay.surfaceSoft,
@@ -535,13 +533,13 @@ const LicensesPage = () => {
             <Box sx={{
               width: 44,
               height: 44,
-              borderRadius: "14px",
-              background: (theme) => `${theme.palette.primary.main}18`,
-              border: (theme) => `1px solid ${theme.palette.primary.main}44`,
+              borderRadius: "var(--radius-md)",
+              background: "rgba(225,90,151,0.09)",
+              border: "1px solid rgba(225,90,151,0.27)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: (theme) => theme.custom.clay.raisedSmall,
+              boxShadow: "var(--clay-raised-small)",
               flexShrink: 0,
             }}>
               <GavelIcon sx={{ fontSize: 22, color: "primary.main" }} />

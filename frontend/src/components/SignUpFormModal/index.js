@@ -9,7 +9,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 const fieldSx = (theme) => ({
   "& .MuiOutlinedInput-root": {
     background: theme.custom.clay.surfaceSoft,
-    borderRadius: "14px",
+    borderRadius: "var(--radius-md)",
     color: theme.palette.text.primary,
     fontFamily: theme.custom.fonts.body,
     boxShadow: theme.custom.clay.pressed,
@@ -81,7 +81,7 @@ function SignupFormModal() {
       width: { xs: 340, sm: 460 },
       background: theme.custom.clay.surfaceSoft,
       border: theme.custom.clay.border,
-      borderRadius: "28px",
+      borderRadius: "var(--radius-panel)",
       boxShadow: theme.custom.clay.floating,
       px: { xs: 3, sm: 4.5 },
       py: 5,
@@ -96,7 +96,7 @@ function SignupFormModal() {
         transform: "translateX(-50%)",
         width: 220, height: 100,
         borderRadius: "50%",
-        background: (theme) => `radial-gradient(ellipse, ${theme.palette.primary.main}33 0%, transparent 70%)`,
+        background: (theme) => theme.custom.effects.orb.rose,
         pointerEvents: "none",
       }} />
 
@@ -104,7 +104,7 @@ function SignupFormModal() {
         <Box sx={{
           width: 10, height: 10, borderRadius: "50%",
           bgcolor: "primary.main",
-          boxShadow: (theme) => `0 0 10px ${theme.palette.primary.main}, 0 0 24px ${theme.palette.primary.main}80`,
+          boxShadow: (theme) => theme.custom.effects.glow.primaryStrong,
           mx: "auto", mb: 2,
         }} />
         <Typography sx={{
@@ -172,12 +172,12 @@ function SignupFormModal() {
             fontSize: "0.9rem",
             letterSpacing: "0.5px",
             textTransform: "none",
-            borderRadius: "14px",
+            borderRadius: "var(--radius-md)",
             background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
             color: theme.palette.primary.contrastText,
             border: `1px solid ${theme.palette.primary.main}66`,
             boxShadow: theme.custom.clay.raisedSmall,
-            transition: "all 0.25s ease",
+            transition: "var(--motion-interactive)",
             "&:hover": {
               background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
               transform: "translateY(-1px)",

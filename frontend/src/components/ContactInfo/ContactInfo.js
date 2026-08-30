@@ -25,7 +25,17 @@ const ContactModal = ({ open, onClose }) => {
         <IconButton
           aria-label="close"
           onClick={onClose}
-          sx={{ position: "absolute", right: 8, top: 8, color: "#999" }}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: "text.disabled",
+            transition: "var(--motion-interactive)",
+            "&:hover": {
+              color: "primary.main",
+              background: "rgba(225,90,151,0.08)",
+            },
+          }}
         >
           <CloseIcon />
         </IconButton>

@@ -13,7 +13,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", top: "-10vh", left: "-8vw",
       width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle at 40% 40%, 33 0%, 22 55%, transparent 72%)`,
+      background: (theme) => theme.custom.effects.orb.rose,
       filter: "blur(70px)",
       animation: "orbF1 22s ease-in-out infinite",
       "@keyframes orbF1": {
@@ -25,7 +25,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", bottom: 0, right: "-10vw",
       width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle, 44 0%, transparent 70%)`,
+      background: (theme) => theme.custom.effects.orb.brown,
       filter: "blur(80px)",
       animation: "orbF2 30s ease-in-out infinite reverse",
       "@keyframes orbF2": {
@@ -44,10 +44,8 @@ const LiquidBackground = React.memo(() => (
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
     sx={(theme) => ({
-      background: theme.custom.clay.surfaceSoft,
-      border: theme.custom.clay.border,
-      borderRadius: "28px",
-      boxShadow: theme.custom.clay.raised,
+      ...theme.custom.patterns.surface.raised,
+      borderRadius: "var(--radius-panel)",
       ...sx,
     })}
     {...rest}
@@ -106,7 +104,7 @@ export default function CheckoutCancel() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.5 }}
             >
-              <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "primary.main", mx: "auto", mb: 3, boxShadow: (theme) => `0 2px 12px ${theme.palette.primary.main}80` }} />
+              <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "primary.main", mx: "auto", mb: 3, boxShadow: (theme) => theme.custom.effects.glow.rule }} />
               <Typography sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
                 fontWeight: 800,
@@ -143,7 +141,7 @@ export default function CheckoutCancel() {
                   fontFamily: (theme) => theme.custom.fonts.display,
                   fontWeight: 700,
                   fontSize: "1rem",
-                  borderRadius: "14px",
+                  borderRadius: "var(--radius-md)",
                   background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                   boxShadow: (theme) => theme.custom.clay.raisedSmall,
                   "&:hover": {
@@ -151,7 +149,7 @@ export default function CheckoutCancel() {
                     boxShadow: (theme) => theme.custom.clay.floating,
                     transform: "translateY(-2px)",
                   },
-                  transition: "all 0.3s ease",
+                  transition: "var(--motion-lift)",
                 }}
               >
                 Return to Cart
@@ -175,8 +173,8 @@ export default function CheckoutCancel() {
                   color: "text.secondary",
                   background: (theme) => theme.custom.clay.surfaceSoft,
                   border: (theme) => theme.custom.clay.border,
-                  borderRadius: "14px",
-                  transition: "all 0.25s ease",
+                  borderRadius: "var(--radius-md)",
+                  transition: "var(--motion-interactive)",
                   "&:hover": {
                     color: "text.primary",
                     borderColor: "primary.main",

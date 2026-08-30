@@ -14,10 +14,8 @@ import DownloadIcon from "@mui/icons-material/Download";
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
     sx={(theme) => ({
-      background: theme.custom.clay.surfaceSoft,
-      border: theme.custom.clay.border,
-      borderRadius: "28px",
-      boxShadow: theme.custom.clay.raised,
+      ...theme.custom.patterns.surface.raised,
+      borderRadius: "var(--radius-panel)",
       ...sx,
     })}
     {...rest}
@@ -141,7 +139,7 @@ const DownloadPage = () => {
                       gap: 1.2,
                       px: 2,
                       py: 1.4,
-                      borderRadius: "16px",
+                      borderRadius: "var(--radius-lg)",
                       background: theme.custom.clay.surfaceSoft,
                       border: theme.custom.clay.border,
                       boxShadow: theme.custom.clay.raisedSmall,

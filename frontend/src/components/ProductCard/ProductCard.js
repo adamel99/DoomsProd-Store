@@ -98,11 +98,11 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
         background: theme.custom.clay.surfaceSoft,
         border: theme.custom.clay.border,
         boxShadow: theme.custom.clay.raised,
-        transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+        transition: theme.custom.motion.transition.lift,
         "&:hover": {
           transform: "translateY(-4px)",
           boxShadow: theme.custom.clay.floating,
-          borderColor: `${theme.palette.primary.main}55`,
+          borderColor: theme.custom.transparent(theme.palette.primary.main, 0.33),
         },
       })}
     >
@@ -113,7 +113,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
         height: "100%",
         minHeight: isList ? { xs: 170, md: 190 } : 210,
         overflow: "hidden",
-        background: (theme) => `linear-gradient(135deg, ${theme.palette.background.paper}, ${theme.custom.clay.surface})`,
+        background: (theme) => theme.custom.gradients.surfaceCool,
       }}>
         <Box
           component="img"
@@ -129,15 +129,15 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
             objectFit: "contain",
             objectPosition: "center",
             display: "block",
-            transition: "transform 220ms ease",
+            transition: (theme) => theme.custom.motion.transition.media,
             ".MuiBox-root:hover > &": { transform: "scale(1.02)" },
           }}
         />
         <Box sx={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to top, rgba(54,36,23,0.62) 0%, rgba(54,36,23,0.12) 48%, transparent 100%)",
-          opacity: 0.42,
+          background: (theme) => theme.custom.gradients.imageScrim,
+          opacity: 0.48,
           pointerEvents: "none",
         }} />
 
@@ -148,8 +148,8 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
           px: 1.1,
           py: 0.45,
           borderRadius: "999px",
-          background: "rgba(241,218,191,0.9)",
-          border: theme.custom.clay.border,
+          background: theme.custom.transparent(theme.custom.colors.clay, 0.92),
+          border: `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.28)}`,
           boxShadow: theme.custom.clay.raisedSmall,
         })}>
           <Typography sx={{
@@ -177,11 +177,12 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
                 height: 38,
                 color: "primary.main",
                 background: theme.custom.clay.surfaceSoft,
-                border: theme.custom.clay.border,
+                border: `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.3)}`,
                 boxShadow: theme.custom.clay.raisedSmall,
+                transition: theme.custom.motion.transition.interactive,
                 "&:hover": {
                   color: "primary.contrastText",
-                  background: "primary.main",
+                  background: theme.custom.gradients.brandSoft,
                 },
               })}
             >
@@ -313,9 +314,15 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
               aria-label="Add to cart"
               onClick={handleAddToCart}
               disabled={addCartLoading}
-              sx={{
+              sx={(theme) => ({
                 color: addCartSuccess ? "success.main" : "primary.main",
-              }}
+                borderColor: addCartSuccess
+                  ? theme.custom.transparent(theme.palette.success.main, 0.38)
+                  : theme.custom.transparent(theme.palette.primary.main, 0.28),
+                background: addCartSuccess
+                  ? theme.custom.transparent(theme.palette.success.main, 0.12)
+                  : theme.custom.transparent(theme.palette.primary.main, 0.09),
+              })}
             >
               {addCartSuccess ? <CheckCircleIcon fontSize="small" /> : <ShoppingCartIcon fontSize="small" />}
             </IconButton>
@@ -333,7 +340,7 @@ const MetaPill = ({ children }) => (
     minWidth: 0,
     maxWidth: "100%",
     borderRadius: "999px",
-    background: "rgba(241,218,191,0.46)",
+    background: theme.custom.transparent(theme.custom.colors.clay, 0.54),
     border: theme.custom.clay.hairline,
   })}>
     <Typography sx={{

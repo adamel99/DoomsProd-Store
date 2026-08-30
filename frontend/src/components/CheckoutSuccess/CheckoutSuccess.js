@@ -12,7 +12,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", top: "-10vh", left: "-8vw",
       width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle at 40% 40%, 33 0%, 22 55%, transparent 72%)`,
+      background: (theme) => theme.custom.effects.orb.rose,
       filter: "blur(70px)",
       animation: "orbF1 22s ease-in-out infinite",
       "@keyframes orbF1": {
@@ -24,7 +24,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", bottom: 0, right: "-10vw",
       width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle, 44 0%, transparent 70%)`,
+      background: (theme) => theme.custom.effects.orb.brown,
       filter: "blur(80px)",
       animation: "orbF2 30s ease-in-out infinite reverse",
       "@keyframes orbF2": {
@@ -43,10 +43,8 @@ const LiquidBackground = React.memo(() => (
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
     sx={(theme) => ({
-      background: theme.custom.clay.surfaceSoft,
-      border: theme.custom.clay.border,
-      borderRadius: "28px",
-      boxShadow: theme.custom.clay.raised,
+      ...theme.custom.patterns.surface.raised,
+      borderRadius: "var(--radius-panel)",
       ...sx,
     })}
     {...rest}
@@ -111,7 +109,7 @@ export default function CheckoutSuccess() {
                 background: (theme) => `${theme.palette.success.main}18`,
                 border: (theme) => `1px solid ${theme.palette.success.main}55`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: (theme) => theme.custom.clay.raisedSmall,
+                boxShadow: "var(--clay-raised-small)",
               }}>
                 <motion.div
                   initial={{ scale: 0, rotate: -20 }}
@@ -180,10 +178,10 @@ export default function CheckoutSuccess() {
                           fontFamily: (theme) => theme.custom.fonts.body,
                           fontWeight: 600,
                           fontSize: "0.85rem",
-                          borderRadius: "14px",
+                          borderRadius: "var(--radius-md)",
                           color: "success.main",
-                          borderColor: (theme) => `${theme.palette.success.main}66`,
-                          background: (theme) => `${theme.palette.success.main}12`,
+                          borderColor: "success.main",
+                          background: "rgba(46, 125, 50, 0.07)",
                           textAlign: "left",
                           justifyContent: "flex-start",
                           overflow: "hidden",
@@ -191,7 +189,7 @@ export default function CheckoutSuccess() {
                           whiteSpace: "nowrap",
                           "&:hover": {
                             borderColor: "success.main",
-                            background: (theme) => `${theme.palette.success.main}22`,
+                            background: "rgba(46, 125, 50, 0.13)",
                           },
                         }}
                       >
@@ -222,15 +220,15 @@ export default function CheckoutSuccess() {
                     fontFamily: (theme) => theme.custom.fonts.display,
                     fontWeight: 700,
                     fontSize: "1rem",
-                    borderRadius: "14px",
-                    background: (theme) => `linear-gradient(135deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
-                    boxShadow: (theme) => theme.custom.clay.raisedSmall,
+                    borderRadius: "var(--radius-md)",
+                    background: "linear-gradient(135deg, #2e7d32, #1b5e20)",
+                    boxShadow: "var(--clay-raised-small)",
                     "&:hover": {
-                      background: (theme) => `linear-gradient(135deg, ${theme.palette.success.light}, ${theme.palette.success.main})`,
-                      boxShadow: (theme) => theme.custom.clay.floating,
+                      background: "linear-gradient(135deg, #4caf50, #2e7d32)",
+                      boxShadow: "var(--clay-floating)",
                       transform: "translateY(-2px)",
                     },
-                    transition: "all 0.3s ease",
+                    transition: "var(--motion-lift)",
                   }}
                 >
                   Download Your Files
@@ -254,9 +252,9 @@ export default function CheckoutSuccess() {
                   fontWeight: 600, fontSize: "0.875rem",
                   color: "text.secondary",
                   background: (theme) => theme.custom.clay.surfaceSoft,
-                  border: (theme) => theme.custom.clay.border,
-                  borderRadius: "14px",
-                  transition: "all 0.25s ease",
+                  border: "var(--clay-border)",
+                  borderRadius: "var(--radius-md)",
+                  transition: "var(--motion-interactive)",
                   "&:hover": {
                     color: "text.primary",
                     borderColor: "primary.main",

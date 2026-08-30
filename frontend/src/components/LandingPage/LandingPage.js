@@ -25,6 +25,18 @@ const routeMap = {
   "Licenses & Terms": "/licenses",
 };
 
+const flatPinkButtonSx = {
+  background: (theme) => theme.custom.colors.pink,
+  backgroundImage: "none",
+  borderColor: (theme) => theme.custom.transparent(theme.custom.colors.pink, 0.5),
+  color: "primary.contrastText",
+  "&:hover": {
+    background: (theme) => theme.custom.colors.coralDark,
+    backgroundImage: "none",
+    borderColor: (theme) => theme.custom.transparent(theme.custom.colors.coralDark, 0.55),
+  },
+};
+
 const testimonials = [
   {
     name: "Fivio Foreign - Dribble",
@@ -57,22 +69,18 @@ const LiquidBackground = React.memo(() => (
     <Box sx={(theme) => ({
       position: "absolute",
       inset: 0,
-      background: `linear-gradient(180deg, transparent 0%, ${theme.palette.background.default} 72%)`,
+      background: theme.custom.gradients.pageFade,
     })} />
   </Box>
 ));
 
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box sx={(theme) => ({
-    position: "relative",
-    background: theme.custom.clay.surfaceSoft,
-    border: theme.custom.clay.border,
-    borderRadius: "20px",
-    boxShadow: theme.custom.clay.raised,
+    ...theme.custom.patterns.surface.glass,
     "&::before": {
       content: '""',
       position: "absolute", inset: 0, borderRadius: "inherit",
-      background: "linear-gradient(120deg, rgba(255,255,255,0.5) 0%, transparent 35%)",
+      background: theme.custom.gradients.shine,
       pointerEvents: "none",
     },
     ...sx,
@@ -84,16 +92,14 @@ const GlassPanel = ({ children, sx = {}, ...rest }) => (
 // ─── Neumorphic Card ──────────────────────────────────────────────────────────
 const NeumorphCard = ({ children, sx = {}, onClick }) => (
   <Box onClick={onClick} sx={(theme) => ({
-    background: theme.custom.clay.surfaceSoft,
-    borderRadius: "28px",
-    border: theme.custom.clay.border,
-    boxShadow: theme.custom.clay.raised,
-    transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+    ...theme.custom.patterns.surface.raised,
+    borderRadius: `${theme.custom.radius["4xl"]}px`,
+    transition: theme.custom.motion.transition.lift,
     cursor: onClick ? "pointer" : "default",
     "&:hover": onClick ? {
       transform: "translateY(-6px)",
       boxShadow: theme.custom.clay.floating,
-      borderColor: `${theme.palette.primary.main}66`,
+      borderColor: theme.custom.transparent(theme.palette.primary.main, 0.4),
     } : {},
     ...sx,
   })}>
@@ -104,9 +110,9 @@ const NeumorphCard = ({ children, sx = {}, onClick }) => (
 const AccentRule = ({ width = 40, sx = {} }) => (
   <Box sx={(theme) => ({
     width, height: "2px",
-    background: `linear-gradient(90deg, ${theme.palette.primary.main}, transparent)`,
+    background: theme.custom.gradients.brandGlow,
     borderRadius: "2px",
-    boxShadow: `0 0 8px ${theme.palette.primary.main}66`,
+    boxShadow: theme.custom.effects.glow.primary,
     ...sx,
   })} />
 );
@@ -210,17 +216,15 @@ const ProductCard = React.memo(({ product, onCardClick }) => {
     <Box
       onClick={handleClick}
       sx={(theme) => ({
-        borderRadius: "24px",
+        ...theme.custom.patterns.surface.raised,
+        borderRadius: `${theme.custom.radius["3xl"]}px`,
         overflow: "hidden",
         cursor: "pointer",
         position: "relative",
-        background: theme.custom.clay.surfaceSoft,
-        border: theme.custom.clay.border,
-        boxShadow: theme.custom.clay.raised,
-        transition: "all 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+        transition: theme.custom.motion.transition.lift,
         "&:hover": {
           transform: "translateY(-8px)",
-          borderColor: `${theme.palette.primary.main}66`,
+          borderColor: theme.custom.transparent(theme.palette.primary.main, 0.4),
           boxShadow: theme.custom.clay.floating,
         },
       })}
@@ -228,33 +232,26 @@ const ProductCard = React.memo(({ product, onCardClick }) => {
       {/* channel-strip index rail */}
       <Box sx={{
         position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 2,
-        background: (theme) => `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.main}33 60%, transparent)`,
+        background: (theme) => `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.custom.transparent(theme.palette.primary.main, 0.2)} 60%, transparent)`,
         opacity: isCurrentTrackPlaying ? 1 : 0.45,
-        transition: "opacity 0.3s ease",
+        transition: (theme) => theme.custom.motion.transition.opacity,
       }} />
 
       {/* ── Image zone ────────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", paddingTop: "100%", overflow: "hidden" }}>
+      <Box sx={(theme) => theme.custom.patterns.media.squareCover}>
         <Box
           component="img"
           src={product.imageUrl || "/placeholder.jpg"}
           alt={product.title}
           loading="lazy"
-          sx={{
-            position: "absolute", top: 0, left: 0,
-            width: "100%", height: "100%",
-            objectFit: "cover",
-            transition: "transform 0.6s ease",
+          sx={(theme) => ({
+            ...theme.custom.patterns.media.coverImage,
             ".MuiBox-root:hover &": { transform: "scale(1.05)" },
-          }}
+          })}
         />
 
         {/* Bottom gradient */}
-        <Box sx={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to top, rgba(34,28,32,0.78) 0%, rgba(34,28,32,0.14) 55%, transparent 100%)",
-          pointerEvents: "none",
-        }} />
+        <Box sx={(theme) => theme.custom.patterns.media.bottomScrim} />
 
         {audioSrc && (
           <>
@@ -275,9 +272,9 @@ const ProductCard = React.memo(({ product, onCardClick }) => {
                   border: (theme) => theme.custom.clay.border,
                   color: "primary.main",
                   boxShadow: (theme) => theme.custom.clay.raisedSmall,
-                  transition: "all 0.3s cubic-bezier(0.34,1.56,0.64,1)",
+                  transition: (theme) => theme.custom.motion.transition.lift,
                   "&:hover": {
-                    background: (theme) => `linear-gradient(145deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
+                    background: (theme) => theme.custom.gradients.brandSoft,
                     color: "primary.contrastText",
                     transform: "scale(1.12)",
                     boxShadow: (theme) => theme.custom.clay.floating,
@@ -400,12 +397,16 @@ const InteractiveFeatureSection = ({ history }) => {
                     onClick={() => history.push(routeMap[item.title])}
                     sx={(theme) => ({
                       p: { xs: 2.25, md: 2.75 },
-                      borderRadius: "18px",
+                      borderRadius: `${theme.custom.radius.xl}px`,
                       cursor: "pointer",
-                      border: isActive ? `1px solid ${theme.palette.primary.main}55` : theme.custom.clay.hairline,
-                      background: isActive ? theme.custom.clay.surfaceSoft : "rgba(241,218,191,0.24)",
+                      border: isActive
+                        ? `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.33)}`
+                        : theme.custom.clay.hairline,
+                      background: isActive
+                        ? theme.custom.clay.surfaceSoft
+                        : theme.custom.transparent(theme.custom.colors.cream, 0.24),
                       boxShadow: isActive ? theme.custom.clay.raisedSmall : "none",
-                      transition: "background-color 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+                      transition: theme.custom.motion.transition.interactive,
                     })}
                   >
                     <Typography sx={{
@@ -484,7 +485,7 @@ const InteractiveFeatureSection = ({ history }) => {
                   variant="contained"
                   onClick={() => history.push(routeMap[active])}
                   endIcon={<ArrowForwardIcon />}
-                  sx={{ px: 3.5 }}
+                  sx={{ ...flatPinkButtonSx, px: 3.5 }}
                 >
                   {activeItem?.cta}
                 </Button>
@@ -578,13 +579,13 @@ const LandingPage = () => {
                   maxWidth: 560,
                   mb: 3,
                   background: (theme) => theme.custom.clay.surfaceSoft,
-                  borderRadius: "18px",
+                  borderRadius: (theme) => `${theme.custom.radius.xl}px`,
                   border: (theme) => theme.custom.clay.border,
                   overflow: "hidden",
                   boxShadow: (theme) => theme.custom.clay.pressed,
                   "&:focus-within": {
                     borderColor: "primary.main",
-                    boxShadow: (theme) => `${theme.custom.clay.pressed}, 0 0 0 3px ${theme.palette.primary.main}33`,
+                    boxShadow: (theme) => `${theme.custom.clay.pressed}, ${theme.custom.effects.focusRing}`,
                   },
                 }}
               >
@@ -609,7 +610,7 @@ const LandingPage = () => {
                     m: 0.75,
                     width: 44,
                     height: 44,
-                    borderRadius: "14px",
+                    borderRadius: (theme) => `${theme.custom.radius.md}px`,
                     bgcolor: "primary.main",
                     color: "primary.contrastText",
                     flexShrink: 0,
@@ -621,7 +622,7 @@ const LandingPage = () => {
               </Box>
 
               <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-                <Button variant="contained" size="large" onClick={handleContactOpen}>
+                <Button variant="contained" size="large" onClick={handleContactOpen} sx={flatPinkButtonSx}>
                   Start a project
                 </Button>
                 <Button
@@ -854,7 +855,7 @@ const LandingPage = () => {
               <Button
                 variant="contained" size="large"
                 onClick={() => history.push("/products")}
-                sx={{ px: 5, py: 1.6, fontSize: "1rem" }}
+                sx={{ ...flatPinkButtonSx, px: 5, py: 1.6, fontSize: "1rem" }}
               >
                 Explore Beats
               </Button>

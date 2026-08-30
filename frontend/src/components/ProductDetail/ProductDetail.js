@@ -29,10 +29,7 @@ import { useAudioPlayer } from "../../context/AudioPlayer";
 
 const DetailPanel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
-    background: theme.custom.clay.surfaceSoft,
-    border: theme.custom.clay.border,
-    borderRadius: "20px",
-    boxShadow: theme.custom.clay.raised,
+    ...theme.custom.patterns.surface.glass,
     ...sx,
   })}>
     {children}
@@ -47,7 +44,7 @@ const MetaPill = ({ label, value }) => {
       px: 1.5,
       py: 0.75,
       borderRadius: "999px",
-      background: "rgba(241,218,191,0.46)",
+      background: (theme) => theme.custom.transparent(theme.custom.colors.cream, 0.46),
       border: theme.custom.clay.hairline,
     })}>
       <Typography sx={{
@@ -179,7 +176,7 @@ const ProductDetailPage = () => {
                   <Box sx={{
                     position: "absolute",
                     inset: 0,
-                    background: "linear-gradient(to top, rgba(54,36,23,0.58) 0%, rgba(54,36,23,0.08) 52%, transparent 100%)",
+                    background: "var(--image-scrim, linear-gradient(to top, rgba(54,36,23,0.62) 0%, rgba(54,36,23,0.12) 48%, transparent 100%))",
                     pointerEvents: "none",
                   }} />
 
@@ -190,7 +187,7 @@ const ProductDetailPage = () => {
                     px: 1.6,
                     py: 0.65,
                     borderRadius: "999px",
-                    background: "rgba(241,218,191,0.92)",
+                    background: (theme) => theme.custom.transparent(theme.custom.colors.cream, 0.92),
                     border: theme.custom.clay.border,
                     boxShadow: theme.custom.clay.raisedSmall,
                   })}>
@@ -411,8 +408,8 @@ const ProductDetailPage = () => {
                 position: "relative",
                 aspectRatio: "16 / 9",
                 overflow: "hidden",
-                borderRadius: "16px",
-                border: (theme) => theme.custom.clay.border,
+                borderRadius: "var(--radius-lg)",
+                border: "var(--clay-border)",
               }}>
                 <iframe
                   src={youtubeEmbedUrl}

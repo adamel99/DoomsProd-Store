@@ -34,14 +34,14 @@ const ADMIN_LINK = { path: '/admin/orders', label: 'Admin' };
 const iconBtnSx = (theme) => ({
   width: 34, height: 34,
   border: theme.custom.clay.border,
-  borderRadius: '10px',
+  borderRadius: theme.custom.radius.sm,
   color: theme.palette.text.secondary,
   background: theme.palette.background.paper,
   boxShadow: theme.custom.clay.raisedSmall,
-  transition: 'all 0.2s ease',
+  transition: theme.custom.motion.transition.interactive,
   '&:hover': {
     color: theme.palette.primary.main,
-    borderColor: `${theme.palette.primary.main}66`,
+    borderColor: theme.custom.transparent(theme.palette.primary.main, 0.4),
     background: theme.custom.clay.surfaceSoft,
     boxShadow: theme.custom.clay.floating,
   },
@@ -120,7 +120,7 @@ function Navigation({ isLoaded }) {
           boxShadow: scrolled
             ? theme.custom.clay.floating
             : `0 1px 0 ${theme.custom.colors.cream}73 inset`,
-          transition: 'all 0.4s ease',
+          transition: theme.custom.motion.transition.lift,
         })}
       >
         {/* Noise grain */}
@@ -136,9 +136,9 @@ function Navigation({ isLoaded }) {
           left: '50%', transform: 'translateX(-50%)',
           width: scrolled ? '60%' : '30%',
           height: '1px',
-          background: (theme) => `linear-gradient(90deg, transparent, ${theme.palette.primary.main}, transparent)`,
+          background: (theme) => theme.custom.gradients.brandGlow,
           opacity: scrolled ? 1 : 0.55,
-          transition: 'all 0.5s ease',
+          transition: 'var(--motion-lift)',
           pointerEvents: 'none',
         }} />
 

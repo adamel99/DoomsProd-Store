@@ -18,7 +18,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", top: "-10vh", left: "-8vw",
       width: { xs: "55vw", md: "40vw" }, height: { xs: "55vw", md: "40vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle at 40% 40%, 33 0%, 22 55%, transparent 72%)`,
+      background: (theme) => theme.custom.effects.orb.rose,
       filter: "blur(70px)",
       animation: "orbF1 22s ease-in-out infinite",
       "@keyframes orbF1": {
@@ -30,7 +30,7 @@ const LiquidBackground = React.memo(() => (
       position: "absolute", bottom: 0, right: "-10vw",
       width: { xs: "45vw", md: "32vw" }, height: { xs: "45vw", md: "32vw" },
       borderRadius: "50%",
-      background: (theme) => `radial-gradient(circle, 44 0%, transparent 70%)`,
+      background: (theme) => theme.custom.effects.orb.brown,
       filter: "blur(80px)",
       animation: "orbF2 30s ease-in-out infinite reverse",
       "@keyframes orbF2": {
@@ -49,10 +49,8 @@ const LiquidBackground = React.memo(() => (
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box
     sx={(theme) => ({
-      background: theme.custom.clay.surfaceSoft,
-      border: theme.custom.clay.border,
-      borderRadius: "28px",
-      boxShadow: theme.custom.clay.raised,
+      ...theme.custom.patterns.surface.raised,
+      borderRadius: "var(--radius-panel)",
       ...sx,
     })}
     {...rest}
@@ -93,10 +91,10 @@ const CartItemCard = ({ item, onRemove }) => {
           alignItems: "center",
           background: (theme) => theme.custom.clay.surfaceSoft,
           border: (theme) => theme.custom.clay.border,
-          borderRadius: "20px",
+          borderRadius: "var(--radius-xl)",
           boxShadow: (theme) => theme.custom.clay.raisedSmall,
           p: 2,
-          transition: "all 0.3s ease",
+          transition: "var(--motion-lift)",
           "&:hover": {
             borderColor: "primary.main",
             boxShadow: (theme) => theme.custom.clay.floating,
@@ -106,7 +104,7 @@ const CartItemCard = ({ item, onRemove }) => {
         {/* Image */}
         <Box sx={{
           width: 72, height: 72, flexShrink: 0,
-          borderRadius: "14px",
+          borderRadius: "var(--radius-md)",
           overflow: "hidden",
           border: (theme) => theme.custom.clay.border,
           boxShadow: (theme) => theme.custom.clay.raisedSmall,
@@ -127,7 +125,7 @@ const CartItemCard = ({ item, onRemove }) => {
             display: "inline-flex", alignItems: "center", gap: 0.6, mb: 0.75,
             background: (theme) => `${theme.palette.primary.main}22`,
             border: (theme) => `1px solid ${theme.palette.primary.main}44`,
-            borderRadius: "100px",
+            borderRadius: "999px",
             px: 1.2, py: 0.3,
           }}>
             <MusicNoteIcon sx={{ fontSize: 11, color: "primary.main" }} />
@@ -182,7 +180,7 @@ const CartItemCard = ({ item, onRemove }) => {
               border: (theme) => `1px solid ${theme.palette.primary.main}44`,
               borderRadius: "10px",
               color: "primary.main",
-              transition: "all 0.25s ease",
+              transition: "var(--motion-interactive)",
               "&:hover": {
                 background: (theme) => `${theme.palette.primary.main}24`,
                 borderColor: "primary.main",
@@ -249,10 +247,10 @@ const CartPage = () => {
               color: "text.secondary",
               background: (theme) => theme.custom.clay.surfaceSoft,
               border: (theme) => theme.custom.clay.border,
-              borderRadius: "100px",
+              borderRadius: "999px",
               px: 2.5, py: 1,
               boxShadow: (theme) => theme.custom.clay.raisedSmall,
-              transition: "all 0.25s ease",
+              transition: "var(--motion-interactive)",
               "&:hover": {
                 color: "text.primary",
                 borderColor: "primary.main",
@@ -267,7 +265,7 @@ const CartPage = () => {
         {/* Heading */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 6 }}>
-            <Box sx={{ width: 4, height: 36, borderRadius: "2px", bgcolor: "primary.main", boxShadow: (theme) => `0 2px 14px ${theme.palette.primary.main}80` }} />
+            <Box sx={{ width: 4, height: 36, borderRadius: "2px", bgcolor: "primary.main", boxShadow: (theme) => theme.custom.effects.glow.rule }} />
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
               fontWeight: 800,
@@ -282,7 +280,7 @@ const CartPage = () => {
                 px: 1.5, py: 0.4,
                 background: (theme) => `${theme.palette.primary.main}22`,
                 border: (theme) => `1px solid ${theme.palette.primary.main}55`,
-                borderRadius: "100px",
+                borderRadius: "999px",
               }}>
                 <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.body, fontSize: "0.8rem", fontWeight: 700, color: "primary.main" }}>
                   {cartItems.length}
@@ -322,7 +320,7 @@ const CartPage = () => {
                 onClick={() => history.push("/products")}
                 sx={{
                   borderColor: (theme) => `${theme.palette.primary.main}66`, color: "primary.main",
-                  borderRadius: "100px", px: 3, py: 1,
+                  borderRadius: "999px", px: 3, py: 1,
                   "&:hover": { borderColor: "primary.main", bgcolor: (theme) => `${theme.palette.primary.main}14` },
                 }}
               >
@@ -383,7 +381,7 @@ const CartPage = () => {
                     fontFamily: (theme) => theme.custom.fonts.display,
                     fontWeight: 700,
                     fontSize: "1rem",
-                    borderRadius: "14px",
+                    borderRadius: "var(--radius-md)",
                     background: (theme) => `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                     boxShadow: (theme) => theme.custom.clay.raisedSmall,
                     "&:hover": {
@@ -391,7 +389,7 @@ const CartPage = () => {
                       boxShadow: (theme) => theme.custom.clay.floating,
                       transform: "translateY(-2px)",
                     },
-                    transition: "all 0.3s ease",
+                    transition: "var(--motion-lift)",
                   }}
                 >
                   Proceed to Checkout

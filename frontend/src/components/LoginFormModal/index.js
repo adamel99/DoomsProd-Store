@@ -11,7 +11,7 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 const fieldSx = (theme) => ({
   "& .MuiOutlinedInput-root": {
     background: theme.custom.clay.surfaceSoft,
-    borderRadius: "14px",
+    borderRadius: "var(--radius-md)",
     color: theme.palette.text.primary,
     fontFamily: theme.custom.fonts.body,
     boxShadow: theme.custom.clay.pressed,
@@ -67,7 +67,7 @@ const LoginFormModal = () => {
       width: { xs: 320, sm: 400 },
       background: theme.custom.clay.surfaceSoft,
       border: theme.custom.clay.border,
-      borderRadius: "28px",
+      borderRadius: "var(--radius-panel)",
       boxShadow: theme.custom.clay.floating,
       px: { xs: 3, sm: 4.5 },
       py: 5,
@@ -82,7 +82,7 @@ const LoginFormModal = () => {
         transform: "translateX(-50%)",
         width: 200, height: 100,
         borderRadius: "50%",
-        background: (theme) => `radial-gradient(ellipse, ${theme.palette.primary.main}33 0%, transparent 70%)`,
+        background: (theme) => theme.custom.effects.orb.rose,
         pointerEvents: "none",
       }} />
 
@@ -91,7 +91,7 @@ const LoginFormModal = () => {
         <Box sx={{
           width: 10, height: 10, borderRadius: "50%",
           bgcolor: "primary.main",
-          boxShadow: (theme) => `0 0 10px ${theme.palette.primary.main}, 0 0 24px ${theme.palette.primary.main}80`,
+          boxShadow: (theme) => theme.custom.effects.glow.primaryStrong,
           mx: "auto", mb: 2,
         }} />
         <Typography sx={{
@@ -165,7 +165,7 @@ const LoginFormModal = () => {
             fontSize: "0.9rem",
             letterSpacing: "0.5px",
             textTransform: "none",
-            borderRadius: "14px",
+            borderRadius: "var(--radius-md)",
             background: isDisabled
               ? theme.custom.clay.surfaceSoft
               : `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
@@ -176,7 +176,7 @@ const LoginFormModal = () => {
             boxShadow: isDisabled
               ? theme.custom.clay.pressed
               : theme.custom.clay.raisedSmall,
-            transition: "all 0.25s ease",
+            transition: "var(--motion-interactive)",
             "&:hover:not(:disabled)": {
               background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
               transform: "translateY(-1px)",

@@ -24,10 +24,7 @@ import { formatProductType } from "../../utils/formatProductType";
 
 const Panel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
-    background: theme.custom.clay.surfaceSoft,
-    border: theme.custom.clay.border,
-    borderRadius: "20px",
-    boxShadow: theme.custom.clay.raised,
+    ...theme.custom.patterns.surface.glass,
     ...sx,
   })}>
     {children}
@@ -335,8 +332,8 @@ const OrderCard = ({ order, downloadInfo, receiptInfo, onLoadDownloads, onResend
   return (
     <Box sx={(theme) => ({
       p: { xs: 2, md: 2.5 },
-      borderRadius: "16px",
-      background: "rgba(241,218,191,0.36)",
+      borderRadius: "var(--radius-lg)",
+      background: (theme) => theme.custom.transparent(theme.custom.colors.cream, 0.36),
       border: theme.custom.clay.hairline,
     })}>
       <Box sx={{
