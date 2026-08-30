@@ -117,6 +117,181 @@ const AccentRule = ({ width = 40, sx = {} }) => (
   })} />
 );
 
+const HeroArtwork = ({ product, onPlay, isPlaying }) => {
+  const imageUrl = product?.imageUrl || "/placeholder.jpg";
+  const title = product?.title || "Premium Beat";
+  const type = product?.type || "beat";
+
+  return (
+    <Box sx={(theme) => ({
+      position: "relative",
+      minHeight: { xs: 420, md: 620 },
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      isolation: "isolate",
+      mt: { xs: 2, md: 0 },
+    })}>
+      <Box sx={(theme) => ({
+        position: "absolute",
+        width: { xs: 250, sm: 340, md: 410 },
+        height: { xs: 250, sm: 340, md: 410 },
+        borderRadius: "50%",
+        background: theme.custom.effects.orb.brown,
+        filter: "blur(4px)",
+        opacity: 0.74,
+        zIndex: -1,
+      })} />
+
+      <Box sx={(theme) => ({
+        position: "absolute",
+        top: { xs: 18, md: 42 },
+        left: { xs: 0, md: 10 },
+        width: { xs: 150, md: 178 },
+        p: 2,
+        ...theme.custom.patterns.surface.glass,
+        borderRadius: `${theme.custom.radius["2xl"]}px`,
+        zIndex: 2,
+      })}>
+        <Typography sx={{
+          fontFamily: (theme) => theme.custom.fonts.mono,
+          fontSize: "0.62rem",
+          letterSpacing: "1.6px",
+          color: "text.disabled",
+          textTransform: "uppercase",
+          mb: 1.2,
+        }}>
+          Latest drop
+        </Typography>
+        <Typography sx={{
+          fontFamily: (theme) => theme.custom.fonts.display,
+          fontSize: { xs: "1.15rem", md: "1.35rem" },
+          fontWeight: 800,
+          color: "text.primary",
+          lineHeight: 1,
+        }}>
+          New heat in rotation
+        </Typography>
+      </Box>
+
+      <Box sx={(theme) => ({
+        width: { xs: "78vw", sm: 360, md: 430 },
+        maxWidth: 430,
+        aspectRatio: "1 / 1.15",
+        borderRadius: { xs: "34px", md: "44px" },
+        overflow: "hidden",
+        position: "relative",
+        background: theme.custom.gradients.surfaceCool,
+        border: theme.custom.clay.border,
+        boxShadow: theme.custom.clay.floating,
+      })}>
+        <Box
+          component="img"
+          src={imageUrl}
+          alt={title}
+          sx={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+        <Box sx={(theme) => ({
+          position: "absolute",
+          inset: 0,
+          background: theme.custom.gradients.mediaScrim,
+        })} />
+        <IconButton
+          onClick={onPlay}
+          disabled={!product?.audioPreviewUrl}
+          aria-label={isPlaying ? "Pause featured beat" : "Play featured beat"}
+          sx={(theme) => ({
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: { xs: 68, md: 82 },
+            height: { xs: 68, md: 82 },
+            background: theme.custom.transparent(theme.custom.colors.cream, 0.8),
+            border: theme.custom.clay.border,
+            color: "primary.main",
+            boxShadow: theme.custom.clay.raised,
+            "&:hover": {
+              background: theme.custom.colors.pink,
+              color: "primary.contrastText",
+              transform: "translate(-50%, -50%) scale(1.06)",
+            },
+            "&.Mui-disabled": {
+              color: "text.disabled",
+            },
+          })}
+        >
+          {isPlaying ? <PauseIcon sx={{ fontSize: 36 }} /> : <PlayArrowIcon sx={{ fontSize: 40, ml: 0.5 }} />}
+        </IconButton>
+      </Box>
+
+      <Box sx={(theme) => ({
+        position: "absolute",
+        right: { xs: 2, md: -10 },
+        top: { xs: 96, md: 118 },
+        width: { xs: 158, md: 206 },
+        p: 2,
+        ...theme.custom.patterns.surface.glass,
+        borderRadius: `${theme.custom.radius["2xl"]}px`,
+        zIndex: 3,
+      })}>
+        <Typography sx={{
+          fontFamily: (theme) => theme.custom.fonts.mono,
+          fontSize: "0.62rem",
+          letterSpacing: "1.5px",
+          textTransform: "uppercase",
+          color: "text.disabled",
+          mb: 1,
+        }}>
+          Previewing
+        </Typography>
+        <Typography sx={{
+          fontFamily: (theme) => theme.custom.fonts.display,
+          fontWeight: 800,
+          color: "text.primary",
+          fontSize: { xs: "0.98rem", md: "1.15rem" },
+          lineHeight: 1.15,
+          mb: 1.3,
+        }}>
+          {title}
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
+          <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, color: "primary.main", fontSize: "0.68rem", textTransform: "uppercase" }}>
+            {type}
+          </Typography>
+          <WaveformBars count={4} />
+        </Box>
+      </Box>
+
+      <Box sx={(theme) => ({
+        position: "absolute",
+        left: { xs: 8, md: 28 },
+        bottom: { xs: 4, md: 38 },
+        width: { xs: "calc(100% - 16px)", sm: 360, md: 390 },
+        p: 2.25,
+        ...theme.custom.patterns.surface.glass,
+        borderRadius: `${theme.custom.radius["2xl"]}px`,
+        zIndex: 4,
+      })}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 1.5 }}>
+          <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, color: "text.disabled", fontSize: "0.64rem", letterSpacing: "1.6px", textTransform: "uppercase" }}>
+            Studio pulse
+          </Typography>
+          <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, color: "primary.main", fontSize: "0.64rem", letterSpacing: "1.6px" }}>
+            LIVE
+          </Typography>
+        </Box>
+        <LevelMeter bars={20} />
+      </Box>
+    </Box>
+  );
+};
+
 // ─── Waveform Bars ────────────────────────────────────────────────────────────
 const WaveformBars = ({ count = 5 }) => (
   <Box sx={{ display: "flex", gap: 0.6, alignItems: "center" }}>
@@ -194,162 +369,129 @@ const StatusTicker = () => {
   );
 };
 
-// ─── Product Card (styled as a channel strip) ─────────────────────────────────
-const ProductCard = React.memo(({ product, onCardClick }) => {
-  const { activeTrackId, isPlaying, toggleTrack } = useAudioPlayer();
-  const isCurrentTrackPlaying = activeTrackId === product.id && isPlaying;
-  const handleClick = useCallback(() => onCardClick(product.id), [product.id, onCardClick]);
-  const handleAudioToggle = useCallback((e) => {
-    e.stopPropagation();
-    toggleTrack({
-      id: product.id,
-      title: product.title,
-      imageUrl: product.imageUrl,
-      audioPreviewUrl: product.audioPreviewUrl,
-      type: product.type,
-    });
-  }, [product, toggleTrack]);
-
-  const audioSrc = product.audioPreviewUrl || "";
-
-  return (
-    <Box
-      onClick={handleClick}
-      sx={(theme) => ({
-        ...theme.custom.patterns.surface.raised,
-        borderRadius: `${theme.custom.radius["3xl"]}px`,
-        overflow: "hidden",
-        cursor: "pointer",
-        position: "relative",
-        transition: theme.custom.motion.transition.lift,
-        "&:hover": {
-          transform: "translateY(-8px)",
-          borderColor: theme.custom.transparent(theme.palette.primary.main, 0.4),
-          boxShadow: theme.custom.clay.floating,
-        },
-      })}
-    >
-      {/* channel-strip index rail */}
-      <Box sx={{
-        position: "absolute", top: 0, left: 0, right: 0, height: 3, zIndex: 2,
-        background: (theme) => `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.custom.transparent(theme.palette.primary.main, 0.2)} 60%, transparent)`,
-        opacity: isCurrentTrackPlaying ? 1 : 0.45,
-        transition: (theme) => theme.custom.motion.transition.opacity,
-      }} />
-
-      {/* ── Image zone ────────────────────────────────────────────────── */}
-      <Box sx={(theme) => theme.custom.patterns.media.squareCover}>
-        <Box
-          component="img"
-          src={product.imageUrl || "/placeholder.jpg"}
-          alt={product.title}
-          loading="lazy"
-          sx={(theme) => ({
-            ...theme.custom.patterns.media.coverImage,
-            ".MuiBox-root:hover &": { transform: "scale(1.05)" },
-          })}
-        />
-
-        {/* Bottom gradient */}
-        <Box sx={(theme) => theme.custom.patterns.media.bottomScrim} />
-
-        {audioSrc && (
-          <>
-            {/* ── Play button — centered, nothing stacks on it ── */}
-            <Box sx={{
-              position: "absolute",
-              top: "50%", left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 2,
-            }}>
-              <IconButton
-                onClick={handleAudioToggle}
-                sx={{
-                  width: 60, height: 60,
-                  background: (theme) => theme.custom.clay.surfaceSoft,
-                  backdropFilter: "blur(30px) saturate(180%)",
-                  WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                  border: (theme) => theme.custom.clay.border,
-                  color: "primary.main",
-                  boxShadow: (theme) => theme.custom.clay.raisedSmall,
-                  transition: (theme) => theme.custom.motion.transition.lift,
-                  "&:hover": {
-                    background: (theme) => theme.custom.gradients.brandSoft,
-                    color: "primary.contrastText",
-                    transform: "scale(1.12)",
-                    boxShadow: (theme) => theme.custom.clay.floating,
-                  },
-                }}
-                aria-label={isCurrentTrackPlaying ? "Pause preview" : "Play preview"}
-              >
-                {isCurrentTrackPlaying
-                  ? <PauseIcon sx={{ fontSize: 28 }} />
-                  : <PlayArrowIcon sx={{ fontSize: 28, ml: 0.5 }} />
-                }
-              </IconButton>
-            </Box>
-
-            {/* ── Waveform — bottom-right, only when playing ── */}
-            {isCurrentTrackPlaying && (
-              <Box sx={{
-                position: "absolute",
-                bottom: 14, right: 14,
-                zIndex: 2,
-              }}>
-                <WaveformBars count={5} />
-              </Box>
-            )}
-
-          </>
-        )}
-      </Box>
-
-      {/* ── Card footer ───────────────────────────────────────────────── */}
-      <Box sx={{ p: 3 }}>
+const PluginShowcaseCard = ({ product, onCardClick }) => (
+  <Box
+    onClick={() => onCardClick(product.id)}
+    sx={(theme) => ({
+      height: "100%",
+      minWidth: 0,
+      cursor: "pointer",
+      display: "grid",
+      gridTemplateRows: { xs: "minmax(250px, 34vw) auto", sm: "minmax(270px, 33vw) auto", lg: "390px auto" },
+      gap: { xs: 2.25, md: 3 },
+      transition: theme.custom.motion.transition.lift,
+      "&:hover": {
+        transform: "translateY(-6px)",
+      },
+      "&:hover .plugin-showcase-stage": {
+        boxShadow: theme.custom.clay.floating,
+        borderColor: theme.custom.transparent(theme.palette.primary.main, 0.4),
+      },
+    })}
+  >
+    <Box sx={(theme) => ({
+      position: "relative",
+      minWidth: 0,
+      minHeight: 0,
+      background: theme.custom.gradients.surfaceCool,
+      border: theme.custom.clay.border,
+      borderRadius: `${theme.custom.radius["4xl"]}px`,
+      boxShadow: theme.custom.clay.raised,
+      overflow: "hidden",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      p: { xs: 2, md: 2.75 },
+      transition: theme.custom.motion.transition.lift,
+    })} className="plugin-showcase-stage">
+      <Box
+        component="img"
+        src={product.imageUrl || "/placeholder.jpg"}
+        alt={product.title}
+        loading="lazy"
+        sx={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          objectPosition: "center",
+          display: "block",
+        }}
+      />
+      <Box sx={(theme) => ({
+        position: "absolute",
+        top: 18,
+        left: 18,
+        px: 1.2,
+        py: 0.55,
+        borderRadius: `${theme.custom.radius.pill}px`,
+        background: theme.custom.transparent(theme.custom.colors.clay, 0.9),
+        border: `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.28)}`,
+        boxShadow: theme.custom.clay.raisedSmall,
+      })}>
         <Typography sx={{
-          fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 700,
-          fontSize: "1.05rem",
-          mb: 2,
+          fontFamily: (theme) => theme.custom.fonts.mono,
+          fontSize: "0.62rem",
+          fontWeight: 800,
+          letterSpacing: "1.4px",
+          textTransform: "uppercase",
           color: "text.primary",
-          lineHeight: 1.3,
+        }}>
+          Plugin
+        </Typography>
+      </Box>
+    </Box>
+
+    <Box sx={{
+      px: { xs: 0.5, md: 1 },
+      display: "flex",
+      flexDirection: "column",
+      gap: 1.5,
+      minWidth: 0,
+    }}>
+      <Typography variant="h3" sx={{
+        fontSize: { xs: "1.7rem", md: "2.1rem" },
+        lineHeight: 1.05,
+        color: "text.primary",
+        overflowWrap: "anywhere",
+      }}>
+        {product.title}
+      </Typography>
+      {product.description && (
+        <Typography sx={{
+          color: "text.secondary",
+          fontSize: { xs: "0.92rem", md: "1rem" },
+          lineHeight: 1.55,
           display: "-webkit-box",
-          WebkitLineClamp: 2,
+          WebkitLineClamp: 4,
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
-          minHeight: "2.6em",
         }}>
-          {product.title}
+          {product.description}
         </Typography>
-
+      )}
+      <Box sx={{ mt: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+        <Typography sx={{
+          fontFamily: (theme) => theme.custom.fonts.display,
+          fontWeight: 900,
+          fontSize: "1.4rem",
+          color: "text.primary",
+        }}>
+          ${product.price}
+        </Typography>
         <Button
-          variant="outlined"
-          fullWidth
+          variant="contained"
           endIcon={<ArrowForwardIcon />}
-          sx={{
-            py: 1,
-            fontWeight: 600,
-            fontSize: "0.875rem",
-            borderRadius: "100px",
-            borderColor: (theme) => theme.palette.divider,
-            color: "text.secondary",
-            background: (theme) => theme.custom.clay.surfaceSoft,
-            boxShadow: (theme) => theme.custom.clay.raisedSmall,
-            transition: "all 0.25s ease",
-            "&:hover": {
-              borderColor: "primary.main",
-              color: "primary.main",
-              background: (theme) => theme.custom.clay.surface,
-            },
+          sx={{ ...flatPinkButtonSx, px: 2.4 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onCardClick(product.id);
           }}
         >
-          View details
+          View Plugin
         </Button>
       </Box>
     </Box>
-  );
-}, (prev, next) =>
-  prev.product.id === next.product.id
+  </Box>
 );
 
 // ─── Interactive Feature Section ──────────────────────────────────────────────
@@ -506,6 +648,7 @@ const InteractiveFeatureSection = ({ history }) => {
 const LandingPage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
+  const { activeTrackId, isPlaying, toggleTrack } = useAudioPlayer();
   const [searchTerm, setSearchTerm] = useState("");
   const [openContactModal, setOpenContactModal] = useState(false);
 
@@ -524,10 +667,31 @@ const LandingPage = () => {
   const handleContactOpen = useCallback(() => setOpenContactModal(true), []);
   const handleContactClose = useCallback(() => setOpenContactModal(false), []);
 
-  const latestProducts = useMemo(
-    () => [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3),
+  const newestBeat = useMemo(
+    () => products
+      .filter((product) => product.type === "beat")
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0],
     [products]
   );
+  const featuredPlugins = useMemo(
+    () => products
+      .filter((product) => product.type === "plugin")
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 2),
+    [products]
+  );
+  const isFeaturedPlaying = Boolean(newestBeat && activeTrackId === newestBeat.id && isPlaying);
+  const handleFeaturedPlay = useCallback((e) => {
+    e.stopPropagation();
+    if (!newestBeat?.audioPreviewUrl) return;
+    toggleTrack({
+      id: newestBeat.id,
+      title: newestBeat.title,
+      imageUrl: newestBeat.imageUrl,
+      audioPreviewUrl: newestBeat.audioPreviewUrl,
+      type: newestBeat.type,
+    });
+  }, [newestBeat, toggleTrack]);
 
   return (
     <Box sx={{
@@ -537,173 +701,210 @@ const LandingPage = () => {
       <LiquidBackground />
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", zIndex: 2, pt: { xs: 10, md: 15 }, pb: { xs: 6, md: 8 } }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={{ xs: 5, md: 8 }} alignItems="center">
-            <Grid item xs={12} md={7}>
-              <Typography sx={{
-                fontFamily: (theme) => theme.custom.fonts.mono,
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                letterSpacing: "3px",
-                textTransform: "uppercase",
-                color: "primary.main",
-                mb: 2,
-              }}>
-                Studio online / Now booking
-              </Typography>
+      <Box sx={{
+        position: "relative",
+        zIndex: 2,
+        pt: { xs: 9, md: 10 },
+        pb: { xs: 5, md: 8 },
+        minHeight: { md: "calc(100vh - 32px)" },
+        display: "flex",
+        alignItems: "center",
+        overflow: "hidden",
+      }}>
+        <Typography
+          aria-hidden="true"
+          sx={(theme) => ({
+            position: "absolute",
+            top: { xs: 64, md: 40 },
+            left: "50%",
+            transform: "translateX(-50%)",
+            fontFamily: theme.custom.fonts.display,
+            fontWeight: 900,
+            fontSize: { xs: "5.4rem", sm: "8.5rem", md: "13.8rem", lg: "17rem" },
+            lineHeight: 0.78,
+            letterSpacing: 0,
+            color: theme.custom.transparent(theme.custom.colors.ink, 0.055),
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            userSelect: "none",
+          })}
+        >
+          DOOMS
+        </Typography>
 
-              <Typography variant="h1" sx={{
-                fontSize: { xs: "4.4rem", sm: "6.5rem", md: "8.5rem" },
-                lineHeight: 0.9,
-                mb: 3,
-                maxWidth: 760,
-              }}>
-                DOOMS
-              </Typography>
+        <Container maxWidth="lg" sx={{ position: "relative" }}>
+          <Grid container spacing={{ xs: 4, md: 7 }} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Box sx={{ maxWidth: 610, position: "relative", zIndex: 4 }}>
+                <Box sx={(theme) => ({
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 1.4,
+                  py: 0.85,
+                  mb: 2.5,
+                  ...theme.custom.patterns.badge.soft,
+                })}>
+                  <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "primary.main", boxShadow: (theme) => theme.custom.effects.glow.primary }} />
+                  <Typography sx={{
+                    fontFamily: (theme) => theme.custom.fonts.mono,
+                    fontSize: "0.68rem",
+                    fontWeight: 700,
+                    letterSpacing: "1.8px",
+                    textTransform: "uppercase",
+                    color: "primary.main",
+                  }}>
+                    Studio online / Now booking
+                  </Typography>
+                </Box>
 
-              <Typography sx={{
-                fontSize: { xs: "1.08rem", md: "1.28rem" },
-                color: "text.secondary",
-                maxWidth: 560,
-                mb: 4,
-              }}>
-                Hip-hop, trap & R&B instrumentals mixed and mastered for artists ready to release.
-              </Typography>
+                <Typography variant="h1" sx={{
+                  fontSize: { xs: "3.6rem", sm: "5.2rem", md: "6.8rem", lg: "7.8rem" },
+                  lineHeight: 0.86,
+                  mb: 2.5,
+                  maxWidth: 760,
+                }}>
+                  Beats That Feel Finished
+                </Typography>
 
-              <Box
-                component="form"
-                onSubmit={onSearchSubmit}
-                sx={{
-                  display: "flex",
-                  maxWidth: 560,
-                  mb: 3,
-                  background: (theme) => theme.custom.clay.surfaceSoft,
-                  borderRadius: (theme) => `${theme.custom.radius.xl}px`,
-                  border: (theme) => theme.custom.clay.border,
-                  overflow: "hidden",
-                  boxShadow: (theme) => theme.custom.clay.pressed,
-                  "&:focus-within": {
-                    borderColor: "primary.main",
-                    boxShadow: (theme) => `${theme.custom.clay.pressed}, ${theme.custom.effects.focusRing}`,
-                  },
-                }}
-              >
-                <InputBase
-                  placeholder="Search beats, kits, loops..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  fullWidth
-                  inputProps={{ "aria-label": "Search beats, kits, and loops" }}
-                  sx={{
-                    px: 2.5,
-                    py: 1.35,
-                    fontSize: "1rem",
-                    color: "text.primary",
-                    "& input::placeholder": { color: "text.disabled" },
-                  }}
-                />
-                <IconButton
-                  type="submit"
-                  aria-label="Search"
-                  sx={{
-                    m: 0.75,
-                    width: 44,
-                    height: 44,
-                    borderRadius: (theme) => `${theme.custom.radius.md}px`,
-                    bgcolor: "primary.main",
-                    color: "primary.contrastText",
-                    flexShrink: 0,
-                    "&:hover": { bgcolor: "primary.dark" },
-                  }}
+                <Typography sx={{
+                  fontSize: { xs: "1rem", md: "1.18rem" },
+                  color: "text.secondary",
+                  maxWidth: 550,
+                  mb: 3.5,
+                  lineHeight: 1.75,
+                }}>
+                  Hip-hop, trap & R&B instrumentals mixed, mastered, and ready for artists who want the record to hit on first play.
+                </Typography>
+
+                <Box
+                  component="form"
+                  onSubmit={onSearchSubmit}
+                  sx={(theme) => ({
+                    display: "flex",
+                    maxWidth: 540,
+                    mb: 3,
+                    background: theme.custom.clay.surfaceSoft,
+                    borderRadius: `${theme.custom.radius["2xl"]}px`,
+                    border: theme.custom.clay.border,
+                    overflow: "hidden",
+                    boxShadow: theme.custom.clay.pressed,
+                    "&:focus-within": {
+                      borderColor: "primary.main",
+                      boxShadow: `${theme.custom.clay.pressed}, ${theme.custom.effects.focusRing}`,
+                    },
+                  })}
                 >
-                  <SearchIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                  <InputBase
+                    placeholder="Search beats, kits, loops..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    fullWidth
+                    inputProps={{ "aria-label": "Search beats, kits, and loops" }}
+                    sx={{
+                      px: 2.5,
+                      py: 1.35,
+                      fontSize: "1rem",
+                      color: "text.primary",
+                      "& input::placeholder": { color: "text.disabled" },
+                    }}
+                  />
+                  <IconButton
+                    type="submit"
+                    aria-label="Search"
+                    sx={{
+                      m: 0.75,
+                      width: 44,
+                      height: 44,
+                      borderRadius: (theme) => `${theme.custom.radius.md}px`,
+                      bgcolor: "primary.main",
+                      color: "primary.contrastText",
+                      flexShrink: 0,
+                      "&:hover": { bgcolor: "primary.dark" },
+                    }}
+                  >
+                    <SearchIcon fontSize="small" />
+                  </IconButton>
+                </Box>
 
-              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-                <Button variant="contained" size="large" onClick={handleContactOpen} sx={flatPinkButtonSx}>
-                  Start a project
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  href="https://www.youtube.com/@DoomsProduction"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Watch on YouTube
-                </Button>
-                <Button
-                  variant="text"
-                  size="large"
-                  onClick={() => history.push("/products")}
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}
-                >
-                  Browse catalog
-                </Button>
+                <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", mb: { xs: 3, md: 0 } }}>
+                  <Button variant="contained" size="large" onClick={handleContactOpen} sx={flatPinkButtonSx}>
+                    Start a project
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    href="https://www.youtube.com/@DoomsProduction"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watch on YouTube
+                  </Button>
+                  <Button
+                    variant="text"
+                    size="large"
+                    onClick={() => history.push("/products")}
+                    endIcon={<ArrowForwardIcon />}
+                    sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}
+                  >
+                    Browse catalog
+                  </Button>
+                </Box>
               </Box>
             </Grid>
 
-            <Grid item xs={12} md={5}>
-              <GlassPanel sx={{ p: { xs: 3, md: 4 } }}>
-                <Typography sx={{
-                  fontFamily: (theme) => theme.custom.fonts.mono,
-                  fontSize: "0.68rem",
-                  letterSpacing: "2px",
-                  textTransform: "uppercase",
-                  color: "text.disabled",
-                  mb: 3,
-                }}>
-                  Production snapshot
-                </Typography>
-                <Box sx={{ display: "grid", gap: 2.5 }}>
-                  {stats.map((stat) => (
-                    <Box
-                      key={stat.label}
-                      sx={{
-                        display: "flex",
-                        alignItems: "baseline",
-                        justifyContent: "space-between",
-                        gap: 2,
-                        pb: 2,
-                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                        "&:last-of-type": { borderBottom: 0, pb: 0 },
-                      }}
-                    >
-                      <Typography sx={{
-                        fontFamily: (theme) => theme.custom.fonts.mono,
-                        color: "text.secondary",
-                        fontSize: "0.76rem",
-                        letterSpacing: "1.3px",
-                        textTransform: "uppercase",
-                      }}>
-                        {stat.label}
-                      </Typography>
-                      <Typography sx={{
-                        fontFamily: (theme) => theme.custom.fonts.display,
-                        fontWeight: 800,
-                        fontSize: { xs: "2rem", md: "2.5rem" },
-                        lineHeight: 1,
-                        color: "text.primary",
-                      }}>
-                        {stat.value}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </GlassPanel>
+            <Grid item xs={12} md={6}>
+              <HeroArtwork product={newestBeat} onPlay={handleFeaturedPlay} isPlaying={isFeaturedPlaying} />
             </Grid>
           </Grid>
 
-          <Box sx={{ mt: { xs: 6, md: 8 } }}>
+          <Box sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "repeat(3, minmax(0, 1fr))" },
+            gap: 2,
+            mt: { xs: 4, md: -2 },
+            position: "relative",
+            zIndex: 5,
+          }}>
+            {stats.map((stat) => (
+              <Box
+                key={stat.label}
+                sx={(theme) => ({
+                  ...theme.custom.patterns.surface.glass,
+                  borderRadius: `${theme.custom.radius["2xl"]}px`,
+                  p: { xs: 2.4, md: 3 },
+                })}
+              >
+                <Typography sx={{
+                  fontFamily: (theme) => theme.custom.fonts.display,
+                  fontWeight: 900,
+                  fontSize: { xs: "2.15rem", md: "2.7rem" },
+                  lineHeight: 0.9,
+                  color: "text.primary",
+                  mb: 1,
+                }}>
+                  {stat.value}
+                </Typography>
+                <Typography sx={{
+                  fontFamily: (theme) => theme.custom.fonts.mono,
+                  color: "text.secondary",
+                  fontSize: "0.7rem",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                }}>
+                  {stat.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          <Box sx={{ mt: { xs: 5, md: 6 } }}>
             <StatusTicker />
           </Box>
         </Container>
       </Box>
 
-      {/* ── LATEST RELEASES ──────────────────────────────────────────────── */}
+      {/* ── PLUGIN SHOWCASE ──────────────────────────────────────────────── */}
       <Box sx={{ position: "relative", zIndex: 2, py: { xs: 8, md: 12 } }}>
         <Container maxWidth="lg">
           <Box sx={{
@@ -719,37 +920,41 @@ const LandingPage = () => {
                 fontWeight: 500, letterSpacing: "3px",
                 textTransform: "uppercase", color: "primary.main", mb: 1,
               }}>
-                Fresh out the booth
+                Tools for the session
               </Typography>
               <Typography variant="h2" sx={{ fontSize: { xs: "2.2rem", md: "3.2rem" }, lineHeight: 1 }}>
-                Latest Releases
+                Plugin Showcase
               </Typography>
             </Box>
             <Button
               variant="text"
               endIcon={<ArrowForwardIcon />}
-              onClick={() => history.push("/products")}
+              onClick={() => history.push("/plugins")}
               sx={{ color: "text.secondary", "&:hover": { color: "primary.main", bgcolor: "transparent" } }}
             >
               View all
             </Button>
           </Box>
 
-          {latestProducts.length > 0 ? (
-            <Grid container spacing={3}>
-              {latestProducts.map((product) => (
-                <Grid item xs={12} sm={6} md={4} key={product.id}>
-                  <ProductCard
-                    product={product}
-                    onCardClick={handleCardClick}
-                  />
-                </Grid>
+          {featuredPlugins.length > 0 ? (
+            <Box sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+              gap: { xs: 5, md: 4 },
+              alignItems: "stretch",
+            }}>
+              {featuredPlugins.map((product) => (
+                <PluginShowcaseCard
+                  key={product.id}
+                  product={product}
+                  onCardClick={handleCardClick}
+                />
               ))}
-            </Grid>
+            </Box>
           ) : (
             <GlassPanel sx={{ py: 8, px: 4, textAlign: "center" }}>
               <Typography sx={{ color: "text.secondary" }}>
-                New beats are on the way — check back soon.
+                Plugins are on the way — check back soon.
               </Typography>
             </GlassPanel>
           )}
