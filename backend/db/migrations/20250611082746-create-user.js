@@ -47,7 +47,7 @@ module.exports = {
       isSubscribedToEmails: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        defaultValue: true
+        defaultValue: false
       },
       role: {
         type: Sequelize.ENUM('user', 'admin'),

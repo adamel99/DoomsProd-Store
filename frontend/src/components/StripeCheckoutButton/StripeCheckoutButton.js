@@ -6,7 +6,7 @@ import { csrfFetch } from "../../store/csrf";
 const publishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = loadStripe(publishableKey);
 
-const StripeCheckoutButton = ({ cartItems, userId }) => {
+const StripeCheckoutButton = ({ cartItems, userId, disabled = false }) => {
   const history = useHistory();
 
   const handleCheckout = async () => {
@@ -57,16 +57,18 @@ const StripeCheckoutButton = ({ cartItems, userId }) => {
   return (
     <button
       onClick={handleCheckout}
+      disabled={disabled}
       style={{
-        backgroundColor: "#ff4081",
+        backgroundColor: disabled ? "#6f5c65" : "#ff4081",
         color: "#fff",
         border: "none",
         padding: "12px 24px",
         borderRadius: "30px",
         fontSize: "16px",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
         marginTop: "24px",
-        boxShadow: "0 4px 12px rgba(255, 64, 129, 0.3)",
+        boxShadow: disabled ? "none" : "0 4px 12px rgba(255, 64, 129, 0.3)",
+        opacity: disabled ? 0.72 : 1,
       }}
     >
       {total === 0 ? "Get Free Download" : "Pay with Stripe"}

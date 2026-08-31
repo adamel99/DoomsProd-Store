@@ -1,8 +1,21 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
+import { Link as RouterLink } from "react-router-dom";
 import { useModal } from "../../context/Modal";
 import * as sessionActions from "../../store/session";
-import { Box, Button, TextField, Typography, Alert, Grid, IconButton, InputAdornment } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  InputAdornment,
+  Link,
+  TextField,
+  Typography,
+} from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
@@ -51,6 +64,7 @@ function SignupFormModal() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword]     = useState(false);
   const [showConfirm, setShowConfirm]       = useState(false);
+  const [isSubscribedToEmails, setIsSubscribedToEmails] = useState(false);
   const [errors, setErrors]                 = useState({});
 
   const handleSubmit = async (e) => {
@@ -69,7 +83,14 @@ function SignupFormModal() {
       return setErrors({ password: "Password must include at least one symbol." });
     setErrors({});
     try {
-      await dispatch(sessionActions.signup({ email, username, firstName, lastName, password }));
+      await dispatch(sessionActions.signup({
+        email,
+        username,
+        firstName,
+        lastName,
+        password,
+        isSubscribedToEmails,
+      }));
       closeModal();
     } catch (res) {
       const data = await res.json();
@@ -170,6 +191,51 @@ function SignupFormModal() {
             );
           })}
         </Grid>
+
+        <Box sx={{ mt: 2.5 }}>
+          <Typography sx={{
+            fontFamily: (theme) => theme.custom.fonts.body,
+            fontSize: "0.78rem",
+            color: "text.secondary",
+            lineHeight: 1.6,
+            mb: 1.5,
+          }}>
+            We collect account details, security cookies, cart activity, and order history to run your account, process purchases, send receipts, and deliver downloads. Payments use Stripe, emails use Resend, and product files use AWS S3. By creating an account, you agree to the{" "}
+            <Link component={RouterLink} to="/terms" onClick={closeModal} sx={{ color: "primary.main", fontWeight: 700 }}>
+              Terms
+            </Link>
+            {" "}and{" "}
+            <Link component={RouterLink} to="/privacy-policy" onClick={closeModal} sx={{ color: "primary.main", fontWeight: 700 }}>
+              Privacy Policy
+            </Link>
+            .
+          </Typography>
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isSubscribedToEmails}
+                onChange={(e) => setIsSubscribedToEmails(e.target.checked)}
+                sx={{
+                  color: "text.secondary",
+                  "&.Mui-checked": { color: "primary.main" },
+                }}
+              />
+            }
+            label="Send me occasional doomsprod updates and offers."
+            sx={{
+              alignItems: "flex-start",
+              color: "text.secondary",
+              m: 0,
+              "& .MuiFormControlLabel-label": {
+                fontFamily: (theme) => theme.custom.fonts.body,
+                fontSize: "0.8rem",
+                lineHeight: 1.5,
+                pt: "9px",
+              },
+            }}
+          />
+        </Box>
 
         <Button
           type="submit"

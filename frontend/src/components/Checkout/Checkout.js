@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { Link as RouterLink, useHistory } from "react-router-dom";
 import StripeCheckoutButton from "../StripeCheckoutButton/StripeCheckoutButton";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Checkbox, FormControlLabel, Link } from "@mui/material";
 import { motion } from "framer-motion";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
@@ -164,6 +164,7 @@ const OrderItemRow = ({ item, index }) => (
 
 const Checkout = () => {
   const history = useHistory();
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const user = useSelector((state) => state.session.user);
   const cartItems = useSelector((state) =>
     Object.values(state.cartItems?.allItems || {})
@@ -318,6 +319,39 @@ const Checkout = () => {
               <LiquidOrb size={52} color="var(--clay-coral)" />
             </Box>
 
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  sx={{
+                    color: "text.secondary",
+                    "&.Mui-checked": { color: "primary.main" },
+                  }}
+                />
+              }
+              label={
+                <Typography component="span" sx={{ fontFamily: (theme) => theme.custom.fonts.body, fontSize: "0.8rem", lineHeight: 1.5 }}>
+                  I agree to the{" "}
+                  <Link component={RouterLink} to="/terms" sx={{ color: "primary.main", fontWeight: 700 }}>
+                    Terms
+                  </Link>
+                  {" "}and{" "}
+                  <Link component={RouterLink} to="/privacy-policy" sx={{ color: "primary.main", fontWeight: 700 }}>
+                    Privacy Policy
+                  </Link>
+                  , including the selected license terms and digital-download rules.
+                </Typography>
+              }
+              sx={{
+                alignItems: "flex-start",
+                color: "text.secondary",
+                mb: 1.5,
+                mx: 0,
+                "& .MuiFormControlLabel-label": { pt: "9px" },
+              }}
+            />
+
             {/* Stripe button wrapper */}
             <Box sx={{
               borderRadius: "var(--radius-md)",
@@ -328,8 +362,19 @@ const Checkout = () => {
                 borderRadius: "14px !important",
               },
             }}>
-              <StripeCheckoutButton cartItems={formattedCartItems} userId={user?.id} />
+              <StripeCheckoutButton cartItems={formattedCartItems} userId={user?.id} disabled={!acceptedTerms} />
             </Box>
+
+            <Typography sx={{
+              fontFamily: (theme) => theme.custom.fonts.body,
+              fontSize: "0.74rem",
+              color: "text.secondary",
+              textAlign: "center",
+              mt: 2,
+              lineHeight: 1.6,
+            }}>
+              Checkout uses Stripe for payment processing. We use your account, order history, and email address to complete the purchase, send receipts through Resend, and deliver lifetime account re-download access for the files included with your selected license from AWS S3.
+            </Typography>
 
             {/* Security note */}
             <Typography sx={{
@@ -337,7 +382,7 @@ const Checkout = () => {
               fontSize: "0.72rem",
               color: "text.disabled",
               textAlign: "center",
-              mt: 2,
+              mt: 1,
               letterSpacing: "0.3px",
             }}>
               Secured by Stripe · Your payment info is never stored

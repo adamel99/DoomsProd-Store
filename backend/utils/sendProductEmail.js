@@ -83,6 +83,9 @@ async function sendProductEmail(email, files = [], receipt = {}) {
   const receiptItems = Array.isArray(receipt.items) ? receipt.items.map(formatReceiptItem) : [];
   const totalPaid = formatCurrency(receipt.totalPaid);
   const purchaseTime = formatPurchaseTime(receipt.purchasedAt);
+  const siteUrl = (process.env.FRONTEND_URL || "https://dooma.studio").replace(/\/$/, "");
+  const termsUrl = `${siteUrl}/terms`;
+  const privacyUrl = `${siteUrl}/privacy-policy`;
   const downloadLinks = await Promise.all(
     files.map(async (file) => {
       try {
@@ -206,7 +209,10 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                         <tr>
                           <td style="background-color:rgba(255,87,159,0.08);border:${clay.hairline};border-radius:12px;padding:16px 20px;">
                             <p style="margin:0;font-size:13px;color:${colors.textMuted};line-height:1.6;">
-                              If you have any issues with your download, reply to this email and we'll get it sorted. We'd love to hear what you create — feel free to send back any finished tracks!
+                              If you have issues with your download, refund questions, license concerns, or a payment dispute, reply to this email or contact <a href="mailto:adamelh1999@gmail.com" style="color:${colors.primary};text-decoration:none;font-weight:700;">adamelh1999@gmail.com</a> or Instagram <a href="https://instagram.com/vdam_" style="color:${colors.primary};text-decoration:none;font-weight:700;">@vdam_</a> before opening a chargeback. We'll review it and help get it sorted.
+                            </p>
+                            <p style="margin:12px 0 0;font-size:12px;color:${colors.textQuiet};line-height:1.6;">
+                              Download links and product files are for the purchaser. Do not resell, redistribute, mirror, share, or re-upload beat files, stems, trackouts, WAVs, MP3s, ZIP packages, plugin installers, license keys, or private download links as standalone files.
                             </p>
                           </td>
                         </tr>
@@ -219,7 +225,12 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                     <td style="padding:24px 40px;border-top:${clay.hairline};text-align:center;">
                       <p style="margin:0;font-size:12px;color:${colors.textQuiet};line-height:1.6;">
                         You received this email because you made a purchase at doomsprod.<br/>
-                        &copy; ${new Date().getFullYear()} doomsprod &middot; <a href="https://dooma.studio" style="color:${colors.primary};text-decoration:none;">dooma.studio</a>
+                        &copy; ${new Date().getFullYear()} doomsprod &middot; <a href="https://dooma.studio" style="color:${colors.primary};text-decoration:none;">dooma.studio</a><br/>
+                        <a href="${termsUrl}" style="color:${colors.primary};text-decoration:none;">Terms</a>
+                        &middot;
+                        <a href="${privacyUrl}" style="color:${colors.primary};text-decoration:none;">Privacy Policy</a>
+                        &middot;
+                        Refund/support: <a href="mailto:adamelh1999@gmail.com" style="color:${colors.primary};text-decoration:none;">adamelh1999@gmail.com</a> or <a href="https://instagram.com/vdam_" style="color:${colors.primary};text-decoration:none;">@vdam_</a>
                       </p>
                     </td>
                   </tr>

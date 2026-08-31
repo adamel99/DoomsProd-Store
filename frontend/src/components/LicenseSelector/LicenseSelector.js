@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  Box, Typography, Container, Grid, Button,
+  Box, Typography, Container, Button,
 } from "@mui/material";
 import { getAllLicensesThunk } from "../../store/licenses";
 import ContactModal from "../ContactInfo/ContactInfo";
 import GavelIcon from "@mui/icons-material/Gavel";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 // ─── Animated Liquid Background (matches LandingPage exactly) ───────────────
@@ -104,25 +102,23 @@ const NeumorphCard = ({ children, sx = {}, highlighted = false, onClick }) => (
   <Box
     onClick={onClick}
     sx={(theme) => ({
-      background: highlighted
-        ? theme.custom.clay.surface
-        : theme.custom.clay.surfaceSoft,
-      borderRadius: "var(--radius-panel)",
+      background: theme.custom.clay.surfaceSoft,
+      borderRadius: "18px",
       border: highlighted
-        ? `1px solid ${theme.palette.primary.main}66`
-        : theme.custom.clay.border,
+        ? `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.28)}`
+        : theme.custom.clay.hairline,
       boxShadow: highlighted
-        ? theme.custom.clay.floating
-        : theme.custom.clay.raised,
-      transition: "var(--motion-lift)",
+        ? "10px 12px 26px rgba(0,0,0,0.34), -8px -8px 18px rgba(255,255,255,0.032)"
+        : "7px 8px 18px rgba(0,0,0,0.28), -6px -6px 14px rgba(255,255,255,0.026)",
+      transition: "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
       cursor: onClick ? "pointer" : "default",
       height: "100%",
       display: "flex",
       flexDirection: "column",
       "&:hover": {
-        transform: "translateY(-6px)",
-        borderColor: theme.palette.primary.main,
-        boxShadow: theme.custom.clay.floating,
+        transform: "translateY(-2px)",
+        borderColor: theme.custom.transparent(theme.palette.primary.main, 0.34),
+        boxShadow: "12px 14px 30px rgba(0,0,0,0.36), -8px -8px 18px rgba(255,255,255,0.032)",
       },
       ...sx,
     })}
@@ -131,75 +127,62 @@ const NeumorphCard = ({ children, sx = {}, highlighted = false, onClick }) => (
   </Box>
 );
 
-// ─── Liquid Orb ───────────────────────────────────────────────────────────────
-const LiquidOrb = ({ size = 80, color, sx = {} }) => (
-  <Box
-    sx={(theme) => ({
-      width: size,
-      height: size,
-      borderRadius: "50%",
-      background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ${color || theme.palette.primary.main} 48%, ${theme.custom.colors.clayDeep} 100%)`,
-      boxShadow: [
-        `0 ${size * 0.1}px ${size * 0.3}px rgba(151,82,69,0.24)`,
-        `inset 0 ${size * 0.05}px ${size * 0.15}px rgba(255,255,255,0.45)`,
-        `inset ${size * 0.03}px ${size * 0.03}px ${size * 0.08}px rgba(255,255,255,0.45)`,
-      ].join(", "),
-      flexShrink: 0,
-      ...sx,
-    })}
-  />
-);
-
 // ─── Feature Row ──────────────────────────────────────────────────────────────
 const FeatureRow = ({ label, value, allowed }) => (
   <Box sx={{
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 1.5,
-    py: 1.1,
-    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+    display: "grid",
+    gridTemplateColumns: "72px minmax(0, 1fr)",
+    alignItems: "baseline",
+    gap: 1.2,
+    py: 1,
+    borderBottom: (theme) => theme.custom.clay.hairline,
     "&:last-child": { borderBottom: "none" },
   }}>
-    <Box sx={{
-      width: 20, height: 20,
-      borderRadius: "6px",
-      flexShrink: 0,
-      mt: 0.1,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: allowed ? (theme) => `${theme.palette.primary.main}22` : (theme) => theme.custom.clay.surfaceSoft,
-      border: allowed
-        ? (theme) => `1px solid ${theme.palette.primary.main}44`
-        : (theme) => theme.custom.clay.hairline,
+    <Typography sx={{
+      fontFamily: (theme) => theme.custom.fonts.mono,
+      fontSize: "0.64rem",
+      fontWeight: 800,
+      letterSpacing: "0.9px",
+      textTransform: "uppercase",
+      color: "text.disabled",
+      lineHeight: 1.2,
     }}>
-      {allowed
-        ? <CheckIcon sx={{ fontSize: 12, color: "primary.main" }} />
-        : <CloseIcon sx={{ fontSize: 12, color: "text.disabled" }} />}
-    </Box>
-    <Box>
-      <Typography sx={{
-        fontFamily: (theme) => theme.custom.fonts.body,
-        fontSize: "0.75rem",
-        fontWeight: 600,
-        letterSpacing: "0.8px",
-        textTransform: "uppercase",
-        color: "text.disabled",
-        lineHeight: 1.2,
-      }}>
-        {label}
-      </Typography>
-      <Typography sx={{
-        fontFamily: (theme) => theme.custom.fonts.body,
-        fontSize: "0.88rem",
-        color: allowed ? "text.primary" : "text.disabled",
-        lineHeight: 1.4,
-        mt: 0.2,
-      }}>
-        {value}
-      </Typography>
-    </Box>
+      {label}
+    </Typography>
+    <Typography sx={{
+      fontFamily: (theme) => theme.custom.fonts.body,
+      fontSize: "0.86rem",
+      color: allowed ? "text.primary" : "text.disabled",
+      lineHeight: 1.45,
+      textAlign: "right",
+    }}>
+      {value}
+    </Typography>
   </Box>
+);
+
+const InfoPill = ({ label, value }) => (
+  <GlassPanel sx={{ p: { xs: 2, md: 2.4 }, borderRadius: "var(--radius-lg)" }}>
+    <Typography sx={{
+      fontFamily: (theme) => theme.custom.fonts.mono,
+      fontSize: "0.64rem",
+      letterSpacing: "1.5px",
+      textTransform: "uppercase",
+      color: "text.disabled",
+      mb: 0.75,
+    }}>
+      {label}
+    </Typography>
+    <Typography sx={{
+      fontFamily: (theme) => theme.custom.fonts.display,
+      fontWeight: 850,
+      fontSize: { xs: "1.15rem", md: "1.35rem" },
+      lineHeight: 1.1,
+      color: "text.primary",
+    }}>
+      {value}
+    </Typography>
+  </GlassPanel>
 );
 
 // ─── License tier config ──────────────────────────────────────────────────────
@@ -207,6 +190,8 @@ const getLicenseDetails = (license) => {
   switch (license.name.toLowerCase()) {
     case "basic":
       return {
+        tagline: "For drafts, demos, and early ideas.",
+        delivery: "MP3 included",
         distributionLimit: "Up to 5,000 streams",
         radioPlays: "Not allowed",
         monetization: "Non-commercial only",
@@ -218,6 +203,8 @@ const getLicenseDetails = (license) => {
       };
     case "premium":
       return {
+        tagline: "For official releases and paid platforms.",
+        delivery: "MP3 + WAV included",
         distributionLimit: "Up to 100,000 streams",
         radioPlays: "Up to 2 stations",
         monetization: "Major platforms",
@@ -229,6 +216,8 @@ const getLicenseDetails = (license) => {
       };
     case "unlimited":
       return {
+        tagline: "For serious releases with room to grow.",
+        delivery: "MP3 + WAV + ZIP included",
         distributionLimit: "Unlimited",
         radioPlays: "Unlimited",
         monetization: "Fully monetizable",
@@ -240,6 +229,8 @@ const getLicenseDetails = (license) => {
       };
     case "exclusive":
       return {
+        tagline: "For artists who need the beat taken down.",
+        delivery: "Full delivery",
         distributionLimit: "Unlimited",
         radioPlays: "Unlimited",
         monetization: "Fully monetizable",
@@ -251,6 +242,8 @@ const getLicenseDetails = (license) => {
       };
     default:
       return {
+        tagline: "Custom license terms.",
+        delivery: "Varies",
         distributionLimit: "Custom",
         radioPlays: "Custom",
         monetization: "Custom",
@@ -263,11 +256,20 @@ const getLicenseDetails = (license) => {
   }
 };
 
+const licenseOrder = {
+  basic: 1,
+  premium: 2,
+  unlimited: 3,
+  exclusive: 4,
+};
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const LicensesPage = () => {
   const dispatch = useDispatch();
   const licenses = useSelector((state) =>
-    Object.values(state.licenses.licenses || {})
+    Object.values(state.licenses.licenses || {}).sort((a, b) => (
+      (licenseOrder[a.name?.toLowerCase()] || 99) - (licenseOrder[b.name?.toLowerCase()] || 99)
+    ))
   );
   const [openContact, setOpenContact] = useState(false);
 
@@ -280,8 +282,8 @@ const LicensesPage = () => {
       minHeight: "100vh",
       color: "text.primary",
       overflowX: "hidden",
-      pt: { xs: 10, md: 14 },
-      pb: { xs: 10, md: 16 },
+      pt: { xs: 7, md: 9 },
+      pb: { xs: 8, md: 11 },
     }}>
 
       {/* ── Animated Liquid Background (matches LandingPage) ── */}
@@ -290,206 +292,171 @@ const LicensesPage = () => {
       <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2 }}>
 
         {/* ── Header ── */}
-        <Box sx={{ textAlign: "center", mb: { xs: 8, md: 10 } }}>
-
-          {/* Pill badge */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-            <GlassPanel sx={{
-              px: 2.5, py: 1,
-              borderRadius: "999px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 1.5,
+        <Box sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.1fr) minmax(320px, 0.9fr)" },
+          gap: { xs: 3, md: 5 },
+          alignItems: "end",
+          mb: { xs: 5, md: 6 },
+        }}>
+          <Box>
+            <Typography sx={{
+              fontFamily: (theme) => theme.custom.fonts.mono,
+              fontSize: "0.72rem",
+              fontWeight: 800,
+              letterSpacing: "2.4px",
+              textTransform: "uppercase",
+              color: "primary.main",
+              mb: 1.5,
             }}>
-              <LiquidOrb
-                size={18}
-                color="var(--clay-coral)"
-                sx={{
-                  animation: "orbBob 6s ease-in-out infinite",
-                  "@keyframes orbBob": {
-                    "0%,100%": { transform: "translateY(0)" },
-                    "50%": { transform: "translateY(-3px)" },
-                  },
-                }}
-              />
-              <Typography sx={{
-                fontFamily: (theme) => theme.custom.fonts.body,
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-                color: "text.secondary",
-              }}>
-                Flexible Licensing
-              </Typography>
-            </GlassPanel>
-          </Box>
-
-          {/* Decorative flanking orbs — mirrors LandingPage hero */}
-          <Box sx={{ position: "relative", display: "inline-block", width: "100%" }}>
-            <LiquidOrb
-              size={64}
-              color="var(--clay-coral)"
-              sx={{
-                position: "absolute",
-                left: { xs: "2%", md: "8%" },
-                top: "10%",
-                display: { xs: "none", sm: "block" },
-                animation: "orbBobL 7s ease-in-out infinite",
-                "@keyframes orbBobL": {
-                  "0%,100%": { transform: "translateY(0)" },
-                  "50%": { transform: "translateY(-10px)" },
-                },
-              }}
-            />
-            <LiquidOrb
-              size={40}
-              color="var(--clay-apricot)"
-              sx={{
-                position: "absolute",
-                right: { xs: "2%", md: "10%" },
-                top: "0%",
-                display: { xs: "none", sm: "block" },
-                animation: "orbBobR 9s ease-in-out infinite reverse",
-                "@keyframes orbBobR": {
-                  "0%,100%": { transform: "translateY(0)" },
-                  "50%": { transform: "translateY(-8px)" },
-                },
-              }}
-            />
-            <LiquidOrb
-              size={28}
-              color="var(--clay-coral)"
-              sx={{
-                position: "absolute",
-                right: { xs: "5%", md: "7%" },
-                bottom: "-10%",
-                display: { xs: "none", md: "block" },
-                animation: "orbBobS 5s ease-in-out infinite",
-                "@keyframes orbBobS": {
-                  "0%,100%": { transform: "translateY(0)" },
-                  "50%": { transform: "translateY(-6px)" },
-                },
-              }}
-            />
-
+              Flexible Licensing
+            </Typography>
             <Typography variant="h1" sx={{
-              fontSize: { xs: "2.8rem", sm: "4rem", md: "5.5rem" },
+              fontSize: { xs: "2.7rem", sm: "3.5rem", md: "4.8rem" },
               color: "text.primary",
-              background: (theme) => `linear-gradient(180deg, ${theme.palette.text.primary} 0%, ${theme.palette.primary.dark} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
               mb: 2,
-              lineHeight: 1.05,
+              lineHeight: 0.96,
             }}>
-              Licenses &amp; Terms
+              Pick the rights your release needs
+            </Typography>
+            <Typography sx={{
+              fontFamily: (theme) => theme.custom.fonts.body,
+              fontSize: { xs: "0.98rem", md: "1.05rem" },
+              color: "text.secondary",
+              maxWidth: 600,
+              lineHeight: 1.75,
+            }}>
+              Compare stream limits, monetization, ownership, and delivery options before choosing a beat license.
             </Typography>
           </Box>
 
-          <Typography sx={{
-            fontFamily: (theme) => theme.custom.fonts.body,
-            fontSize: { xs: "1rem", md: "1.15rem" },
-            color: "text.secondary",
-            maxWidth: 480,
-            mx: "auto",
-            lineHeight: 1.7,
-            mt: 2,
-          }}>
-            Every beat comes with a license. Pick the tier that fits your project.
-          </Typography>
+          <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1.5 }}>
+            <InfoPill label="Basic" value="MP3 starter use" />
+            <InfoPill label="Premium" value="Commercial releases" />
+            <InfoPill label="Unlimited" value="No stream cap" />
+            <InfoPill label="Exclusive" value="Contact direct" />
+          </Box>
         </Box>
 
         {/* ── License Cards ── */}
-        <Grid container spacing={3} alignItems="stretch">
+        <Box sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+            lg: "repeat(4, minmax(0, 1fr))",
+          },
+          gap: 2,
+          alignItems: "stretch",
+        }}>
           {licenses.map((license) => {
             const details = getLicenseDetails(license);
             const isExclusive = license.name.toLowerCase() === "exclusive";
             const isHighlighted = ["premium", "exclusive"].includes(license.name.toLowerCase());
 
             return (
-              <Grid item xs={12} sm={6} md={3} key={license.id} sx={{ display: "flex" }}>
-                <NeumorphCard highlighted={isHighlighted} sx={{ width: "100%" }}>
-                  <Box sx={{ p: 3.5, flex: 1, display: "flex", flexDirection: "column" }}>
-
-                    {/* Badge */}
-                    <Box sx={{ minHeight: 28, mb: 2 }}>
-                      {details.badge && (
-                        <Box sx={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          px: 1.4,
-                          py: 0.3,
-                          background: "rgba(225,90,151,0.13)",
-                          border: "1px solid var(--clay-coral)",
-                          borderRadius: "999px",
-                        }}>
-                          <Typography sx={{
-                            fontFamily: (theme) => theme.custom.fonts.body,
-                            fontSize: "0.65rem",
-                            fontWeight: 700,
-                            letterSpacing: "1.5px",
-                            textTransform: "uppercase",
-                            color: "primary.main",
-                          }}>
-                            {details.badge}
-                          </Typography>
-                        </Box>
-                      )}
+              <NeumorphCard key={license.id} highlighted={isHighlighted} sx={{ minHeight: 520, position: "relative" }}>
+                  {details.badge && (
+                    <Box sx={(theme) => ({
+                      position: "absolute",
+                      top: 18,
+                      right: 18,
+                      px: 1.2,
+                      py: 0.4,
+                      background: theme.custom.transparent(theme.palette.primary.main, 0.12),
+                      border: "none",
+                      borderRadius: "999px",
+                    })}>
+                      <Typography sx={{
+                        fontFamily: (theme) => theme.custom.fonts.mono,
+                        fontSize: "0.58rem",
+                        fontWeight: 800,
+                        letterSpacing: "1.2px",
+                        textTransform: "uppercase",
+                        color: "primary.main",
+                      }}>
+                        {details.badge}
+                      </Typography>
                     </Box>
+                  )}
 
-                    {/* Name + price */}
-                    <Typography sx={{
-                      fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 800,
-                      fontSize: "1.5rem",
-                      color: "text.primary",
-                      mb: 0.5,
-                    }}>
-                      {license.name}
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5, mb: 3 }}>
+                  <Box sx={{
+                    p: { xs: 2.6, md: 2.8 },
+                    flex: 1,
+                    display: "grid",
+                    gridTemplateRows: "98px 86px 1fr auto",
+                    gap: 2.2,
+                  }}>
+                    <Box sx={{ pr: details.badge ? 8 : 0 }}>
                       <Typography sx={{
                         fontFamily: (theme) => theme.custom.fonts.display,
-                        fontWeight: 800,
-                        fontSize: "2rem",
-                        color: "primary.main",
-                        lineHeight: 1,
+                        fontWeight: 900,
+                        fontSize: "1.5rem",
+                        color: "text.primary",
+                        lineHeight: 1.05,
+                        mb: 0.7,
                       }}>
-                        ${license.price}
+                        {license.name}
                       </Typography>
-                      {!isExclusive && (
+                      <Typography sx={{
+                        fontFamily: (theme) => theme.custom.fonts.body,
+                        color: "text.secondary",
+                        fontSize: "0.86rem",
+                        lineHeight: 1.5,
+                        minHeight: { sm: 42 },
+                      }}>
+                        {details.tagline}
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5, mb: 0.8 }}>
                         <Typography sx={{
-                          fontFamily: (theme) => theme.custom.fonts.body,
-                          fontSize: "0.78rem",
-                          color: "text.disabled",
+                          fontFamily: (theme) => theme.custom.fonts.display,
+                          fontWeight: 950,
+                          fontSize: "2.15rem",
+                          color: "primary.main",
+                          lineHeight: 0.9,
                         }}>
-                          / beat
+                          ${license.price}
                         </Typography>
-                      )}
+                        {!isExclusive && (
+                          <Typography sx={{
+                            fontFamily: (theme) => theme.custom.fonts.body,
+                            fontSize: "0.78rem",
+                            color: "text.disabled",
+                          }}>
+                            / beat
+                          </Typography>
+                        )}
+                      </Box>
+                      <Typography sx={{
+                        fontFamily: (theme) => theme.custom.fonts.mono,
+                        fontSize: "0.63rem",
+                        letterSpacing: "1.2px",
+                        textTransform: "uppercase",
+                        color: "text.disabled",
+                      }}>
+                        {details.delivery}
+                      </Typography>
                     </Box>
 
-                    {/* Divider */}
-                    <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
-
-                    {/* Feature rows */}
-                    <Box sx={{ flex: 1 }}>
-                      <FeatureRow label="Distribution" value={details.distributionLimit} allowed={true} />
-                      <FeatureRow label="Radio Plays" value={details.radioPlays} allowed={details.radioAllowed} />
-                      <FeatureRow label="Monetization" value={details.monetization} allowed={details.monetizationAllowed} />
-                      <FeatureRow label="Ownership" value={details.ownership} allowed={true} />
-                      <FeatureRow label="Modifications" value={details.modifications} allowed={true} />
+                    <Box>
+                      <FeatureRow label="Streams" value={details.distributionLimit} allowed />
+                      <FeatureRow label="Radio" value={details.radioPlays} allowed={details.radioAllowed} />
+                      <FeatureRow label="Money" value={details.monetization} allowed={details.monetizationAllowed} />
+                      <FeatureRow label="Rights" value={details.ownership} allowed />
+                      <FeatureRow label="Edits" value={details.modifications} allowed />
                     </Box>
 
-                    {/* CTA */}
                     <Button
                       fullWidth
                       onClick={() => { if (isExclusive) setOpenContact(true); }}
                       sx={{
-                        mt: 3,
-                        py: 1.4,
+                        mt: "auto",
+                        py: 1.25,
                         fontFamily: (theme) => theme.custom.fonts.display,
-                        fontWeight: 700,
+                        fontWeight: 800,
                         fontSize: "0.85rem",
                         textTransform: "none",
                         borderRadius: "var(--radius-md)",
@@ -505,14 +472,14 @@ const LicensesPage = () => {
                             boxShadow: "var(--clay-floating)",
                           },
                         } : {
-                          background: (theme) => theme.custom.clay.surfaceSoft,
+                          background: "transparent",
                           color: "text.secondary",
-                          border: "var(--clay-border)",
-                          boxShadow: "var(--clay-raised-small)",
+                          border: (theme) => theme.custom.clay.hairline,
+                          boxShadow: "none",
                           cursor: "default",
                           "&:hover": {
-                            background: (theme) => theme.custom.clay.surfaceSoft,
-                            borderColor: "divider",
+                            background: "transparent",
+                            borderColor: (theme) => theme.palette.divider,
                           },
                         }),
                       }}
@@ -522,14 +489,13 @@ const LicensesPage = () => {
                     </Button>
                   </Box>
                 </NeumorphCard>
-              </Grid>
             );
           })}
-        </Grid>
+        </Box>
 
         {/* ── Legal Notice — pure GlassPanel, no background override ── */}
-        <GlassPanel sx={{ mt: { xs: 8, md: 12 }, p: { xs: 4, md: 6 } }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+        <GlassPanel sx={{ mt: { xs: 6, md: 8 }, p: { xs: 3, md: 4.5 } }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
             <Box sx={{
               width: 44,
               height: 44,
@@ -554,7 +520,7 @@ const LicensesPage = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
+          <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 2.5 }} />
 
           {[
             "All instrumentals and audio content sold on this platform are protected under copyright law. Unauthorized use, reproduction, distribution, or commercial exploitation of any beat without a valid license agreement is strictly prohibited. Violation of these terms may result in copyright takedowns, legal action, and removal of your content from streaming platforms.",
@@ -574,12 +540,7 @@ const LicensesPage = () => {
         </GlassPanel>
 
         {/* ── Final CTA strip ── */}
-        <GlassPanel sx={{ mt: { xs: 5, md: 6 }, p: { xs: 4, md: 5 }, textAlign: "center" }}>
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-            <LiquidOrb size={16} color="var(--clay-coral)" />
-            <LiquidOrb size={26} color="var(--clay-coral)" />
-            <LiquidOrb size={16} color="var(--clay-coral)" />
-          </Box>
+        <GlassPanel sx={{ mt: { xs: 4, md: 5 }, p: { xs: 3, md: 4 }, textAlign: "center" }}>
           <Typography sx={{
             fontFamily: (theme) => theme.custom.fonts.display,
             fontWeight: 800,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect, useLocation } from "react-router-dom";
 
 import Navigation from "./components/Navigation";
 import LandingPage from "./components/LandingPage/LandingPage";
@@ -24,13 +24,18 @@ import DownloadPage from "./components/Downloads/DownloadPage";
 import AdminRoute, { ProtectedRoute } from "./components/ProtectedRoute/ProtectedRoute";
 import AccountPage from "./components/Account/Account";
 import AdminOrders from "./components/AdminOrders/AdminOrders";
+import Footer from "./components/Footer/Footer";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import Terms from "./components/Terms";
 
 
 import { restoreUser } from "./store/session";
 
 function App() {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [isLoaded, setIsLoaded] = useState(false);
+  const showFooter = location.pathname !== "/admin/orders";
 
   useEffect(() => {
     dispatch(restoreUser())
@@ -65,11 +70,14 @@ function App() {
           <Route exact path="/downloads/:sessionId" component={DownloadPage} />
           <ProtectedRoute exact path="/account" component={AccountPage} />
           <AdminRoute exact path="/admin/orders" component={AdminOrders} />
+          <Route exact path="/privacy-policy" component={PrivacyPolicy} />
+          <Route exact path="/terms" component={Terms} />
 
           {/* Optional 404 route */}
           <Route render={() => <Redirect to="/" />} />
         </Switch>
       )}
+      {isLoaded && showFooter && <Footer />}
     </>
   );
 }

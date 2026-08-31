@@ -197,23 +197,23 @@ const getLicenseTermsForItem = (product, license) => {
   const type = product?.type;
 
   if (type === 'loop_kit') {
-    return 'Not royalty-free. You may use the files in your music, but producer credit and royalty/publishing splits are still required for placements, major releases, syncs, or commercial opportunities.';
+    return 'Not royalty-free. You may use the sounds in your own music, but producer credit and royalty/publishing splits are still required for placements, major releases, sync, sample clearances, or commercial opportunities. Do not resell, repackage, redistribute, or upload the raw loops as a competing kit.';
   }
 
   if (type === 'drum_kit') {
-    return 'Royalty-free. You may use the drum sounds in your own productions without owing additional royalties.';
+    return 'Royalty-free for use in your own music productions. You may not resell, share, repackage, redistribute, or upload the raw drum sounds as a sample pack, drum kit, or competing product.';
   }
 
   if (type === 'beat') {
     if (String(license?.name || '').trim().toLowerCase() === 'exclusive') {
-      return `${license?.description || 'Exclusive rights to the beat.'} Includes MP3, WAV, ZIP delivery and priority response for purchase questions or concerns.`;
+      return `${license?.description || 'Exclusive rights to the beat.'} Includes MP3, WAV, ZIP delivery and priority response for purchase questions or concerns. Files and license rights are for the purchaser and are not transferable without written permission.`;
     }
 
-    return license?.description || 'Usage rights follow the selected beat license for this purchase.';
+    return `${license?.description || 'Usage rights follow the selected beat license for this purchase.'} Non-exclusive beat licenses do not transfer copyright ownership. Do not resell, redistribute, lease, share, or re-upload the beat files, trackouts, stems, WAVs, MP3s, or ZIP packages as standalone files. Content ID registration, copyright claims, and exclusive-rights claims are not allowed unless expressly included in a written exclusive agreement.`;
   }
 
   if (type === 'plugin') {
-    return 'Plugin purchase includes the downloadable ZIP package and installation materials. Redistribution, resale, or sharing of the plugin files is not permitted.';
+    return 'Plugin purchase includes the downloadable ZIP package and installation materials for the purchaser. Redistribution, resale, public sharing, license-key sharing, mirroring, or repackaging of the plugin files is not permitted.';
   }
 
   return 'Usage rights apply to this digital product as purchased.';

@@ -52,7 +52,7 @@ module.exports = (sequelize, DataTypes) => {
     isSubscribedToEmails: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: true
+      defaultValue: false
     },
     role: {
       type: DataTypes.ENUM('user', 'admin'),

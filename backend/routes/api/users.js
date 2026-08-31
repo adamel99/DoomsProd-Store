@@ -35,6 +35,10 @@ const validateSignup = [
         .withMessage('Password must include at least one number.')
         .matches(/[^A-Za-z0-9]/)
         .withMessage('Password must include at least one symbol.'),
+    check('isSubscribedToEmails')
+        .optional()
+        .isBoolean()
+        .withMessage('Email subscription preference must be true or false.'),
     handleValidationErrors
 ];
 
@@ -42,7 +46,7 @@ const validateSignup = [
 
 // Sign up
 router.post("", rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), validateSignup, async (req, res) => {
-    const { firstName, lastName, email, password, username } = req.body;
+    const { firstName, lastName, email, password, username, isSubscribedToEmails } = req.body;
     const hashedPassword = bcrypt.hashSync(password);
     const user = await User.create({
       firstName,
@@ -50,6 +54,7 @@ router.post("", rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }), validateSignup,
       email,
       username,
       hashedPassword,
+      isSubscribedToEmails: isSubscribedToEmails === true,
     });
 
     const safeUser = {
