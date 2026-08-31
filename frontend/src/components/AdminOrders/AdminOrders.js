@@ -22,6 +22,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TextField,
   Tabs,
   Tooltip,
   Typography,
@@ -68,6 +69,22 @@ const statusMeta = {
 };
 
 const productTypes = ["beat", "loop_kit", "drum_kit", "plugin"];
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+const getPresetRange = (preset) => {
+  const end = new Date();
+  const start = new Date();
+
+  if (preset === "7d") start.setDate(end.getDate() - 6);
+  if (preset === "30d") start.setDate(end.getDate() - 29);
+  if (preset === "90d") start.setDate(end.getDate() - 89);
+  if (preset === "year") start.setMonth(0, 1);
+
+  return {
+    startDate: start.toISOString().slice(0, 10),
+    endDate: todayIso(),
+  };
+};
 
 const Panel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
@@ -115,7 +132,7 @@ const downloadCsv = (filename, rows) => {
   URL.revokeObjectURL(url);
 };
 
-const buildOrderQuery = ({ page, rowsPerPage, search, statusFilter, typeFilter, sortBy }) => {
+const buildOrderQuery = ({ page, rowsPerPage, search, statusFilter, typeFilter, sortBy, startDate, endDate }) => {
   const params = new URLSearchParams({
     page: String(page + 1),
     size: String(rowsPerPage),
@@ -126,7 +143,16 @@ const buildOrderQuery = ({ page, rowsPerPage, search, statusFilter, typeFilter, 
   if (search.trim()) params.set("search", search.trim());
   if (statusFilter !== "all") params.set("status", statusFilter);
   if (typeFilter !== "all") params.set("type", typeFilter);
+  if (startDate) params.set("startDate", startDate);
+  if (endDate) params.set("endDate", endDate);
 
+  return params.toString();
+};
+
+const buildAnalyticsQuery = ({ startDate, endDate }) => {
+  const params = new URLSearchParams();
+  if (startDate) params.set("startDate", startDate);
+  if (endDate) params.set("endDate", endDate);
   return params.toString();
 };
 
@@ -141,6 +167,9 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [sortBy, setSortBy] = useState("createdAt");
+  const [datePreset, setDatePreset] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [tab, setTab] = useState("orders");
   const [expanded, setExpanded] = useState({});
   const [receiptState, setReceiptState] = useState({});
@@ -152,7 +181,8 @@ const AdminOrders = () => {
 
     const loadAdminData = async () => {
       try {
-        const summaryRes = await csrfFetch("/api/admin/dashboard");
+        const query = buildAnalyticsQuery({ startDate, endDate });
+        const summaryRes = await csrfFetch(`/api/admin/dashboard${query ? `?${query}` : ""}`);
         const summaryData = await summaryRes.json();
 
         if (isMounted) {
@@ -172,7 +202,7 @@ const AdminOrders = () => {
 
     loadAdminData();
     return () => { isMounted = false; };
-  }, []);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     if (loading) return undefined;
@@ -181,7 +211,7 @@ const AdminOrders = () => {
     const loadOrders = async () => {
       setOrdersLoading(true);
       try {
-        const query = buildOrderQuery({ page, rowsPerPage, search, statusFilter, typeFilter, sortBy });
+        const query = buildOrderQuery({ page, rowsPerPage, search, statusFilter, typeFilter, sortBy, startDate, endDate });
         const res = await csrfFetch(`/api/orders?${query}`);
         const data = await res.json();
 
@@ -203,7 +233,20 @@ const AdminOrders = () => {
 
     loadOrders();
     return () => { isMounted = false; };
-  }, [loading, page, rowsPerPage, search, statusFilter, typeFilter, sortBy]);
+  }, [loading, page, rowsPerPage, search, statusFilter, typeFilter, sortBy, startDate, endDate]);
+
+  const applyDatePreset = (preset) => {
+    setDatePreset(preset);
+    setPage(0);
+    if (preset === "all") {
+      setStartDate("");
+      setEndDate("");
+      return;
+    }
+    const range = getPresetRange(preset);
+    setStartDate(range.startDate);
+    setEndDate(range.endDate);
+  };
 
   const filteredOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
@@ -311,6 +354,7 @@ const AdminOrders = () => {
       minHeight: "100vh",
       bgcolor: "background.default",
       color: "text.primary",
+      overflowX: "hidden",
       pt: { xs: 7, md: 10 },
       pb: { xs: 9, md: 12 },
     }}>
@@ -402,6 +446,20 @@ const AdminOrders = () => {
                     setSortBy(value);
                     setPage(0);
                   }}
+                  datePreset={datePreset}
+                  setDatePreset={applyDatePreset}
+                  startDate={startDate}
+                  setStartDate={(value) => {
+                    setStartDate(value);
+                    setDatePreset("custom");
+                    setPage(0);
+                  }}
+                  endDate={endDate}
+                  setEndDate={(value) => {
+                    setEndDate(value);
+                    setDatePreset("custom");
+                    setPage(0);
+                  }}
                 />
                 <OrdersTable
                   orders={filteredOrders}
@@ -475,11 +533,17 @@ const FilterBar = ({
   setTypeFilter,
   sortBy,
   setSortBy,
+  datePreset,
+  setDatePreset,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
 }) => (
   <Panel sx={{ p: 1.5, mb: 2 }}>
     <Box sx={{
       display: "grid",
-      gridTemplateColumns: { xs: "1fr", md: "minmax(260px, 1fr) 150px 170px 170px" },
+      gridTemplateColumns: { xs: "1fr", md: "minmax(260px, 1fr) repeat(3, 150px)" },
       gap: 1.5,
       alignItems: "center",
     }}>
@@ -521,6 +585,38 @@ const FilterBar = ({
         <MenuItem value="customer">Customer</MenuItem>
         <MenuItem value="status">Status</MenuItem>
       </SmallSelect>
+    </Box>
+    <Box sx={{
+      display: "grid",
+      gridTemplateColumns: { xs: "1fr", md: "170px 170px 170px" },
+      gap: 1.5,
+      alignItems: "center",
+      mt: 1.5,
+    }}>
+      <SmallSelect label="Date Range" value={datePreset} onChange={setDatePreset}>
+        <MenuItem value="all">All Time</MenuItem>
+        <MenuItem value="7d">Last 7 Days</MenuItem>
+        <MenuItem value="30d">Last 30 Days</MenuItem>
+        <MenuItem value="90d">Last 90 Days</MenuItem>
+        <MenuItem value="year">This Year</MenuItem>
+        <MenuItem value="custom">Custom</MenuItem>
+      </SmallSelect>
+      <TextField
+        label="Start"
+        type="date"
+        size="small"
+        value={startDate}
+        onChange={(event) => setStartDate(event.target.value)}
+        InputLabelProps={{ shrink: true }}
+      />
+      <TextField
+        label="End"
+        type="date"
+        size="small"
+        value={endDate}
+        onChange={(event) => setEndDate(event.target.value)}
+        InputLabelProps={{ shrink: true }}
+      />
     </Box>
   </Panel>
 );
@@ -777,35 +873,495 @@ const LicensesTable = ({ licenses }) => (
   />
 );
 
-const RevenuePanel = ({ summary, breakdowns }) => (
-  <>
-    <Grid container spacing={1.5} sx={{ mb: 2 }}>
-      <StatCard icon={<ShoppingBagIcon />} label="Completed Revenue" value={formatMoney(summary.completedRevenue)} />
-      <StatCard icon={<ShoppingBagIcon />} label="Pending Revenue" value={formatMoney(summary.pendingRevenue)} />
-      <StatCard icon={<Inventory2Icon />} label="Best Seller" value={summary.bestSellingProduct} />
-      <StatCard icon={<ReceiptLongIcon />} label="Top License" value={summary.mostCommonLicense} />
-    </Grid>
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
-        <SimpleTable
-          headers={["Month", "Revenue"]}
-          empty="No monthly revenue yet."
-          rows={(breakdowns?.revenueByMonth || []).map((row) => [row.month, formatMoney(row.revenue)])}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SimpleTable
-          headers={["Product Type", "Units", "Revenue"]}
-          empty="No product type revenue yet."
-          rows={(breakdowns?.revenueByProductType || []).map((row) => [
-            formatProductType(row.type),
-            row.unitsSold,
-            formatMoney(row.grossRevenue),
-          ])}
-        />
-      </Grid>
-    </Grid>
-  </>
+const RevenuePanel = ({ summary, breakdowns }) => {
+  const productTypeRows = (breakdowns?.revenueByProductType || []).map((row) => ({
+    ...row,
+    label: formatProductType(row.type),
+  }));
+  const customerRows = (breakdowns?.topCustomersBySpend || []).map((customer) => ({
+    ...customer,
+    name: getCustomerName(customer),
+  }));
+
+  return (
+    <Box sx={{ display: "grid", gap: 2, minWidth: 0, width: "100%", overflow: "visible" }}>
+      <Panel sx={{ p: { xs: 2, md: 2.5 } }}>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", lg: "minmax(0, 1.6fr) 320px" }, gap: 2.5, minWidth: 0 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ color: "text.secondary", fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>
+              Net Completed Revenue
+            </Typography>
+            <Typography sx={{ fontSize: { xs: "2.3rem", md: "3.4rem" }, fontWeight: 950, lineHeight: 1, mt: 0.7 }}>
+              {formatMoney(summary.completedRevenue)}
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
+              <MetricPill label="Avg Order" value={formatMoney(summary.averageOrderValue)} />
+              <MetricPill label="Pending" value={formatMoney(summary.pendingRevenue)} />
+              <MetricPill label="Sold" value={summary.totalProductsSold} />
+            </Box>
+            <MarketLineChart
+              rows={breakdowns?.revenueByDay || []}
+              xKey="date"
+              yKey="revenue"
+              formatter={formatMoney}
+            />
+          </Box>
+          <Box sx={{ display: "grid", gap: 1.5, minWidth: 0 }}>
+            <MiniInsight label="Best Seller" value={summary.bestSellingProduct} />
+            <MiniInsight label="Top License" value={summary.mostCommonLicense} />
+            <DonutChartPanel
+              title="Order Mix"
+              rows={Object.entries(breakdowns?.ordersByStatus || {}).map(([label, value]) => ({ label, value }))}
+            />
+          </Box>
+        </Box>
+      </Panel>
+
+      <RevenueSection title="Momentum" meta="Growth and order pace across the selected range">
+        <Grid container spacing={2} sx={{ minWidth: 0 }}>
+          <Grid item xs={12} lg={7} sx={{ minWidth: 0 }}>
+            <LineChartPanel
+              title="Cumulative Revenue"
+              rows={breakdowns?.cumulativeRevenue || []}
+              xKey="date"
+              yKey="revenue"
+              formatter={formatMoney}
+            />
+          </Grid>
+          <Grid item xs={12} lg={5} sx={{ minWidth: 0 }}>
+            <BarChartPanel
+              title="Daily Order Volume"
+              rows={breakdowns?.ordersByDay || []}
+              labelKey="date"
+              valueKey="orders"
+              compact
+            />
+          </Grid>
+        </Grid>
+      </RevenueSection>
+
+      <RevenueSection title="Sales Mix" meta="Where revenue is coming from">
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 0.9fr) minmax(0, 1.1fr)" }, gap: 2, minWidth: 0 }}>
+          <BarChartPanel
+            title="Revenue By Product Type"
+            rows={productTypeRows}
+            labelKey="label"
+            valueKey="grossRevenue"
+            formatter={formatMoney}
+          />
+          <MixSummary rows={productTypeRows} />
+        </Box>
+      </RevenueSection>
+
+      <RevenueSection title="Leaders" meta="Products and customers driving the most value">
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) minmax(0, 1fr)" }, gap: 2, minWidth: 0 }}>
+          <LeaderboardGroup title="Products">
+            <BarChartPanel
+              title="Revenue"
+              rows={breakdowns?.topProductsByRevenue || []}
+              labelKey="title"
+              valueKey="grossRevenue"
+              formatter={formatMoney}
+              compact
+            />
+            <BarChartPanel
+              title="Units Sold"
+              rows={breakdowns?.topProductsByUnits || []}
+              labelKey="title"
+              valueKey="unitsSold"
+              compact
+            />
+          </LeaderboardGroup>
+          <LeaderboardGroup title="Customers">
+            <BarChartPanel
+              title="Spend"
+              rows={customerRows}
+              labelKey="name"
+              valueKey="lifetimeSpend"
+              formatter={formatMoney}
+              compact
+            />
+          </LeaderboardGroup>
+        </Box>
+      </RevenueSection>
+    </Box>
+  );
+};
+
+const RevenueSection = ({ title, meta, children }) => (
+  <Box sx={{ display: "grid", gap: 1.2, minWidth: 0 }}>
+    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, alignItems: "end", px: 0.3 }}>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: "1.05rem", fontWeight: 950 }}>
+          {title}
+        </Typography>
+        <Typography sx={{ color: "text.secondary", fontSize: "0.82rem" }}>
+          {meta}
+        </Typography>
+      </Box>
+    </Box>
+    {children}
+  </Box>
+);
+
+const MetricPill = ({ label, value }) => (
+  <Box sx={(theme) => ({
+    px: 1.2,
+    py: 0.8,
+    borderRadius: "999px",
+    border: theme.custom.clay.hairline,
+    bgcolor: "rgba(255,255,255,0.045)",
+    display: "flex",
+    gap: 0.8,
+    alignItems: "center",
+  })}>
+    <Typography sx={{ color: "text.secondary", fontSize: "0.74rem", fontWeight: 800 }}>{label}</Typography>
+    <Typography sx={{ fontSize: "0.78rem", fontWeight: 950 }}>{value}</Typography>
+  </Box>
+);
+
+const MiniInsight = ({ label, value }) => (
+  <Box sx={(theme) => ({
+    p: 1.5,
+    borderRadius: "12px",
+    border: theme.custom.clay.hairline,
+    bgcolor: "rgba(255,255,255,0.04)",
+  })}>
+    <Typography sx={{ color: "text.secondary", fontSize: "0.68rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px" }}>
+      {label}
+    </Typography>
+    <Typography sx={{ fontSize: "1rem", fontWeight: 950, mt: 0.5, overflowWrap: "anywhere" }}>
+      {value}
+    </Typography>
+  </Box>
+);
+
+const LeaderboardGroup = ({ title, children }) => (
+  <Panel sx={{ p: 1.5, minWidth: 0 }}>
+    <Typography sx={{
+      fontFamily: (theme) => theme.custom.fonts.mono,
+      fontSize: "0.66rem",
+      fontWeight: 900,
+      letterSpacing: "1px",
+      textTransform: "uppercase",
+      color: "text.secondary",
+      mb: 1.5,
+    }}>
+      {title}
+    </Typography>
+    <Box sx={{
+      display: "grid",
+      gridTemplateColumns: {
+        xs: "1fr",
+        lg: title === "Customers" ? "1fr" : "1fr 1fr",
+      },
+      gap: 1.5,
+      minWidth: 0,
+    }}>
+      {children}
+    </Box>
+  </Panel>
+);
+
+const MixSummary = ({ rows }) => {
+  const totalRevenue = rows.reduce((sum, row) => sum + Number(row.grossRevenue || 0), 0);
+  const totalUnits = rows.reduce((sum, row) => sum + Number(row.unitsSold || 0), 0);
+
+  return (
+    <Panel sx={{ p: 2.1, minWidth: 0 }}>
+      <Typography sx={{
+        fontFamily: (theme) => theme.custom.fonts.mono,
+        fontSize: "0.68rem",
+        fontWeight: 900,
+        letterSpacing: "1px",
+        textTransform: "uppercase",
+        color: "text.secondary",
+        mb: 1.5,
+      }}>
+        Product Type Share
+      </Typography>
+      {rows.length ? (
+        <Box sx={{ display: "grid", gap: 1.2 }}>
+          {rows.map((row) => {
+            const revenue = Number(row.grossRevenue || 0);
+            const share = totalRevenue ? (revenue / totalRevenue) * 100 : 0;
+
+            return (
+              <Box key={row.type} sx={(theme) => ({
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) auto",
+                gap: 1,
+                alignItems: "center",
+                p: 1.2,
+                borderRadius: "10px",
+                bgcolor: "rgba(255,255,255,0.035)",
+                border: theme.custom.clay.hairline,
+              })}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 900 }}>{row.label}</Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
+                    {row.unitsSold} of {totalUnits} units
+                  </Typography>
+                </Box>
+                <Box sx={{ textAlign: "right" }}>
+                  <Typography sx={{ fontWeight: 950 }}>{share.toFixed(1)}%</Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.8rem" }}>{formatMoney(revenue)}</Typography>
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+      ) : (
+        <EmptyChart />
+      )}
+    </Panel>
+  );
+};
+
+const ChartShell = ({ title, children }) => (
+  <Panel sx={{ p: 2.1, minWidth: 0, overflow: "hidden" }}>
+    <Typography sx={{
+      fontFamily: (theme) => theme.custom.fonts.mono,
+      fontSize: "0.68rem",
+      fontWeight: 900,
+      letterSpacing: "1px",
+      textTransform: "uppercase",
+      color: "text.secondary",
+      mb: 1.5,
+    }}>
+      {title}
+    </Typography>
+    {children}
+  </Panel>
+);
+
+const BarChartPanel = ({ title, rows, labelKey, valueKey, formatter = (value) => value, compact = false }) => {
+  const max = Math.max(...rows.map((row) => Number(row[valueKey] || 0)), 0);
+  const visibleRows = compact ? rows.slice(0, 6) : rows;
+
+  return (
+    <ChartShell title={title}>
+      {rows.length ? (
+        <Box sx={{ display: "grid", gap: 1.25 }}>
+          {visibleRows.map((row) => {
+            const value = Number(row[valueKey] || 0);
+            const width = max ? `${Math.max((value / max) * 100, 3)}%` : "0%";
+
+            return (
+              <Box key={`${row[labelKey]}-${value}`}>
+                <Box sx={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) max-content",
+                  gap: 1.5,
+                  alignItems: "start",
+                  mb: 0.55,
+                }}>
+                  <Typography sx={{
+                    fontSize: "0.82rem",
+                    fontWeight: 800,
+                    minWidth: 0,
+                    overflowWrap: "anywhere",
+                    lineHeight: 1.25,
+                  }}>
+                    {row[labelKey]}
+                  </Typography>
+                  <Typography sx={{
+                    fontSize: "0.82rem",
+                    color: "text.secondary",
+                    whiteSpace: "nowrap",
+                    textAlign: "right",
+                    lineHeight: 1.25,
+                  }}>
+                    {formatter(value)}
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  height: 8,
+                  borderRadius: "999px",
+                  bgcolor: "rgba(255,255,255,0.055)",
+                  overflow: "hidden",
+                }}>
+                  <Box sx={{
+                    width,
+                    height: "100%",
+                    borderRadius: "999px",
+                    background: "linear-gradient(90deg, #FF579F 0%, #0091AD 100%)",
+                    boxShadow: "0 0 18px rgba(255,87,159,0.22)",
+                  }} />
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+      ) : (
+        <EmptyChart />
+      )}
+    </ChartShell>
+  );
+};
+
+const MarketLineChart = ({ rows, xKey, yKey, formatter = (value) => value }) => {
+  const values = rows.map((row) => Number(row[yKey] || 0));
+  const max = Math.max(...values, 0);
+  const latest = values[values.length - 1] || 0;
+  const points = rows.map((row, index) => {
+    const x = rows.length > 1 ? (index / (rows.length - 1)) * 100 : 50;
+    const y = max ? 92 - (Number(row[yKey] || 0) / max) * 78 : 92;
+    return `${x},${y}`;
+  }).join(" ");
+
+  return rows.length ? (
+    <Box sx={{ mt: 2.5 }}>
+      <Box sx={{ height: { xs: 260, md: 340 }, position: "relative", color: "primary.main" }}>
+        <Box sx={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: "linear-gradient(rgba(255,255,255,0.075) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.055) 1px, transparent 1px)",
+          backgroundSize: "100% 25%, 16.666% 100%",
+          maskImage: "linear-gradient(to bottom, transparent, black 12%, black 88%, transparent)",
+        }} />
+        <Box
+          component="svg"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          sx={{ position: "relative", width: "100%", height: "100%", display: "block", filter: "drop-shadow(0 10px 24px rgba(255,87,159,0.25))" }}
+        >
+          <defs>
+            <linearGradient id="revenueLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#FF579F" />
+              <stop offset="100%" stopColor="#0091AD" />
+            </linearGradient>
+            <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FF579F" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#0091AD" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <polygon points={`0,100 ${points} 100,100`} fill="url(#revenueFill)" />
+          <polyline points={points} fill="none" stroke="url(#revenueLine)" strokeWidth="3" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+        </Box>
+      </Box>
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 1 }}>
+        <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[0]?.[xKey]}</Typography>
+        <Typography sx={{ fontSize: "0.82rem", fontWeight: 950 }}>{formatter(latest)} latest</Typography>
+        <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[rows.length - 1]?.[xKey]}</Typography>
+      </Box>
+    </Box>
+  ) : (
+    <EmptyChart height={300} />
+  );
+};
+
+const LineChartPanel = ({ title, rows, xKey, yKey, formatter = (value) => value }) => {
+  const values = rows.map((row) => Number(row[yKey] || 0));
+  const max = Math.max(...values, 0);
+  const points = rows.map((row, index) => {
+    const x = rows.length > 1 ? (index / (rows.length - 1)) * 100 : 50;
+    const y = max ? 100 - ((Number(row[yKey] || 0) / max) * 86 + 7) : 93;
+    return `${x},${y}`;
+  }).join(" ");
+
+  return (
+    <ChartShell title={title}>
+      {rows.length ? (
+        <>
+          <Box sx={{ height: 220, position: "relative", color: "primary.main" }}>
+            <Box sx={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)",
+              backgroundSize: "100% 25%",
+            }} />
+            <Box
+              component="svg"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              sx={{ position: "relative", width: "100%", height: "100%", display: "block" }}
+            >
+              <polygon points={`0,100 ${points} 100,100`} fill="currentColor" opacity="0.08" />
+              <polyline points={points} fill="none" stroke="currentColor" strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+            </Box>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 1 }}>
+            <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[0]?.[xKey]}</Typography>
+            <Typography sx={{ fontSize: "0.8rem", fontWeight: 900 }}>{formatter(max)}</Typography>
+            <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[rows.length - 1]?.[xKey]}</Typography>
+          </Box>
+        </>
+      ) : (
+        <EmptyChart />
+      )}
+    </ChartShell>
+  );
+};
+
+const DonutChartPanel = ({ title, rows }) => {
+  const total = rows.reduce((sum, row) => sum + Number(row.value || 0), 0);
+  const colors = ["#FF579F", "#0091AD", "#D8C6B3"];
+  let cursor = 0;
+  const gradient = total
+    ? rows.map((row, index) => {
+        const start = cursor;
+        const end = cursor + (Number(row.value || 0) / total) * 100;
+        cursor = end;
+        return `${colors[index % colors.length]} ${start}% ${end}%`;
+      }).join(", ")
+    : "rgba(255,255,255,0.08) 0 100%";
+
+  return (
+    <ChartShell title={title}>
+      {rows.length ? (
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "130px minmax(0, 1fr)", lg: "1fr" }, gap: 2, alignItems: "center", justifyItems: { xs: "center", sm: "start", lg: "center" } }}>
+          <Box sx={{
+            width: 130,
+            height: 130,
+            borderRadius: "50%",
+            background: `conic-gradient(${gradient})`,
+            display: "grid",
+            placeItems: "center",
+            boxShadow: "0 16px 36px rgba(0,0,0,0.26)",
+          }}>
+            <Box sx={{
+              width: 78,
+              height: 78,
+              borderRadius: "50%",
+              bgcolor: "background.paper",
+              display: "grid",
+              placeItems: "center",
+            }}>
+              <Typography sx={{ fontWeight: 900 }}>{total}</Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: "grid", gap: 1, width: "100%" }}>
+            {rows.map((row, index) => (
+              <Box key={row.label} sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
+                <Typography sx={{ fontSize: "0.84rem", textTransform: "capitalize" }}>
+                  <Box component="span" sx={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", bgcolor: colors[index % colors.length], mr: 1 }} />
+                  {row.label}
+                </Typography>
+                <Typography sx={{ fontSize: "0.84rem", fontWeight: 900 }}>{row.value}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ) : (
+        <EmptyChart />
+      )}
+    </ChartShell>
+  );
+};
+
+const EmptyChart = ({ height = 160 }) => (
+  <Box sx={{
+    height,
+    display: "grid",
+    placeItems: "center",
+    color: "text.secondary",
+    border: (theme) => theme.custom.clay.hairline,
+    borderRadius: "10px",
+    bgcolor: "rgba(255,255,255,0.03)",
+  }}>
+    No chart data yet.
+  </Box>
 );
 
 const SimpleTable = ({ headers, rows, empty }) => (

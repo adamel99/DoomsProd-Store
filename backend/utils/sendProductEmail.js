@@ -109,51 +109,51 @@ async function sendProductEmail(email, files = [], receipt = {}) {
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </head>
-        <body style="margin:0;padding:0;background-color:${colors.linen};font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:${colors.brown};">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:${colors.linen};padding:40px 0;">
+        <body style="margin:0;padding:0;background-color:${colors.page};font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:${colors.text};">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:${colors.page};padding:40px 0;">
             <tr>
               <td align="center">
-                <table width="560" cellpadding="0" cellspacing="0" style="background:${colors.cream};background-image:${clay.surfaceSoft};border-radius:20px;border:${clay.border};box-shadow:${clay.raised};overflow:hidden;max-width:560px;width:100%;">
+                <table width="560" cellpadding="0" cellspacing="0" style="background:${colors.surface};background-image:${clay.surfaceSoft};border-radius:20px;border:${clay.border};box-shadow:${clay.raised};overflow:hidden;max-width:560px;width:100%;">
 
                   <!-- Header -->
                   <tr>
                     <td style="background:${clay.surface};padding:40px 40px 32px;text-align:center;border-bottom:${clay.hairline};">
-                      <div style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${colors.pink};box-shadow:0 0 12px rgba(225,90,151,0.45);margin-bottom:16px;"></div>
-                      <h1 style="margin:0;font-size:26px;font-weight:800;color:${colors.brown};letter-spacing:-0.5px;">doomsprod</h1>
-                      <p style="margin:8px 0 0;font-size:13px;color:${colors.muted};letter-spacing:1px;text-transform:uppercase;">Beat Store</p>
+                      <div style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${colors.primary};box-shadow:0 0 14px rgba(255,87,159,0.48);margin-bottom:16px;"></div>
+                      <h1 style="margin:0;font-size:26px;font-weight:800;color:${colors.text};letter-spacing:-0.5px;">doomsprod</h1>
+                      <p style="margin:8px 0 0;font-size:13px;color:${colors.textMuted};letter-spacing:1px;text-transform:uppercase;">Beat Store</p>
                     </td>
                   </tr>
 
                   <!-- Body -->
                   <tr>
                     <td style="padding:40px;">
-                      <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${colors.brown};">Hey ${username}, thanks for purchasing</h2>
-                      <p style="margin:0 0 28px;font-size:15px;color:${colors.muted};line-height:1.6;">
-                        Your files are ready below. Private ZIP/WAV download links expire in <strong style="color:${colors.brown};">15 minutes</strong>. Public MP3 links may remain available.
+                      <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${colors.text};">Hey ${username}, thanks for purchasing</h2>
+                      <p style="margin:0 0 28px;font-size:15px;color:${colors.textMuted};line-height:1.6;">
+                        Your files are ready below. Private ZIP/WAV download links expire in <strong style="color:${colors.text};">15 minutes</strong>. Public MP3 links may remain available.
                       </p>
 
                       <!-- Receipt -->
-                      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;background:rgba(241,218,191,0.38);border:${clay.hairline};border-radius:14px;overflow:hidden;">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;background:${colors.surfaceCool};border:${clay.hairline};border-radius:14px;overflow:hidden;">
                         <tr>
                           <td style="padding:18px 20px;border-bottom:${clay.hairline};">
-                            <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:${colors.muted};text-transform:uppercase;letter-spacing:0.5px;">Receipt</p>
-                            <p style="margin:0;font-size:18px;font-weight:800;color:${colors.brown};">Order #${escapeHtml(receipt.orderId || "")}</p>
+                            <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:${colors.textMuted};text-transform:uppercase;letter-spacing:0.5px;">Receipt</p>
+                            <p style="margin:0;font-size:18px;font-weight:800;color:${colors.text};">Order #${escapeHtml(receipt.orderId || "")}</p>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding:0 20px 16px;">
                             <table width="100%" cellpadding="0" cellspacing="0">
                               <tr>
-                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.muted};">Username</td>
-                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.brown};">${username}</td>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Username</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${username}</td>
                               </tr>
                               <tr>
-                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.muted};">Purchased</td>
-                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.brown};">${escapeHtml(purchaseTime)}</td>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Purchased</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(purchaseTime)}</td>
                               </tr>
                               <tr>
-                                <td style="padding:14px 0;font-size:13px;color:${colors.muted};">Paid</td>
-                                <td align="right" style="padding:14px 0;font-size:13px;font-weight:800;color:${colors.brown};">${escapeHtml(totalPaid)}</td>
+                                <td style="padding:14px 0;font-size:13px;color:${colors.textMuted};">Paid</td>
+                                <td align="right" style="padding:14px 0;font-size:13px;font-weight:800;color:${colors.text};">${escapeHtml(totalPaid)}</td>
                               </tr>
                             </table>
                           </td>
@@ -165,11 +165,11 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                                 <table width="100%" cellpadding="0" cellspacing="0" style="border-top:${clay.hairline};">
                                   <tr>
                                     <td style="padding:14px 0;">
-                                      <p style="margin:0 0 4px;font-size:14px;font-weight:800;color:${colors.brown};">${item.title}</p>
-                                      <p style="margin:0;font-size:12px;color:${colors.muted};text-transform:capitalize;">${item.details}</p>
+                                      <p style="margin:0 0 4px;font-size:14px;font-weight:800;color:${colors.text};">${item.title}</p>
+                                      <p style="margin:0;font-size:12px;color:${colors.textMuted};text-transform:capitalize;">${item.details}</p>
                                       ${item.terms ? `<p style="margin:8px 0 0;font-size:12px;color:${colors.inkSoft};line-height:1.5;">${item.terms}</p>` : ""}
                                     </td>
-                                    <td align="right" style="padding:14px 0 14px 16px;font-size:14px;font-weight:800;color:${colors.brown};">${item.price}</td>
+                                    <td align="right" style="padding:14px 0 14px 16px;font-size:14px;font-weight:800;color:${colors.text};">${item.price}</td>
                                   </tr>
                                 </table>
                               `).join("")}
@@ -186,11 +186,11 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                               <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                   <td>
-                                    <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:${colors.muted};text-transform:uppercase;letter-spacing:0.5px;">Download</p>
-                                    <p style="margin:0;font-size:14px;font-weight:700;color:${colors.brown};word-break:break-all;">${type ? type.toUpperCase() : fileName}</p>
+                                    <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:${colors.textMuted};text-transform:uppercase;letter-spacing:0.5px;">Download</p>
+                                    <p style="margin:0;font-size:14px;font-weight:700;color:${colors.text};word-break:break-all;">${type ? type.toUpperCase() : fileName}</p>
                                   </td>
                                   <td align="right" style="padding-left:16px;">
-                                    <a href="${url}" style="display:inline-block;background:linear-gradient(135deg,${colors.pink},${colors.brown});color:${colors.cream};text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;white-space:nowrap;">
+                                    <a href="${url}" style="display:inline-block;background:${clay.brandSoft};color:#ffffff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;white-space:nowrap;">
                                       Download
                                     </a>
                                   </td>
@@ -204,8 +204,8 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                       <!-- Note -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:28px;">
                         <tr>
-                          <td style="background-color:rgba(241,218,191,0.38);border:${clay.hairline};border-radius:12px;padding:16px 20px;">
-                            <p style="margin:0;font-size:13px;color:${colors.muted};line-height:1.6;">
+                          <td style="background-color:rgba(255,87,159,0.08);border:${clay.hairline};border-radius:12px;padding:16px 20px;">
+                            <p style="margin:0;font-size:13px;color:${colors.textMuted};line-height:1.6;">
                               If you have any issues with your download, reply to this email and we'll get it sorted. We'd love to hear what you create — feel free to send back any finished tracks!
                             </p>
                           </td>
@@ -217,9 +217,9 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                   <!-- Footer -->
                   <tr>
                     <td style="padding:24px 40px;border-top:${clay.hairline};text-align:center;">
-                      <p style="margin:0;font-size:12px;color:${colors.quiet};line-height:1.6;">
+                      <p style="margin:0;font-size:12px;color:${colors.textQuiet};line-height:1.6;">
                         You received this email because you made a purchase at doomsprod.<br/>
-                        &copy; ${new Date().getFullYear()} doomsprod &middot; <a href="https://dooma.studio" style="color:${colors.pink};text-decoration:none;">dooma.studio</a>
+                        &copy; ${new Date().getFullYear()} doomsprod &middot; <a href="https://dooma.studio" style="color:${colors.primary};text-decoration:none;">dooma.studio</a>
                       </p>
                     </td>
                   </tr>

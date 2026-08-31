@@ -47,6 +47,22 @@ const adminProductAttributes = [
   'updatedAt',
 ];
 
+const addDateRange = (where, startDate, endDate) => {
+  const createdAt = {};
+  if (startDate) {
+    const start = new Date(startDate);
+    if (!Number.isNaN(start.getTime())) createdAt[Op.gte] = start;
+  }
+  if (endDate) {
+    const end = new Date(endDate);
+    if (!Number.isNaN(end.getTime())) {
+      end.setHours(23, 59, 59, 999);
+      createdAt[Op.lte] = end;
+    }
+  }
+  if (Object.keys(createdAt).length) where.createdAt = createdAt;
+};
+
 const validateOrderId = [
   param('orderId')
     .isInt({ min: 1 })
@@ -72,6 +88,8 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
       status,
       type,
       search,
+      startDate,
+      endDate,
       sort = 'createdAt',
       direction = 'DESC',
     } = req.query;
@@ -85,6 +103,7 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
 
     if (allowedStatuses.includes(status)) orderWhere.status = status;
     if (type && type !== 'all') productWhere.type = type;
+    addDateRange(orderWhere, startDate, endDate);
 
     if (search?.trim()) {
       const term = `%${search.trim()}%`;

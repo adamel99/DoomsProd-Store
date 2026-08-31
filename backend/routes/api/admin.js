@@ -1,15 +1,37 @@
 const express = require('express');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
+const { Op } = require('sequelize');
 const { Order, User, OrderItem, Product, License } = require('../../db/models');
 
 const router = express.Router();
 
 const toNumber = (value) => Number(value || 0);
 const monthKey = (date) => new Date(date).toISOString().slice(0, 7);
+const dayKey = (date) => new Date(date).toISOString().slice(0, 10);
+
+const addDateRange = (where, startDate, endDate) => {
+  const createdAt = {};
+  if (startDate) {
+    const start = new Date(startDate);
+    if (!Number.isNaN(start.getTime())) createdAt[Op.gte] = start;
+  }
+  if (endDate) {
+    const end = new Date(endDate);
+    if (!Number.isNaN(end.getTime())) {
+      end.setHours(23, 59, 59, 999);
+      createdAt[Op.lte] = end;
+    }
+  }
+  if (Object.keys(createdAt).length) where.createdAt = createdAt;
+};
 
 router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
   try {
+    const orderWhere = {};
+    addDateRange(orderWhere, req.query.startDate, req.query.endDate);
+
     const orders = await Order.findAll({
+      where: orderWhere,
       include: [
         {
           model: User,
@@ -46,6 +68,8 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
     const products = new Map();
     const licenses = new Map();
     const revenueByMonth = new Map();
+    const revenueByDay = new Map();
+    const ordersByDay = new Map();
     const revenueByProductType = new Map();
     const ordersByStatus = {
       completed: completedOrders.length,
@@ -55,7 +79,10 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
 
     completedOrders.forEach((order) => {
       const orderMonth = monthKey(order.createdAt);
+      const orderDay = dayKey(order.createdAt);
       revenueByMonth.set(orderMonth, (revenueByMonth.get(orderMonth) || 0) + toNumber(order.totalPrice));
+      revenueByDay.set(orderDay, (revenueByDay.get(orderDay) || 0) + toNumber(order.totalPrice));
+      ordersByDay.set(orderDay, (ordersByDay.get(orderDay) || 0) + 1);
 
       const user = order.User;
       if (user) {
@@ -171,6 +198,14 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
     ), 0);
     const licenseRows = Array.from(licenses.values()).sort((a, b) => b.unitsSold - a.unitsSold);
     const bestSellingProduct = [...productRows].sort((a, b) => b.unitsSold - a.unitsSold)[0];
+    const dailyRevenueRows = Array.from(revenueByDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, revenue]) => ({ date, revenue }));
+    let cumulativeRevenue = 0;
+    const cumulativeRevenueRows = dailyRevenueRows.map((row) => {
+      cumulativeRevenue += row.revenue;
+      return { date: row.date, revenue: cumulativeRevenue };
+    });
 
     return res.status(200).json({
       summary: {
@@ -192,11 +227,19 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
       licenses: licenseRows,
       breakdowns: {
         ordersByStatus,
+        ordersByDay: Array.from(ordersByDay.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([date, orders]) => ({ date, orders })),
+        revenueByDay: dailyRevenueRows,
+        cumulativeRevenue: cumulativeRevenueRows,
         revenueByMonth: Array.from(revenueByMonth.entries())
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([month, revenue]) => ({ month, revenue })),
         revenueByProductType: Array.from(revenueByProductType.values())
           .sort((a, b) => b.grossRevenue - a.grossRevenue),
+        topProductsByRevenue: [...productRows].sort((a, b) => b.grossRevenue - a.grossRevenue).slice(0, 8),
+        topProductsByUnits: [...productRows].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 8),
+        topCustomersBySpend: [...customerRows].sort((a, b) => b.lifetimeSpend - a.lifetimeSpend).slice(0, 8),
       },
     });
   } catch (error) {
