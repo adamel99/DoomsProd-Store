@@ -67,6 +67,15 @@ The API includes JWT auth restoration, CSRF protection, CORS allowlisting, Helme
 
 This is not a static portfolio page. It is a working full-stack product with real-world concerns: payments, permissions, file storage, transactional email, schema migrations, seed data, frontend state management, protected routes, and production deployment configuration.
 
+## Resume-Ready Security Bullets
+
+- Built and secured a full-stack digital ecommerce platform using React, Express.js, Sequelize, Stripe Checkout, AWS S3, and PostgreSQL/SQLite for selling beats, kits, and audio plugins.
+- Implemented JWT authentication with signed HTTP-only cookies, CSRF protection, role-based access control, admin-only routes, secure cookie settings, Helmet security headers, and CORS allowlisting.
+- Hardened payment fulfillment by integrating Stripe webhook signature verification, processed-event tracking, duplicate webhook prevention, protected order updates, and secure receipt/download delivery.
+- Secured digital file delivery with private AWS S3 object storage, server-side file upload validation, protected download endpoints, and limited-time signed download URLs.
+- Added abuse-prevention controls including login-attempt tracking, account/IP-based authentication rate limits, route-specific limits for checkout/downloads/uploads/password changes, global API rate limiting, and rate-limit event logging.
+- Built admin security/operations tooling for searchable order monitoring, customer/order inspection, payment identifier review, order status tracking, revenue metrics, and receipt resend actions.
+
 ## Project Structure
 
 ```text
@@ -197,7 +206,6 @@ Production configuration supports:
 - Add automated backend route tests for checkout and protected download behavior.
 - Add frontend integration tests for cart, checkout, and admin product flows.
 - Move demo credentials out of seeders and into documented local-only fixtures.
-- Add screenshots or a short product walkthrough GIF for quicker recruiter review.
 - Add CI for linting, tests, and migration checks.
 
 ## Why I Built It

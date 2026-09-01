@@ -73,6 +73,26 @@ export const signup = (user) => async (dispatch) => {
   return response;
 };
 
+export const updateProfile = (profile) => async (dispatch) => {
+  const response = await csrfFetch("/api/users/me", {
+    method: "PUT",
+    body: JSON.stringify(profile),
+  });
+  const data = await response.json();
+  dispatch(setUser(data.user));
+  return data.user;
+};
+
+export const updatePassword = (passwords) => async (dispatch) => {
+  const response = await csrfFetch("/api/users/me/password", {
+    method: "PUT",
+    body: JSON.stringify(passwords),
+  });
+  const data = await response.json();
+  if (data.user) dispatch(setUser(data.user));
+  return data;
+};
+
 export const logout = () => async (dispatch) => {
   const response = await csrfFetch('/api/session', {
     method: 'DELETE',

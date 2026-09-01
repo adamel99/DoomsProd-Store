@@ -96,6 +96,7 @@ router.post("/", loginIpLimiter, loginAccountLimiter, validateLogin, async (req,
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
+    isSubscribedToEmails: user.isSubscribedToEmails,
   };
 
   await setTokenCookie(res, user);
@@ -129,7 +130,8 @@ router.get('/', (req, res) => {
         lastName: req.user.lastName,
         email: req.user.email,
         username: req.user.username,
-        role: req.user.role
+        role: req.user.role,
+        isSubscribedToEmails: req.user.isSubscribedToEmails,
       }
     });
   } else {

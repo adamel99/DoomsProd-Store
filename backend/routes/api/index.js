@@ -13,8 +13,17 @@ const downloadRouter = require('./downloads'); // <-- ADD THIS
 const adminRouter = require('./admin');
 
 const { restoreUser, requireAuth } = require('../../utils/auth.js');
+const rateLimit = require('../../utils/rateLimit');
+
+const globalApiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  message: 'Too many API requests. Please slow down and try again later.',
+  skip: (req) => req.originalUrl === '/api/webhook',
+});
 
 router.use(restoreUser);
+router.use(globalApiRateLimit);
 
 router.use('/session', sessionRouter);
 router.use('/users', usersRouter);

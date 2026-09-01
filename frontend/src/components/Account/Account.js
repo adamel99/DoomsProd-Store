@@ -10,25 +10,33 @@ import {
   CircularProgress,
   Container,
   Divider,
+  FormControlLabel,
   Grid,
   Link,
+  Switch,
+  TextField,
   Typography,
 } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
+import EditIcon from "@mui/icons-material/Edit";
 import EmailIcon from "@mui/icons-material/Email";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import LockResetIcon from "@mui/icons-material/LockReset";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { getUserOrdersThunk } from "../../store/orders";
 import { csrfFetch } from "../../store/csrf";
+import { updatePassword, updateProfile } from "../../store/session";
 import { formatProductType } from "../../utils/formatProductType";
 import { formatDate, formatDateTime, formatMoney } from "../../utils/formatters";
 
 const Panel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
-    ...theme.custom.patterns.surface.raised,
-    borderRadius: "var(--radius-panel)",
+    background: theme.palette.background.paper,
+    border: theme.custom.clay.hairline,
+    borderRadius: "18px",
+    boxShadow: "0 18px 50px rgba(0,0,0,0.16)",
     ...sx,
   })}>
     {children}
@@ -115,6 +123,21 @@ const AccountPage = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [downloadState, setDownloadState] = useState({});
   const [receiptState, setReceiptState] = useState({});
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    isSubscribedToEmails: false,
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [profileState, setProfileState] = useState({ loading: false, message: null, error: null });
+  const [passwordState, setPasswordState] = useState({ loading: false, message: null, error: null });
 
   useEffect(() => {
     let isMounted = true;
@@ -123,6 +146,16 @@ const AccountPage = () => {
     });
     return () => { isMounted = false; };
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileForm({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      isSubscribedToEmails: user.isSubscribedToEmails === true,
+    });
+  }, [user]);
 
   const fullName = useMemo(() => (
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.username || "Account"
@@ -133,6 +166,19 @@ const AccountPage = () => {
   const totalSpent = useMemo(() => (
     completedOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0)
   ), [completedOrders]);
+
+  const resetProfileForm = () => {
+    setProfileForm({
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      isSubscribedToEmails: user?.isSubscribedToEmails === true,
+    });
+  };
+
+  const resetPasswordForm = () => {
+    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  };
 
   const loadDownloads = async (orderId) => {
     setDownloadState((prev) => ({
@@ -190,16 +236,88 @@ const AccountPage = () => {
     }
   };
 
+  const getErrorMessage = async (err, fallback) => {
+    if (err?.json) {
+      const data = await err.json();
+      return data.errors ? Object.values(data.errors).join(" ") : data.message || fallback;
+    }
+    return err?.message || fallback;
+  };
+
+  const handleProfileChange = (field) => (e) => {
+    const value = field === "isSubscribedToEmails" ? e.target.checked : e.target.value;
+    setProfileForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePasswordChange = (field) => (e) => {
+    setPasswordForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    setProfileState({ loading: true, message: null, error: null });
+
+    try {
+      await dispatch(updateProfile(profileForm));
+      setProfileState({ loading: false, message: "Account details updated.", error: null });
+      setIsEditingProfile(false);
+    } catch (err) {
+      setProfileState({
+        loading: false,
+        message: null,
+        error: await getErrorMessage(err, "Could not update account details."),
+      });
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordState({ loading: true, message: null, error: null });
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordState({ loading: false, message: null, error: "New passwords do not match." });
+      return;
+    }
+
+    try {
+      await dispatch(updatePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      }));
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordState({ loading: false, message: "Password updated.", error: null });
+      setIsChangingPassword(false);
+    } catch (err) {
+      setPasswordState({
+        loading: false,
+        message: null,
+        error: await getErrorMessage(err, "Could not update password."),
+      });
+    }
+  };
+
+  const handleCancelProfileEdit = () => {
+    resetProfileForm();
+    setProfileState({ loading: false, message: null, error: null });
+    setIsEditingProfile(false);
+  };
+
+  const handleCancelPasswordChange = () => {
+    resetPasswordForm();
+    setPasswordState({ loading: false, message: null, error: null });
+    setIsChangingPassword(false);
+  };
+
   return (
     <Box sx={{
       minHeight: "100vh",
       bgcolor: "background.default",
       color: "text.primary",
-      pt: { xs: 6, md: 8 },
-      pb: { xs: 8, md: 11 },
+      pt: { xs: 5, md: 7 },
+      pb: { xs: 7, md: 10 },
     }}>
-      <Container maxWidth="lg">
-        <Box sx={{ mb: { xs: 3, md: 4 }, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
+      <Container maxWidth="md">
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <Box>
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.mono,
@@ -213,7 +331,7 @@ const AccountPage = () => {
               Account
             </Typography>
             <Typography variant="h1" sx={{
-              fontSize: { xs: "2.7rem", md: "4.8rem" },
+              fontSize: { xs: "2.35rem", md: "3.8rem" },
               lineHeight: 0.94,
             }}>
               Your Library
@@ -221,81 +339,252 @@ const AccountPage = () => {
           </Box>
           <Typography sx={{
             color: "text.secondary",
-            maxWidth: 390,
+            maxWidth: 560,
             lineHeight: 1.65,
             fontSize: "0.94rem",
+            mt: 1.5,
           }}>
             Manage receipts, re-download purchased files, and keep your license details close.
           </Typography>
         </Box>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ position: { md: "sticky" }, top: { md: 92 }, display: "grid", gap: 2.5 }}>
-              <Panel sx={{ p: { xs: 3, md: 3.5 } }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-                  <Avatar sx={{
-                    width: 64,
-                    height: 64,
-                    bgcolor: "primary.main",
-                    color: "primary.contrastText",
-                    fontFamily: (theme) => theme.custom.fonts.display,
-                    fontSize: "1.7rem",
-                    fontWeight: 900,
-                    boxShadow: (theme) => theme.custom.clay.raisedSmall,
-                  }}>
-                    {user?.username?.[0]?.toUpperCase() || "U"}
-                  </Avatar>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="h4" sx={{ lineHeight: 1.05, overflowWrap: "anywhere" }}>
-                      {fullName}
-                    </Typography>
-                    <Typography sx={{ color: "text.secondary", fontSize: "0.88rem", mt: 0.5 }}>
-                      @{user?.username || "user"}
-                    </Typography>
+        <Box sx={{ display: "grid", gap: 2.5 }}>
+          <Panel sx={{ p: { xs: 2.5, md: 3 } }}>
+            <Box sx={{
+              display: "flex",
+              alignItems: { xs: "flex-start", sm: "center" },
+              justifyContent: "space-between",
+              gap: 2,
+              flexWrap: "wrap",
+            }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 0 }}>
+                <Avatar sx={{
+                  width: 56,
+                  height: 56,
+                  bgcolor: "primary.main",
+                  color: "primary.contrastText",
+                  fontFamily: (theme) => theme.custom.fonts.display,
+                  fontSize: "1.45rem",
+                  fontWeight: 900,
+                }}>
+                  {user?.username?.[0]?.toUpperCase() || "U"}
+                </Avatar>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ lineHeight: 1.05, overflowWrap: "anywhere" }}>
+                    {fullName}
+                  </Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.88rem", mt: 0.5 }}>
+                    @{user?.username || "user"} · {user?.email || "No email"}
+                  </Typography>
+                </Box>
+              </Box>
+              <Chip
+                label={user?.isSubscribedToEmails ? "Release emails on" : "Release emails off"}
+                variant="outlined"
+                sx={{ fontWeight: 800 }}
+              />
+            </Box>
+          </Panel>
+
+          <Panel sx={{ p: { xs: 2.5, md: 3 } }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap", mb: 2.5 }}>
+                  <Typography variant="h4">
+                    Account Settings
+                  </Typography>
+                  {!isEditingProfile && (
+                    <Button
+                      variant="contained"
+                      startIcon={<EditIcon />}
+                      onClick={() => {
+                        resetProfileForm();
+                        setProfileState({ loading: false, message: null, error: null });
+                        setIsEditingProfile(true);
+                      }}
+                    >
+                      Edit Info
+                    </Button>
+                  )}
+            </Box>
+
+            {!isEditingProfile ? (
+                  <Box sx={{ display: "grid", gap: 1.4, mb: 3.5 }}>
+                    <InfoRow label="Name" value={fullName} />
+                    <InfoRow label="Email" value={user?.email} />
+                    <InfoRow label="Release Emails" value={user?.isSubscribedToEmails ? "Subscribed" : "Not subscribed"} />
+                    {profileState.message && <Alert severity="success">{profileState.message}</Alert>}
+                  </Box>
+            ) : (
+                  <Box component="form" onSubmit={handleProfileSubmit} sx={{ display: "grid", gap: 2.2, mb: 3.5 }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="First Name"
+                          value={profileForm.firstName}
+                          onChange={handleProfileChange("firstName")}
+                          fullWidth
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Last Name"
+                          value={profileForm.lastName}
+                          onChange={handleProfileChange("lastName")}
+                          fullWidth
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Email"
+                          type="email"
+                          value={profileForm.email}
+                          onChange={handleProfileChange("email")}
+                          fullWidth
+                          required
+                        />
+                      </Grid>
+                    </Grid>
+
+                    <FormControlLabel
+                      control={(
+                        <Switch
+                          checked={profileForm.isSubscribedToEmails}
+                          onChange={handleProfileChange("isSubscribedToEmails")}
+                        />
+                      )}
+                      label="Send me product updates and release emails"
+                      sx={{ color: "text.secondary" }}
+                    />
+
+                    {profileState.error && <Alert severity="error">{profileState.error}</Alert>}
+
+                    <Box sx={{ display: "flex", gap: 1.2, flexWrap: "wrap" }}>
+                      <Button type="submit" variant="contained" disabled={profileState.loading}>
+                        {profileState.loading ? "Saving" : "Save Account Details"}
+                      </Button>
+                      <Button type="button" variant="text" onClick={handleCancelProfileEdit} disabled={profileState.loading}>
+                        Cancel
+                      </Button>
+                    </Box>
+                  </Box>
+            )}
+
+            <Divider sx={{ my: 3 }} />
+
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap", mb: isChangingPassword ? 2.2 : 0 }}>
+                  <Typography variant="h5">
+                    Change Password
+                  </Typography>
+                  {!isChangingPassword && (
+                    <Button
+                      variant="outlined"
+                      startIcon={<LockResetIcon />}
+                      onClick={() => {
+                        resetPasswordForm();
+                        setPasswordState({ loading: false, message: null, error: null });
+                        setIsChangingPassword(true);
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  )}
+            </Box>
+
+            {passwordState.message && !isChangingPassword && (
+                  <Alert severity="success" sx={{ mt: 2 }}>
+                    {passwordState.message}
+                  </Alert>
+            )}
+
+            {isChangingPassword && (
+                <Box component="form" onSubmit={handlePasswordSubmit} sx={{ display: "grid", gap: 2.2 }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Current Password"
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={handlePasswordChange("currentPassword")}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="New Password"
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={handlePasswordChange("newPassword")}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        label="Confirm New Password"
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={handlePasswordChange("confirmPassword")}
+                        fullWidth
+                        required
+                      />
+                    </Grid>
+                  </Grid>
+
+                  {passwordState.error && <Alert severity="error">{passwordState.error}</Alert>}
+
+                  <Box sx={{ display: "flex", gap: 1.2, flexWrap: "wrap" }}>
+                    <Button type="submit" variant="outlined" disabled={passwordState.loading}>
+                      {passwordState.loading ? "Updating" : "Update Password"}
+                    </Button>
+                    <Button type="button" variant="text" onClick={handleCancelPasswordChange} disabled={passwordState.loading}>
+                      Cancel
+                    </Button>
                   </Box>
                 </Box>
+            )}
+          </Panel>
 
-                <InfoRow label="Name" value={fullName} />
-                <InfoRow label="Email" value={user?.email} />
-              </Panel>
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 1.5 }}>
+            <StatCard icon={<ShoppingBagIcon />} label="Orders" value={orders.length} />
+            <StatCard icon={<ReceiptLongIcon />} label="Completed" value={completedOrders.length} />
+            <StatCard icon={<DownloadIcon />} label="Total Spent" value={formatMoney(totalSpent)} />
+          </Box>
 
-              <Panel sx={{ p: { xs: 3, md: 3.5 } }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, mb: 1.5 }}>
-                  <SupportAgentIcon sx={{ color: "primary.main" }} />
+          <Panel sx={{ p: { xs: 2.25, md: 2.75 } }}>
+            <Box sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr auto" },
+              gap: 2,
+              alignItems: "center",
+            }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.4, minWidth: 0 }}>
+                <SupportAgentIcon sx={{ color: "primary.main", flexShrink: 0 }} />
+                <Box sx={{ minWidth: 0 }}>
                   <Typography variant="h5">
                     Support
                   </Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.88rem", lineHeight: 1.55 }}>
+                    Refunds, disputes, license questions, and download issues.
+                  </Typography>
                 </Box>
-                <Typography sx={{ color: "text.secondary", fontSize: "0.9rem", lineHeight: 1.65, mb: 2 }}>
-                  For refunds, disputes, license questions, or download issues, contact{" "}
-                  <Link href="mailto:adamelh1999@gmail.com" sx={{ color: "primary.main", fontWeight: 800 }}>
-                    email
-                  </Link>
-                  {" "}or{" "}
-                  <Link href="https://instagram.com/vdam_" target="_blank" rel="noopener noreferrer" sx={{ color: "primary.main", fontWeight: 800 }}>
-                    Instagram
-                  </Link>
-                  .
-                </Typography>
-                <Box sx={{ display: "grid", gap: 1 }}>
-                  <LegalLink to="/terms" label="Terms" />
-                  <LegalLink to="/privacy-policy" label="Privacy Policy" />
-                  <LegalLink to="/licenses" label="Licenses" />
-                </Box>
-              </Panel>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={8}>
-            <Box sx={{ display: "grid", gap: 2.5 }}>
-              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2 }}>
-                <StatCard icon={<ShoppingBagIcon />} label="Orders" value={orders.length} />
-                <StatCard icon={<ReceiptLongIcon />} label="Completed" value={completedOrders.length} />
-                <StatCard icon={<DownloadIcon />} label="Total Spent" value={formatMoney(totalSpent)} />
               </Box>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: { sm: "flex-end" } }}>
+                <Button component={Link} href="mailto:adamelh1999@gmail.com" variant="outlined" size="small">
+                  Email
+                </Button>
+                <Button component={Link} href="https://instagram.com/vdam_" target="_blank" rel="noopener noreferrer" variant="outlined" size="small">
+                  Instagram
+                </Button>
+                <Button component={RouterLink} to="/terms" variant="text" size="small">
+                  Terms
+                </Button>
+              </Box>
+            </Box>
+          </Panel>
 
-              <Panel sx={{ p: { xs: 2.5, md: 3.5 } }}>
+          <Panel sx={{ p: { xs: 2.5, md: 3 } }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap", mb: 3 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.4 }}>
                     <ReceiptLongIcon sx={{ color: "primary.main" }} />
@@ -339,10 +628,8 @@ const AccountPage = () => {
                     </Button>
                   </Box>
                 )}
-              </Panel>
-            </Box>
-          </Grid>
-        </Grid>
+          </Panel>
+        </Box>
       </Container>
     </Box>
   );
@@ -389,33 +676,6 @@ const StatCard = ({ icon, label, value }) => (
       </Box>
     </Box>
   </Panel>
-);
-
-const LegalLink = ({ to, label }) => (
-  <Link
-    component={RouterLink}
-    to={to}
-    sx={(theme) => ({
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      px: 1.4,
-      py: 1,
-      borderRadius: "12px",
-      background: theme.custom.clay.surfaceSoft,
-      border: theme.custom.clay.hairline,
-      color: "primary.main",
-      fontWeight: 800,
-      fontSize: "0.86rem",
-      textDecoration: "none",
-      "&:hover": {
-        borderColor: theme.palette.primary.main,
-        color: "primary.dark",
-      },
-    })}
-  >
-    {label}
-  </Link>
 );
 
 const InfoRow = ({ label, value }) => (
