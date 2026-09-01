@@ -160,8 +160,17 @@ const ProductDetailPage = () => {
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="start">
           <Grid item xs={12} md={6}>
             <Box sx={{ position: { md: "sticky" }, top: { md: 100 } }}>
-              <DetailPanel sx={{ overflow: "hidden" }}>
-                <Box sx={{ position: "relative", aspectRatio: "1 / 1", background: "background.paper" }}>
+              <DetailPanel sx={{ overflow: "hidden", width: "100%" }}>
+                <Box sx={(theme) => ({
+                  position: "relative",
+                  aspectRatio: "1 / 1",
+                  width: "100%",
+                  maxHeight: { md: 560 },
+                  background: theme.custom.clay.surfaceSoft,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                })}>
                   <Box
                     component="img"
                     src={imageUrl || "/placeholder.jpg"}
@@ -169,14 +178,15 @@ const ProductDetailPage = () => {
                     sx={{
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
+                      objectFit: "contain",
                       display: "block",
+                      p: { xs: 1.25, md: 1.75 },
                     }}
                   />
                   <Box sx={{
                     position: "absolute",
                     inset: 0,
-                    background: "var(--image-scrim, linear-gradient(to top, rgba(54,36,23,0.62) 0%, rgba(54,36,23,0.12) 48%, transparent 100%))",
+                    background: "linear-gradient(to top, rgba(54,36,23,0.36) 0%, rgba(54,36,23,0.08) 38%, transparent 72%)",
                     pointerEvents: "none",
                   }} />
 
@@ -254,9 +264,10 @@ const ProductDetailPage = () => {
             </Typography>
 
             <Typography variant="h1" sx={{
-              fontSize: { xs: "2.7rem", md: "4.8rem" },
+              fontSize: { xs: "2.55rem", md: "4.15rem" },
               lineHeight: 0.95,
               mb: 3,
+              overflowWrap: "anywhere",
             }}>
               {title}
             </Typography>
