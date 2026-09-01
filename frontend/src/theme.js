@@ -539,7 +539,14 @@ const theme = createTheme({
           --motion-opacity: ${motion.transition.opacity};
         }
 
-        html { scroll-behavior: smooth; overflow-x: hidden; }
+        html {
+          scroll-behavior: smooth;
+          overflow-x: hidden;
+          scrollbar-width: none;
+          scrollbar-color: transparent transparent;
+          --scrollbar-thumb-height: 32px;
+          --scrollbar-thumb-y: 0px;
+        }
         body {
           margin: 0;
           padding: 0;
@@ -549,6 +556,24 @@ const theme = createTheme({
           color: ${colors.ink};
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
+        }
+        body::after {
+          content: "";
+          position: fixed;
+          top: 0;
+          right: 3px;
+          width: 1px;
+          height: var(--scrollbar-thumb-height);
+          border-radius: 999px;
+          background: ${colors.ink};
+          opacity: 0;
+          pointer-events: none;
+          transform: translateY(var(--scrollbar-thumb-y));
+          transition: opacity 180ms ease;
+          z-index: 2147483647;
+        }
+        html.is-scrolling body::after {
+          opacity: 1;
         }
         * { box-sizing: border-box; }
         a { color: ${colors.coralDark}; text-decoration: none; }
@@ -564,14 +589,7 @@ const theme = createTheme({
           }
         }
 
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: ${colors.linen}; }
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(180deg, ${colors.pink}, ${colors.brown});
-          border-radius: 999px;
-          border: 3px solid ${colors.linen};
-        }
-        ::-webkit-scrollbar-thumb:hover { background: ${colors.coralDark}; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
       `,
     },
 

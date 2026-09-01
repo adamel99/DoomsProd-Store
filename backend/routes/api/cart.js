@@ -1,23 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { Cart, CartItem, Product, License } = require('../../db/models');
+const { CartItem } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
+const { cartItemIncludes, findOrCreateUserCart } = require('../../utils/cart');
 
 // GET /api/cart - Get cart summary (items + total)
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     // 🔧 Auto-create cart if missing
-    let cart = await Cart.findOne({ where: { userId: req.user.id } });
-    if (!cart) {
-      cart = await Cart.create({ userId: req.user.id });
-    }
+    const cart = await findOrCreateUserCart(req.user.id);
 
     const items = await CartItem.findAll({
       where: { cartId: cart.id },
-      include: [
-        { model: Product, attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'imageUrl'] },
-        { model: License, attributes: ['id', 'name', 'price'] }
-      ]
+      include: cartItemIncludes,
     });
 
     const total = items.reduce((sum, item) => {

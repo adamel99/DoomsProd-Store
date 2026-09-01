@@ -43,6 +43,42 @@ function App() {
       .catch(() => setIsLoaded(true)); // ← add this
   }, [dispatch]);
 
+  useEffect(() => {
+    let scrollTimeout;
+
+    const updateScrollbar = () => {
+      const root = document.documentElement;
+      const scrollableHeight = root.scrollHeight - window.innerHeight;
+      const viewportRatio = window.innerHeight / root.scrollHeight;
+      const thumbHeight = Math.max(window.innerHeight * viewportRatio, 32);
+      const thumbTravel = window.innerHeight - thumbHeight;
+      const progress = scrollableHeight > 0 ? window.scrollY / scrollableHeight : 0;
+
+      root.style.setProperty("--scrollbar-thumb-height", `${thumbHeight}px`);
+      root.style.setProperty("--scrollbar-thumb-y", `${thumbTravel * progress}px`);
+    };
+
+    const showScrollbar = () => {
+      updateScrollbar();
+      document.documentElement.classList.add("is-scrolling");
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        document.documentElement.classList.remove("is-scrolling");
+      }, 900);
+    };
+
+    updateScrollbar();
+    window.addEventListener("scroll", showScrollbar, { passive: true });
+    window.addEventListener("resize", updateScrollbar);
+
+    return () => {
+      window.removeEventListener("scroll", showScrollbar);
+      window.removeEventListener("resize", updateScrollbar);
+      clearTimeout(scrollTimeout);
+      document.documentElement.classList.remove("is-scrolling");
+    };
+  }, []);
+
   return (
     <>
       <Navigation isLoaded={isLoaded} />

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { Cart, CartItem, Product, License } = require('../../db/models');
+const { CartItem, Product, License } = require('../../db/models');
 const { requireAuth } = require('../../utils/auth');
 const { check, param } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
+const { cartItemIncludes, findOrCreateUserCart, findUserCartById } = require('../../utils/cart');
 
 const validateCartItemCreate = [
   check('productId')
@@ -96,20 +97,11 @@ function formatCartItem(item) {
 // GET /api/cart-items
 router.get('/', requireAuth, async (req, res, next) => {
   try {
-    let cart = await Cart.findOne({ where: { userId: req.user.id } });
-    if (!cart) {
-      cart = await Cart.create({ userId: req.user.id });
-    }
+    const cart = await findOrCreateUserCart(req.user.id);
 
     const items = await CartItem.findAll({
       where: { cartId: cart.id },
-      include: [
-        {
-          model: Product,
-          attributes: ['id', 'title', 'type', 'price', 'youtubeLink', 'audioPreviewUrl', 'imageUrl'],
-        },
-        { model: License, attributes: ['id', 'name', 'price'] },
-      ],
+      include: cartItemIncludes,
     });
 
     const formattedItems = items.map(formatCartItem);
@@ -127,10 +119,7 @@ router.post('/', requireAuth, validateCartItemCreate, async (req, res, next) => 
     await validateProductLicenseSelection({ productId, licenseId });
 
     // Auto-create cart if it doesn't exist
-    let cart = await Cart.findOne({ where: { userId: req.user.id } });
-    if (!cart) {
-      cart = await Cart.create({ userId: req.user.id });
-    }
+    const cart = await findOrCreateUserCart(req.user.id);
 
     const existingItem = await CartItem.findOne({
       where: {
@@ -175,7 +164,7 @@ router.put('/:id', requireAuth, validateCartItemUpdate, async (req, res, next) =
 
     if (!item) return res.status(404).json({ message: 'Cart item not found' });
 
-    const cart = await Cart.findOne({ where: { id: item.cartId, userId: req.user.id } });
+    const cart = await findUserCartById(item.cartId, req.user.id);
     if (!cart) return res.status(403).json({ message: 'Unauthorized' });
 
     if (licenseId !== undefined) {
@@ -207,7 +196,7 @@ router.delete('/:id', requireAuth, validateCartItemId, async (req, res, next) =>
     const item = await CartItem.findByPk(req.params.id);
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
-    const cart = await Cart.findOne({ where: { id: item.cartId, userId: req.user.id } });
+    const cart = await findUserCartById(item.cartId, req.user.id);
     if (!cart) return res.status(403).json({ message: 'Unauthorized' });
 
     await item.destroy();

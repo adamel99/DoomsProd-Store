@@ -23,6 +23,7 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { getUserOrdersThunk } from "../../store/orders";
 import { csrfFetch } from "../../store/csrf";
 import { formatProductType } from "../../utils/formatProductType";
+import { formatDate, formatDateTime, formatMoney } from "../../utils/formatters";
 
 const Panel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
@@ -33,28 +34,6 @@ const Panel = ({ children, sx = {} }) => (
     {children}
   </Box>
 );
-
-const formatDate = (value) => {
-  if (!value) return "Unknown date";
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-const formatDateTime = (value) => {
-  if (!value) return "Unknown time";
-  return new Date(value).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-};
-
-const formatMoney = (value) => `$${Number(value || 0).toFixed(2)}`;
 
 const getStatusMeta = (status) => {
   if (status === "completed") {
@@ -490,7 +469,7 @@ const OrderCard = ({ order, downloadInfo, receiptInfo, onLoadDownloads, onResend
             />
           </Box>
           <Typography sx={{ color: "text.secondary", fontSize: "0.88rem" }}>
-            {formatDate(order.createdAt)} · {formatMoney(order.totalPrice)}
+            {formatDate(order.createdAt, "Unknown date")} · {formatMoney(order.totalPrice)}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: { xs: "flex-start", sm: "flex-end" } }}>
@@ -530,7 +509,7 @@ const OrderCard = ({ order, downloadInfo, receiptInfo, onLoadDownloads, onResend
           gap: 1.5,
         }}>
           <ReceiptField label="Username" value={username || "Not provided"} />
-          <ReceiptField label="Purchased" value={formatDateTime(order.createdAt)} />
+          <ReceiptField label="Purchased" value={formatDateTime(order.createdAt, "Unknown time")} />
           <ReceiptField label="Paid" value={formatMoney(order.totalPrice)} />
         </Box>
       </Box>

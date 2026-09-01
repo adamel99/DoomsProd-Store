@@ -39,28 +39,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { csrfFetch } from "../../store/csrf";
 import { formatProductType } from "../../utils/formatProductType";
-
-const formatMoney = (value) => `$${Number(value || 0).toFixed(2)}`;
-
-const formatDate = (value) => {
-  if (!value) return "Unknown";
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-const formatDateTime = (value) => {
-  if (!value) return "Unknown";
-  return new Date(value).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-};
+import { formatDate, formatDateTime, formatMoney } from "../../utils/formatters";
 
 const statusMeta = {
   completed: { label: "Completed", color: "success" },
