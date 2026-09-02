@@ -234,7 +234,7 @@ const getLicenseDetails = (license) => {
         distributionLimit: "Unlimited",
         radioPlays: "Unlimited",
         monetization: "Fully monetizable",
-        ownership: "Exclusive — beat removed",
+        ownership: "Exclusive use",
         modifications: "Full creative control",
         radioAllowed: true,
         monetizationAllowed: true,
@@ -524,7 +524,7 @@ const LicensesPage = () => {
 
           {[
             "All instrumentals and audio content sold on this platform are protected under copyright law. Unauthorized use, reproduction, distribution, or commercial exploitation of any beat without a valid license agreement is strictly prohibited. Violation of these terms may result in copyright takedowns, legal action, and removal of your content from streaming platforms.",
-            "Exclusive licenses remove the beat from the store and grant you full rights for commercial use. All licensing agreements are non-transferable. The producer retains copyright ownership unless explicitly transferred in a signed agreement.",
+            "Exclusive licenses remove the beat from the store and grant exclusive commercial usage rights to the purchased beat. Copyright, publishing, and master ownership remain with doomsprod unless explicitly transferred in a separate signed agreement. All licensing agreements are non-transferable.",
             "Sync licensing (use in film, TV, games, or advertising) requires separate written approval. Licensing is granted for use as-is; resale of the beat or creating derivative products (e.g. sample kits) is not permitted unless explicitly allowed in writing.",
           ].map((para, i) => (
             <Typography key={i} sx={{

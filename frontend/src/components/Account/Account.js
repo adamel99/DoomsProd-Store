@@ -80,7 +80,7 @@ const getLicenseTerms = (item) => {
 
   if (type === "beat") {
     if (String(item.License?.name || "").trim().toLowerCase() === "exclusive") {
-      return `${item.License?.description || "Exclusive rights to the beat."} Includes MP3, WAV, ZIP delivery and priority response for purchase questions or concerns. Files and license rights are for the purchaser and are not transferable without written permission.`;
+      return `${item.License?.description || "Exclusive commercial usage rights to the purchased beat."} Includes MP3, WAV, ZIP delivery and priority response for purchase questions or concerns. Copyright, publishing, and master ownership remain with doomsprod unless transferred in a separate signed agreement. Files and license rights are for the purchaser and are not transferable without written permission.`;
     }
 
     return `${item.License?.description || "Usage rights follow the selected beat license for this purchase."} Non-exclusive beat licenses do not transfer copyright ownership. Do not resell, redistribute, lease, share, or re-upload the beat files, trackouts, stems, WAVs, MP3s, or ZIP packages as standalone files. Content ID registration, copyright claims, and exclusive-rights claims are not allowed unless expressly included in a written exclusive agreement.`;
