@@ -5,6 +5,7 @@ const { requireAuth } = require('../../utils/auth');
 const { check, param } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
 const { cartItemIncludes, findOrCreateUserCart, findUserCartById } = require('../../utils/cart');
+const { logError } = require('../../utils/logger');
 
 const validateCartItemCreate = [
   check('productId')
@@ -151,7 +152,7 @@ router.post('/', requireAuth, validateCartItemCreate, async (req, res, next) => 
 
     return res.status(201).json({ item: formattedSingleItem });
   } catch (err) {
-    console.error('❌ Error adding cart item:', err);
+    logError('Error adding cart item', err, { userId: req.user?.id, productId: req.body?.productId });
     next(err);
   }
 });
@@ -185,7 +186,7 @@ router.put('/:id', requireAuth, validateCartItemUpdate, async (req, res, next) =
 
     return res.json({ item: formattedUpdatedItem });
   } catch (err) {
-    console.error('❌ Error updating cart item:', err);
+    logError('Error updating cart item', err, { userId: req.user?.id, cartItemId: req.params.id });
     next(err);
   }
 });
@@ -203,7 +204,7 @@ router.delete('/:id', requireAuth, validateCartItemId, async (req, res, next) =>
 
     return res.json({ message: 'Item deleted' });
   } catch (err) {
-    console.error('❌ Error deleting cart item:', err);
+    logError('Error deleting cart item', err, { userId: req.user?.id, cartItemId: req.params.id });
     next(err);
   }
 });

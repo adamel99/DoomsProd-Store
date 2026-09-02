@@ -9,6 +9,7 @@ const { body, param, query } = require('express-validator');
 const { handleValidationErrors } = require('../../utils/validation');
 const router = express.Router();
 const { Op } = require('sequelize');
+const { logError } = require('../../utils/logger');
 const productUploadRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 8 });
 const allowedTypes = ['beat', 'loop_kit', 'drum_kit', 'plugin'];
 
@@ -212,7 +213,7 @@ router.get('/', validateProductList, async (req, res, next) => {
 
     res.status(200).json({ products: productsWithLicenses });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    logError('Error fetching products', error, { userId: req.user?.id || null });
     next(error);
   }
 });
@@ -226,7 +227,7 @@ router.get('/:productId', validateProductId, async (req, res, next) => {
     if (productJson.type === 'beat') productJson.licenses = await getLicenses();
     res.status(200).json(productJson);
   } catch (error) {
-    console.error('Error fetching product:', error);
+    logError('Error fetching product', error, { userId: req.user?.id || null, productId: req.params.productId });
     next(error);
   }
 });
@@ -303,7 +304,7 @@ router.post(
       if (productJson.type === 'beat') productJson.licenses = await getLicenses();
       res.status(201).json(productJson);
     } catch (error) {
-      console.error('Error creating product:', error);
+      logError('Error creating product', error, { userId: req.user?.id, productType: req.body?.type });
       next(error);
     }
   }
@@ -365,7 +366,7 @@ router.put(
       if (productJson.type === 'beat') productJson.licenses = await getLicenses();
       res.status(200).json(productJson);
     } catch (error) {
-      console.error('Error updating product:', error);
+      logError('Error updating product', error, { userId: req.user?.id, productId: req.params.productId });
       next(error);
     }
   }
@@ -379,7 +380,7 @@ router.delete('/:productId', requireAuth, requireAdmin, validateProductId, async
     await product.destroy();
     res.status(200).json({ message: 'Product deleted successfully.' });
   } catch (error) {
-    console.error('Error deleting product:', error);
+    logError('Error deleting product', error, { userId: req.user?.id, productId: req.params.productId });
     next(error);
   }
 });

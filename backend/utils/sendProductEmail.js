@@ -2,6 +2,7 @@ const { Resend } = require("resend");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const emailTheme = require("./emailTheme");
+const { logError } = require("./logger");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -95,7 +96,7 @@ async function sendProductEmail(email, files = [], receipt = {}) {
         const fileName = escapeHtml(decodeURIComponent((key || file?.url || "").split("?")[0].split("/").pop()));
         return { type, url, fileName };
       } catch (err) {
-        console.error("❌ Failed to generate signed URL for download:", err);
+        logError("Failed to generate signed URL for download", err, { type, hasKey: Boolean(key) });
         throw err;
       }
     })
@@ -245,7 +246,7 @@ async function sendProductEmail(email, files = [], receipt = {}) {
   });
 
   if (error) {
-    console.error("❌ Resend error:", error);
+    logError("Resend email send failed", error);
     throw new Error(error.message);
   }
 

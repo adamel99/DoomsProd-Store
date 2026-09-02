@@ -11,6 +11,7 @@ const {
   getOrderReceiptDetails,
 } = require('../../utils/checkout');
 const { Order } = require('../../db/models');
+const { logError } = require('../../utils/logger');
 
 const router = express.Router();
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -90,22 +91,10 @@ router.post(
 
       return res.json({ sessionId: session.id });
     } catch (error) {
-      console.error('Stripe checkout session creation failed:', {
+      logError('Stripe checkout session creation failed', error, {
         userId: req.user?.id,
-        status: error.status,
-        name: error.name,
-        message: error.message,
-        constraint: error.parent?.constraint,
-        detail: error.parent?.detail,
-        fields: error.fields,
-        validationErrors: error.errors?.map((err) => ({
-          message: err.message,
-          path: err.path,
-          value: err.value,
-        })),
         stripeCode: error.code,
         stripeType: error.type,
-        stack: error.stack,
       });
       const status = error.status || 500;
       return res.status(status).json({ message: status === 500 ? 'Failed to create Stripe checkout session.' : error.message });
@@ -136,7 +125,7 @@ router.post(
         const receipt = await getOrderReceiptDetails(order.id, req.user);
         await sendProductEmail(req.user.email, files, receipt);
       } catch (emailError) {
-        console.error('Free checkout email failed:', emailError);
+        logError('Free checkout email failed', emailError, { userId: req.user?.id, orderId: order.id });
       }
       await clearCartForOrder(order);
 
@@ -147,7 +136,7 @@ router.post(
         downloadLinks: signedUrls,
       });
     } catch (error) {
-      console.error('Free checkout failed:', error);
+      logError('Free checkout failed', error, { userId: req.user?.id });
       const status = error.status || 500;
       return res.status(status).json({ message: status === 500 ? 'Failed to process free checkout.' : error.message });
     }

@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const routes = require('./routes');
 const { environment } = require('./config');
+const { logError, logWarn } = require('./utils/logger');
 const isProduction = environment === 'production';
 const app = express();
 
@@ -50,7 +51,7 @@ app.use(cors({
       return callback(null, true);
     }
     if (!requestOrigin || allowedOrigins.includes(requestOrigin)) return callback(null, true);
-    console.warn('Blocked by CORS:', requestOrigin, 'Allowed origins:', allowedOrigins);
+    logWarn('Blocked by CORS', { requestOrigin, allowedOrigins });
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -148,7 +149,7 @@ app.use((err, _req, _res, next) => {
 
 app.use((err, _req, res, _next) => {
   res.status(err.status || 500);
-  console.error(err);
+  logError('Unhandled request error', err, { status: err.status || 500 });
   res.json({
     title: err.title || 'Server Error',
     message: err.message,

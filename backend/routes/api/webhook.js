@@ -4,6 +4,7 @@ const { UniqueConstraintError } = require("sequelize");
 const { sendProductEmail } = require("../../utils/sendProductEmail");
 const { Order, User, ProcessedStripeEvent, sequelize } = require("../../db/models");
 const { clearCartForOrder, getOrderDownloadFiles, getOrderReceiptDetails } = require("../../utils/checkout");
+const { logError } = require("../../utils/logger");
 
 const router = express.Router();
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -15,7 +16,7 @@ router.post("/", async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.error("Stripe webhook signature verification failed:", err.message);
+    logError("Stripe webhook signature verification failed", err, { eventType: "unknown" });
     return res.status(400).send("Webhook signature verification failed");
   }
 
@@ -65,7 +66,7 @@ router.post("/", async (req, res) => {
       if (err instanceof UniqueConstraintError) {
         return res.status(200).json({ received: true });
       }
-      console.error("Stripe checkout.session.completed handling failed:", err);
+      logError("Stripe checkout.session.completed handling failed", err, { orderId });
       if (err.status === 400) return res.status(400).send(err.message);
       throw err;
     }
@@ -80,7 +81,7 @@ router.post("/", async (req, res) => {
         }
         await sendProductEmail(email, files, receipt);
       } catch (err) {
-        console.error("Stripe paid checkout email failed:", err);
+        logError("Stripe paid checkout email failed", err, { orderId: completedOrderId });
       }
     }
   }

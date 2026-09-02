@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { logError } = require("./logger");
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -34,7 +35,7 @@ async function sendProductEmail(email, fileKeys = []) {
         const url = await getSignedFileUrl(key);
         return url;
       } catch (err) {
-        console.error(`❌ Failed for: ${key}`, err);
+        logError("Failed to generate signed file URL", err, { hasKey: Boolean(key) });
         throw err;
       }
     })
