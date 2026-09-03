@@ -1,6 +1,5 @@
 import React from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { Box, Link, Typography } from "@mui/material";
+import PolicyLayout from "../PolicyLayout/PolicyLayout";
 
 const sections = [
   ["Who Operates This Store", "doomsprod operates this creator storefront for digital music products. More information about the creator is available on the About page. For privacy, account, purchase, or download questions, contact adamelh1999@gmail.com or Instagram @vdam_."],
@@ -21,75 +20,17 @@ const sections = [
 
 function PrivacyPolicy() {
   return (
-    <Box
-      component="main"
-      sx={{
-        minHeight: "100vh",
-        backgroundColor: "background.default",
-        color: "text.primary",
-        px: { xs: 2.5, sm: 4 },
-        py: { xs: 7, md: 10 },
-      }}
-    >
-      <Box sx={{ maxWidth: 820, mx: "auto" }}>
-        <Typography
-          component="h1"
-          sx={{
-            fontFamily: (theme) => theme.custom.fonts.display,
-            fontWeight: 900,
-            fontSize: { xs: "2.1rem", md: "3rem" },
-            lineHeight: 1.05,
-            mb: 2,
-          }}
-        >
-          Privacy Policy
-        </Typography>
-        <Typography sx={{ color: "text.secondary", lineHeight: 1.8, mb: 5 }}>
-          This policy explains how doomsprod collects and uses information for accounts,
-          checkout, receipts, and digital-download delivery. Last updated: September 1, 2026.
-        </Typography>
-
-        <Box sx={{ display: "grid", gap: 3 }}>
-          {sections.map(([title, body]) => (
-            <Box
-              key={title}
-              sx={(theme) => ({
-                ...theme.custom.patterns.surface.raised,
-                borderRadius: "var(--radius-lg)",
-                p: { xs: 2.5, sm: 3 },
-              })}
-            >
-              <Typography
-                component="h2"
-                sx={{
-                  fontFamily: (theme) => theme.custom.fonts.display,
-                  fontWeight: 800,
-                  fontSize: "1.15rem",
-                  mb: 1,
-                }}
-              >
-                {title}
-              </Typography>
-              <Typography sx={{ color: "text.secondary", lineHeight: 1.75 }}>
-                {body}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 4 }}>
-          <Link component={RouterLink} to="/about" sx={{ color: "primary.main", fontWeight: 700 }}>
-            About doomsprod
-          </Link>
-          <Link component={RouterLink} to="/terms" sx={{ color: "primary.main", fontWeight: 700 }}>
-            Terms
-          </Link>
-          <Link component={RouterLink} to="/products" sx={{ color: "primary.main", fontWeight: 700 }}>
-            Back to products
-          </Link>
-        </Box>
-      </Box>
-    </Box>
+    <PolicyLayout
+      title="Privacy Policy"
+      description="This policy explains how doomsprod collects and uses information for accounts, checkout, receipts, and digital-download delivery."
+      updatedAt="September 1, 2026"
+      sections={sections}
+      links={[
+        { to: "/about", label: "About doomsprod" },
+        { to: "/terms", label: "Terms" },
+        { to: "/products", label: "Back to products" },
+      ]}
+    />
   );
 }
 

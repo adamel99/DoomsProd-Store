@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { Box } from "@mui/material";
 import { Switch, Route, Redirect, useLocation } from "react-router-dom";
 
 import Navigation from "./components/Navigation";
@@ -44,6 +45,14 @@ function App() {
   }, [dispatch]);
 
   useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
     let scrollTimeout;
 
     const updateScrollbar = () => {
@@ -82,6 +91,7 @@ function App() {
   return (
     <>
       <Navigation isLoaded={isLoaded} />
+      <Box sx={{ height: { xs: 56, sm: 62 } }} />
       {isLoaded && (
         <Switch>
           <Route exact path="/" component={LandingPage} />

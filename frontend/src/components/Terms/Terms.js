@@ -1,6 +1,5 @@
 import React from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { Box, Link, Typography } from "@mui/material";
+import PolicyLayout from "../PolicyLayout/PolicyLayout";
 
 const terms = [
   ["Store Operator", "doomsprod is operated as a creator storefront for digital music products, including beats, loop kits, drum kits, and audio plugins. More information about the creator is available on the About page."],
@@ -25,75 +24,17 @@ const terms = [
 
 function Terms() {
   return (
-    <Box
-      component="main"
-      sx={{
-        minHeight: "100vh",
-        backgroundColor: "background.default",
-        color: "text.primary",
-        px: { xs: 2.5, sm: 4 },
-        py: { xs: 7, md: 10 },
-      }}
-    >
-      <Box sx={{ maxWidth: 820, mx: "auto" }}>
-        <Typography
-          component="h1"
-          sx={{
-            fontFamily: (theme) => theme.custom.fonts.display,
-            fontWeight: 900,
-            fontSize: { xs: "2.1rem", md: "3rem" },
-            lineHeight: 1.05,
-            mb: 2,
-          }}
-        >
-          Terms And Purchase Policy
-        </Typography>
-        <Typography sx={{ color: "text.secondary", lineHeight: 1.8, mb: 5 }}>
-          These terms explain account use, digital-product purchases, licenses, refunds,
-          payments, and download access for doomsprod. Last updated: September 1, 2026.
-        </Typography>
-
-        <Box sx={{ display: "grid", gap: 3 }}>
-          {terms.map(([title, body]) => (
-            <Box
-              key={title}
-              sx={(theme) => ({
-                ...theme.custom.patterns.surface.raised,
-                borderRadius: "var(--radius-lg)",
-                p: { xs: 2.5, sm: 3 },
-              })}
-            >
-              <Typography
-                component="h2"
-                sx={{
-                  fontFamily: (theme) => theme.custom.fonts.display,
-                  fontWeight: 800,
-                  fontSize: "1.15rem",
-                  mb: 1,
-                }}
-              >
-                {title}
-              </Typography>
-              <Typography sx={{ color: "text.secondary", lineHeight: 1.75 }}>
-                {body}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 4 }}>
-          <Link component={RouterLink} to="/about" sx={{ color: "primary.main", fontWeight: 700 }}>
-            About doomsprod
-          </Link>
-          <Link component={RouterLink} to="/licenses" sx={{ color: "primary.main", fontWeight: 700 }}>
-            View licenses
-          </Link>
-          <Link component={RouterLink} to="/privacy-policy" sx={{ color: "primary.main", fontWeight: 700 }}>
-            Privacy Policy
-          </Link>
-        </Box>
-      </Box>
-    </Box>
+    <PolicyLayout
+      title="Terms And Purchase Policy"
+      description="These terms explain account use, digital-product purchases, licenses, refunds, payments, and download access for doomsprod."
+      updatedAt="September 1, 2026"
+      sections={terms}
+      links={[
+        { to: "/about", label: "About doomsprod" },
+        { to: "/licenses", label: "View licenses" },
+        { to: "/privacy-policy", label: "Privacy Policy" },
+      ]}
+    />
   );
 }
 

@@ -108,17 +108,22 @@ function Navigation({ isLoaded }) {
       <Box
         component="nav"
         sx={(theme) => ({
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
           zIndex: 1200,
           background: scrolled
-            ? theme.palette.background.paper
+            ? theme.custom.transparent(theme.custom.colors.clayDeep, 0.22)
             : `${theme.palette.background.paper}cc`,
-          backdropFilter: 'blur(28px) saturate(150%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(150%)',
-          borderBottom: theme.custom.clay.border,
+          backdropFilter: scrolled ? 'blur(10px) saturate(120%)' : 'blur(28px) saturate(150%)',
+          WebkitBackdropFilter: scrolled ? 'blur(10px) saturate(120%)' : 'blur(28px) saturate(150%)',
+          borderBottom: scrolled
+            ? `1px solid ${theme.custom.transparent(theme.custom.colors.ink, 0.08)}`
+            : theme.custom.clay.border,
           boxShadow: scrolled
-            ? theme.custom.clay.floating
+            ? 'none'
             : `0 1px 0 ${theme.custom.colors.cream}73 inset`,
           transition: theme.custom.motion.transition.lift,
         })}
@@ -137,7 +142,7 @@ function Navigation({ isLoaded }) {
           width: scrolled ? '60%' : '30%',
           height: '1px',
           background: (theme) => theme.custom.gradients.brandGlow,
-          opacity: scrolled ? 1 : 0.55,
+          opacity: scrolled ? 0.42 : 0.55,
           transition: 'var(--motion-lift)',
           pointerEvents: 'none',
         }} />
