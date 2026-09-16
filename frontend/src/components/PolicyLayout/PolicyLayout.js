@@ -52,7 +52,7 @@ function PolicyLayout({
             component="h1"
             sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 850,
+              fontWeight: 700,
               fontSize: { xs: "2.25rem", md: "3.35rem" },
               lineHeight: 1.05,
               maxWidth: 760,
@@ -108,7 +108,7 @@ function PolicyLayout({
                 fontFamily: (theme) => theme.custom.fonts.mono,
                 color: "text.disabled",
                 fontSize: "0.68rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 letterSpacing: "1.6px",
                 textTransform: "uppercase",
                 mb: 2,
@@ -153,7 +153,7 @@ function PolicyLayout({
                     component="h2"
                     sx={{
                       fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: { xs: "1.15rem", md: "1.32rem" },
                       lineHeight: 1.25,
                       color: "text.primary",

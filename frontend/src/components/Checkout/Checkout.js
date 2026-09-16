@@ -151,7 +151,7 @@ const OrderItemRow = ({ item, index }) => (
       {/* Price */}
       <Typography sx={{
         fontFamily: (theme) => theme.custom.fonts.display,
-        fontWeight: 800, fontSize: "1.15rem",
+        fontWeight: 700, fontSize: "1.15rem",
         color: "text.primary", flexShrink: 0,
       }}>
         ${item.price.toFixed(2)}
@@ -229,7 +229,7 @@ const Checkout = () => {
             <Box sx={{ width: 4, height: 36, borderRadius: "2px", bgcolor: "primary.main", boxShadow: (theme) => theme.custom.effects.glow.rule }} />
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: { xs: "1.8rem", md: "2.4rem" },
               color: "text.primary", lineHeight: 1.1,
             }}>
@@ -309,7 +309,7 @@ const Checkout = () => {
                 </Typography>
                 <Typography sx={{
                   fontFamily: (theme) => theme.custom.fonts.display,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   fontSize: { xs: "2rem", md: "2.6rem" },
                   color: "text.primary", lineHeight: 1,
                 }}>

@@ -130,7 +130,7 @@ export default function CheckoutSuccess() {
               <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "success.main", mx: "auto", mb: 3, boxShadow: (theme) => `0 2px 12px ${theme.palette.success.main}80` }} />
               <Typography sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: { xs: "1.8rem", md: "2.2rem" },
                 color: "text.primary", lineHeight: 1.15, mb: 2,
               }}>

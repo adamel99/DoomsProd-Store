@@ -110,6 +110,7 @@ const ProductList = () => {
               mt: 1.5,
               mb: 2,
               fontSize: { xs: "3rem", sm: "4.4rem", md: "6.2rem" },
+              fontWeight: 700,
               lineHeight: 0.94,
               maxWidth: 780,
             }}>

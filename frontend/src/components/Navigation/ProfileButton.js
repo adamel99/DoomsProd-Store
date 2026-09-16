@@ -9,7 +9,7 @@ function ProfileButton({ user }) {
     <Button
       variant="text"
       sx={{
-        fontFamily: `"DM Sans", sans-serif`,
+        fontFamily: (theme) => theme.custom.fonts.body,
         fontWeight: 600,
         fontSize: '0.8rem',
         px: 1.5, py: 0.6,
@@ -36,7 +36,7 @@ function ProfileButton({ user }) {
         bgcolor: '#E43F6F',
         color: '#fff',
         fontWeight: 700,
-        fontFamily: `"Syne", sans-serif`,
+        fontFamily: (theme) => theme.custom.fonts.display,
       }}>
         {user.username?.[0]?.toUpperCase() || 'U'}
       </Avatar>

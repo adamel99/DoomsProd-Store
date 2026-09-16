@@ -107,7 +107,7 @@ export default function CheckoutCancel() {
               <Box sx={{ width: 48, height: 3, borderRadius: "2px", bgcolor: "primary.main", mx: "auto", mb: 3, boxShadow: (theme) => theme.custom.effects.glow.rule }} />
               <Typography sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: { xs: "1.8rem", md: "2.2rem" },
                 color: "text.primary", lineHeight: 1.15, mb: 2,
               }}>

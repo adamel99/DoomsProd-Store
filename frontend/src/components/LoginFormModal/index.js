@@ -109,7 +109,7 @@ const LoginFormModal = () => {
         }} />
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 900,
+          fontWeight: 700,
           fontSize: "1.75rem",
           color: "text.primary",
           letterSpacing: 0,
@@ -174,7 +174,7 @@ const LoginFormModal = () => {
             mt: 1,
             py: 1.5,
             fontFamily: theme.custom.fonts.display,
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: "0.9rem",
             letterSpacing: "0.5px",
             textTransform: "none",

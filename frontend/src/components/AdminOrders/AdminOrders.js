@@ -494,7 +494,7 @@ const StatCard = ({ icon, label, value }) => (
           }}>
             {label}
           </Typography>
-          <Typography sx={{ fontSize: "1.1rem", fontWeight: 900, overflowWrap: "anywhere" }}>
+          <Typography sx={{ fontSize: "1.1rem", fontWeight: 700, overflowWrap: "anywhere" }}>
             {value}
           </Typography>
         </Box>
@@ -696,7 +696,7 @@ const AdminHeadCell = ({ children, align }) => (
       color: "text.secondary",
       fontFamily: theme.custom.fonts.mono,
       fontSize: "0.68rem",
-      fontWeight: 800,
+      fontWeight: 700,
       letterSpacing: "0.8px",
       textTransform: "uppercase",
       whiteSpace: "nowrap",
@@ -722,12 +722,12 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
           </IconButton>
         </Tooltip>
       </TableCell>
-      <TableCell sx={{ fontWeight: 900 }}>#{order.id}</TableCell>
+      <TableCell sx={{ fontWeight: 700 }}>#{order.id}</TableCell>
       <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDate(order.createdAt)}</TableCell>
       <TableCell sx={{ minWidth: 170 }}>{getCustomerName(user)}</TableCell>
       <TableCell sx={{ minWidth: 210, color: "text.secondary" }}>{user.email || "No email"}</TableCell>
       <TableCell>
-        <Chip label={status.label} color={status.color} size="small" sx={{ fontWeight: 800 }} />
+        <Chip label={status.label} color={status.color} size="small" sx={{ fontWeight: 700 }} />
       </TableCell>
       <TableCell sx={{ minWidth: 240, maxWidth: 340 }}>
         <Typography sx={{ fontSize: "0.86rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -737,7 +737,7 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
       <TableCell sx={{ minWidth: 150 }}>{getOrderLicenses(order).join(", ") || "None"}</TableCell>
       <TableCell sx={{ minWidth: 140 }}>{getOrderProductTypes(order).map(formatProductType).join(", ") || "None"}</TableCell>
       <TableCell align="right">{getOrderQuantity(order)}</TableCell>
-      <TableCell align="right" sx={{ fontWeight: 900 }}>{formatMoney(order.totalPrice)}</TableCell>
+      <TableCell align="right" sx={{ fontWeight: 700 }}>{formatMoney(order.totalPrice)}</TableCell>
       <TableCell sx={{ maxWidth: 170 }}>
         <Typography sx={{ fontSize: "0.8rem", color: "text.secondary", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {order.paymentIntentId || "None"}
@@ -781,7 +781,7 @@ const OrderDetails = ({ order, receiptInfo }) => (
               sx={{ width: 52, height: 52, borderRadius: "8px", objectFit: "cover", bgcolor: "background.paper" }}
             />
             <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <Typography sx={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {item.Product?.title || "Deleted product"}
               </Typography>
               <Typography sx={{ color: "text.secondary", fontSize: "0.82rem" }}>
@@ -790,7 +790,7 @@ const OrderDetails = ({ order, receiptInfo }) => (
               <Typography sx={{ color: "text.secondary", fontSize: "0.82rem" }}>
                 {item.Product?.genre || "No genre"} {item.Product?.bpm ? `| ${item.Product.bpm} BPM` : ""} {item.Product?.key ? `| ${item.Product.key}` : ""}
               </Typography>
-              <Typography sx={{ fontWeight: 900, mt: 0.5 }}>{formatMoney(item.priceAtPurchase)}</Typography>
+              <Typography sx={{ fontWeight: 700, mt: 0.5 }}>{formatMoney(item.priceAtPurchase)}</Typography>
             </Box>
           </Box>
         </Grid>
@@ -867,10 +867,10 @@ const RevenuePanel = ({ summary, breakdowns }) => {
       <Panel sx={{ p: { xs: 2, md: 2.5 } }}>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", lg: "minmax(0, 1.6fr) 320px" }, gap: 2.5, minWidth: 0 }}>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ color: "text.secondary", fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" }}>
+            <Typography sx={{ color: "text.secondary", fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" }}>
               Net Completed Revenue
             </Typography>
-            <Typography sx={{ fontSize: { xs: "2.3rem", md: "3.4rem" }, fontWeight: 950, lineHeight: 1, mt: 0.7 }}>
+            <Typography sx={{ fontSize: { xs: "2.3rem", md: "3.4rem" }, fontWeight: 700, lineHeight: 1, mt: 0.7 }}>
               {formatMoney(summary.completedRevenue)}
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1.5 }}>
@@ -971,7 +971,7 @@ const RevenueSection = ({ title, meta, children }) => (
   <Box sx={{ display: "grid", gap: 1.2, minWidth: 0 }}>
     <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, alignItems: "end", px: 0.3 }}>
       <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontSize: "1.05rem", fontWeight: 950 }}>
+        <Typography sx={{ fontSize: "1.05rem", fontWeight: 700 }}>
           {title}
         </Typography>
         <Typography sx={{ color: "text.secondary", fontSize: "0.82rem" }}>
@@ -994,8 +994,8 @@ const MetricPill = ({ label, value }) => (
     gap: 0.8,
     alignItems: "center",
   })}>
-    <Typography sx={{ color: "text.secondary", fontSize: "0.74rem", fontWeight: 800 }}>{label}</Typography>
-    <Typography sx={{ fontSize: "0.78rem", fontWeight: 950 }}>{value}</Typography>
+    <Typography sx={{ color: "text.secondary", fontSize: "0.74rem", fontWeight: 700 }}>{label}</Typography>
+    <Typography sx={{ fontSize: "0.78rem", fontWeight: 700 }}>{value}</Typography>
   </Box>
 );
 
@@ -1006,10 +1006,10 @@ const MiniInsight = ({ label, value }) => (
     border: theme.custom.clay.hairline,
     bgcolor: "rgba(255,255,255,0.04)",
   })}>
-    <Typography sx={{ color: "text.secondary", fontSize: "0.68rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px" }}>
+    <Typography sx={{ color: "text.secondary", fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" }}>
       {label}
     </Typography>
-    <Typography sx={{ fontSize: "1rem", fontWeight: 950, mt: 0.5, overflowWrap: "anywhere" }}>
+    <Typography sx={{ fontSize: "1rem", fontWeight: 700, mt: 0.5, overflowWrap: "anywhere" }}>
       {value}
     </Typography>
   </Box>
@@ -1020,7 +1020,7 @@ const LeaderboardGroup = ({ title, children }) => (
     <Typography sx={{
       fontFamily: (theme) => theme.custom.fonts.mono,
       fontSize: "0.66rem",
-      fontWeight: 900,
+      fontWeight: 700,
       letterSpacing: "1px",
       textTransform: "uppercase",
       color: "text.secondary",
@@ -1051,7 +1051,7 @@ const MixSummary = ({ rows }) => {
       <Typography sx={{
         fontFamily: (theme) => theme.custom.fonts.mono,
         fontSize: "0.68rem",
-        fontWeight: 900,
+        fontWeight: 700,
         letterSpacing: "1px",
         textTransform: "uppercase",
         color: "text.secondary",
@@ -1077,13 +1077,13 @@ const MixSummary = ({ rows }) => {
                 border: theme.custom.clay.hairline,
               })}>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 900 }}>{row.label}</Typography>
+                  <Typography sx={{ fontWeight: 700 }}>{row.label}</Typography>
                   <Typography sx={{ color: "text.secondary", fontSize: "0.8rem" }}>
                     {row.unitsSold} of {totalUnits} units
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: "right" }}>
-                  <Typography sx={{ fontWeight: 950 }}>{share.toFixed(1)}%</Typography>
+                  <Typography sx={{ fontWeight: 700 }}>{share.toFixed(1)}%</Typography>
                   <Typography sx={{ color: "text.secondary", fontSize: "0.8rem" }}>{formatMoney(revenue)}</Typography>
                 </Box>
               </Box>
@@ -1102,7 +1102,7 @@ const ChartShell = ({ title, children }) => (
     <Typography sx={{
       fontFamily: (theme) => theme.custom.fonts.mono,
       fontSize: "0.68rem",
-      fontWeight: 900,
+      fontWeight: 700,
       letterSpacing: "1px",
       textTransform: "uppercase",
       color: "text.secondary",
@@ -1137,7 +1137,7 @@ const BarChartPanel = ({ title, rows, labelKey, valueKey, formatter = (value) =>
                 }}>
                   <Typography sx={{
                     fontSize: "0.82rem",
-                    fontWeight: 800,
+                    fontWeight: 700,
                     minWidth: 0,
                     overflowWrap: "anywhere",
                     lineHeight: 1.25,
@@ -1221,7 +1221,7 @@ const MarketLineChart = ({ rows, xKey, yKey, formatter = (value) => value }) => 
       </Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 1 }}>
         <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[0]?.[xKey]}</Typography>
-        <Typography sx={{ fontSize: "0.82rem", fontWeight: 950 }}>{formatter(latest)} latest</Typography>
+        <Typography sx={{ fontSize: "0.82rem", fontWeight: 700 }}>{formatter(latest)} latest</Typography>
         <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[rows.length - 1]?.[xKey]}</Typography>
       </Box>
     </Box>
@@ -1262,7 +1262,7 @@ const LineChartPanel = ({ title, rows, xKey, yKey, formatter = (value) => value 
           </Box>
           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mt: 1 }}>
             <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[0]?.[xKey]}</Typography>
-            <Typography sx={{ fontSize: "0.8rem", fontWeight: 900 }}>{formatter(max)}</Typography>
+            <Typography sx={{ fontSize: "0.8rem", fontWeight: 700 }}>{formatter(max)}</Typography>
             <Typography sx={{ fontSize: "0.8rem", color: "text.secondary" }}>{rows[rows.length - 1]?.[xKey]}</Typography>
           </Box>
         </>
@@ -1307,7 +1307,7 @@ const DonutChartPanel = ({ title, rows }) => {
               display: "grid",
               placeItems: "center",
             }}>
-              <Typography sx={{ fontWeight: 900 }}>{total}</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{total}</Typography>
             </Box>
           </Box>
           <Box sx={{ display: "grid", gap: 1, width: "100%" }}>
@@ -1317,7 +1317,7 @@ const DonutChartPanel = ({ title, rows }) => {
                   <Box component="span" sx={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", bgcolor: colors[index % colors.length], mr: 1 }} />
                   {row.label}
                 </Typography>
-                <Typography sx={{ fontSize: "0.84rem", fontWeight: 900 }}>{row.value}</Typography>
+                <Typography sx={{ fontSize: "0.84rem", fontWeight: 700 }}>{row.value}</Typography>
               </Box>
             ))}
           </Box>

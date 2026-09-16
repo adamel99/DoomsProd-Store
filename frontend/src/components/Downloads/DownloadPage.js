@@ -112,7 +112,7 @@ const DownloadPage = () => {
             sx={{
               mb: 1,
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 800,
+              fontWeight: 700,
               color: "text.primary",
             }}
           >
@@ -144,7 +144,7 @@ const DownloadPage = () => {
                       border: theme.custom.clay.border,
                       boxShadow: theme.custom.clay.raisedSmall,
                       color: "primary.main",
-                      fontWeight: 800,
+                      fontWeight: 700,
                       textDecoration: "none",
                       overflow: "hidden",
                       textOverflow: "ellipsis",

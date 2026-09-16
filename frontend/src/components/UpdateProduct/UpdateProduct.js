@@ -281,7 +281,7 @@ const UpdateProductPage = () => {
                 })}>
                   <CardMedia component="img" height="200" image={product.imageUrl} alt="Current product image" />
                   <CardContent>
-                    <Typography variant="subtitle1" textAlign="center" sx={{ fontWeight: 800 }}>
+                    <Typography variant="subtitle1" textAlign="center" sx={{ fontWeight: 700 }}>
                       Current Image
                     </Typography>
                   </CardContent>
@@ -298,7 +298,7 @@ const UpdateProductPage = () => {
                   border: theme.custom.clay.border,
                   boxShadow: theme.custom.clay.raised,
                 })}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
                     Current Files
                   </Typography>
                   {product.downloadUrls.map((file, i) => (
@@ -467,7 +467,7 @@ const UpdateProductPage = () => {
 
               <Box sx={{ display: "grid", gap: 2 }}>
                 <Box sx={uploadBoxSx}>
-                  <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                  <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 700 }}>
                     Replace Image File:
                   </Typography>
                   <input type="file" accept="image/*" onChange={handleImageChange} />
@@ -479,7 +479,7 @@ const UpdateProductPage = () => {
                 </Box>
 
                 <Box sx={uploadBoxSx}>
-                  <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                  <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 700 }}>
                     Replace ZIP File:
                   </Typography>
                   <input type="file" accept=".zip" onChange={handleZipFileChange} />
@@ -493,7 +493,7 @@ const UpdateProductPage = () => {
                 {needsAudioFiles && (
                   <>
                     <Box sx={uploadBoxSx}>
-                      <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 700 }}>
                         Replace MP3 File:
                       </Typography>
                       <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
@@ -505,7 +505,7 @@ const UpdateProductPage = () => {
                     </Box>
 
                     <Box sx={uploadBoxSx}>
-                      <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 800 }}>
+                      <Typography variant="body2" sx={{ mb: 0.5, color: "text.primary", fontWeight: 700 }}>
                         Replace WAV File:
                       </Typography>
                       <input type="file" accept=".wav" onChange={handleWavFileChange} />

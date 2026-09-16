@@ -83,7 +83,7 @@ const PluginItem = ({ plugin, onOpen }) => (
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.mono,
           fontSize: "0.62rem",
-          fontWeight: 800,
+          fontWeight: 700,
           letterSpacing: "1.4px",
           textTransform: "uppercase",
           color: "text.primary",
@@ -124,7 +124,7 @@ const PluginItem = ({ plugin, onOpen }) => (
       <Box sx={{ mt: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 900,
+          fontWeight: 700,
           fontSize: "1.35rem",
           color: "text.primary",
           lineHeight: 1,

@@ -176,7 +176,7 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
           fontSize: { xs: "1.15rem", md: "1.35rem" },
-          fontWeight: 800,
+          fontWeight: 700,
           color: "text.primary",
           lineHeight: 1,
         }}>
@@ -267,7 +267,7 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
         </Typography>
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 800,
+          fontWeight: 700,
           color: "text.primary",
           fontSize: { xs: "0.98rem", md: "1.15rem" },
           lineHeight: 1.15,
@@ -448,7 +448,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.mono,
           fontSize: "0.62rem",
-          fontWeight: 800,
+          fontWeight: 700,
           letterSpacing: "1.4px",
           textTransform: "uppercase",
           color: "text.primary",
@@ -498,7 +498,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
       }}>
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 900,
+          fontWeight: 700,
           fontSize: "1.4rem",
           color: "text.primary",
         }}>
@@ -756,7 +756,7 @@ const LandingPage = () => {
             left: "50%",
             transform: "translateX(-50%)",
             fontFamily: theme.custom.fonts.display,
-            fontWeight: 900,
+            fontWeight: 700,
             fontSize: { xs: "5.4rem", sm: "8.5rem", md: "13.8rem", lg: "17rem" },
             lineHeight: 0.78,
             letterSpacing: 0,
@@ -940,7 +940,7 @@ const LandingPage = () => {
               >
                 <Typography sx={{
                   fontFamily: (theme) => theme.custom.fonts.display,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   fontSize: { xs: "2.15rem", md: "2.7rem" },
                   lineHeight: 0.9,
                   color: "text.primary",
@@ -1075,7 +1075,7 @@ const LandingPage = () => {
                   <Typography sx={{
                     fontSize: "1.2rem", color: "primary.main",
                     fontFamily: (theme) => theme.custom.fonts.display,
-                    fontWeight: 900, lineHeight: 1,
+                    fontWeight: 700, lineHeight: 1,
                   }}>
                     "
                   </Typography>

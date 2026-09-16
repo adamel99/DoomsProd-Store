@@ -161,7 +161,7 @@ function Navigation({ isLoaded }) {
             }} />
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: { xs: '1.1rem', sm: '1.25rem' },
               color: 'text.primary',
               letterSpacing: 0,

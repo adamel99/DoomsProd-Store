@@ -365,7 +365,7 @@ const AccountPage = () => {
                   color: "primary.contrastText",
                   fontFamily: (theme) => theme.custom.fonts.display,
                   fontSize: "1.45rem",
-                  fontWeight: 900,
+                  fontWeight: 700,
                 }}>
                   {user?.username?.[0]?.toUpperCase() || "U"}
                 </Avatar>
@@ -381,7 +381,7 @@ const AccountPage = () => {
               <Chip
                 label={user?.isSubscribedToEmails ? "Release emails on" : "Release emails off"}
                 variant="outlined"
-                sx={{ fontWeight: 800 }}
+                sx={{ fontWeight: 700 }}
               />
             </Box>
           </Panel>
@@ -651,7 +651,7 @@ const StatCard = ({ icon, label, value }) => (
         </Typography>
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 900,
+          fontWeight: 700,
           fontSize: { xs: "1.45rem", sm: "1.6rem" },
           lineHeight: 1,
           color: "text.primary",
@@ -718,14 +718,14 @@ const OrderCard = ({ order, downloadInfo, receiptInfo, onLoadDownloads, onResend
       }}>
         <Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 0.5 }}>
-            <Typography sx={{ fontWeight: 800 }}>
+            <Typography sx={{ fontWeight: 700 }}>
               Order #{order.id}
             </Typography>
             <Chip
               size="small"
               label={statusMeta.label}
               color={statusMeta.color}
-              sx={{ height: 24, fontWeight: 800 }}
+              sx={{ height: 24, fontWeight: 700 }}
             />
           </Box>
           <Typography sx={{ color: "text.secondary", fontSize: "0.88rem" }}>
@@ -796,7 +796,7 @@ const OrderCard = ({ order, downloadInfo, receiptInfo, onLoadDownloads, onResend
                 {formatProductType(item.Product?.type)}{item.License?.name ? ` · ${item.License.name}` : ""}
               </Typography>
             </Box>
-            <Typography sx={{ fontWeight: 800 }}>
+            <Typography sx={{ fontWeight: 700 }}>
               {formatMoney(item.priceAtPurchase)}
             </Typography>
             <Box sx={{ gridColumn: "2 / -1" }}>
@@ -849,7 +849,7 @@ const OrderCard = ({ order, downloadInfo, receiptInfo, onLoadDownloads, onResend
                   background: theme.custom.clay.surfaceSoft,
                   border: theme.custom.clay.hairline,
                   color: "primary.main",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   textDecoration: "none",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -880,7 +880,7 @@ const ReceiptField = ({ label, value }) => (
     }}>
       {label}
     </Typography>
-    <Typography sx={{ fontWeight: 800, color: "text.primary", overflowWrap: "anywhere" }}>
+    <Typography sx={{ fontWeight: 700, color: "text.primary", overflowWrap: "anywhere" }}>
       {value}
     </Typography>
   </Box>

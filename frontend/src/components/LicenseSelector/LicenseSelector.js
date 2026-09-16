@@ -141,7 +141,7 @@ const FeatureRow = ({ label, value, allowed }) => (
     <Typography sx={{
       fontFamily: (theme) => theme.custom.fonts.mono,
       fontSize: "0.64rem",
-      fontWeight: 800,
+      fontWeight: 700,
       letterSpacing: "0.9px",
       textTransform: "uppercase",
       color: "text.disabled",
@@ -175,7 +175,7 @@ const InfoPill = ({ label, value }) => (
     </Typography>
     <Typography sx={{
       fontFamily: (theme) => theme.custom.fonts.display,
-      fontWeight: 850,
+      fontWeight: 700,
       fontSize: { xs: "1.15rem", md: "1.35rem" },
       lineHeight: 1.1,
       color: "text.primary",
@@ -303,7 +303,7 @@ const LicensesPage = () => {
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.mono,
               fontSize: "0.72rem",
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: "2.4px",
               textTransform: "uppercase",
               color: "primary.main",
@@ -370,7 +370,7 @@ const LicensesPage = () => {
                       <Typography sx={{
                         fontFamily: (theme) => theme.custom.fonts.mono,
                         fontSize: "0.58rem",
-                        fontWeight: 800,
+                        fontWeight: 700,
                         letterSpacing: "1.2px",
                         textTransform: "uppercase",
                         color: "primary.main",
@@ -390,7 +390,7 @@ const LicensesPage = () => {
                     <Box sx={{ pr: details.badge ? 8 : 0 }}>
                       <Typography sx={{
                         fontFamily: (theme) => theme.custom.fonts.display,
-                        fontWeight: 900,
+                        fontWeight: 700,
                         fontSize: "1.5rem",
                         color: "text.primary",
                         lineHeight: 1.05,
@@ -413,7 +413,7 @@ const LicensesPage = () => {
                       <Box sx={{ display: "flex", alignItems: "baseline", gap: 0.5, mb: 0.8 }}>
                         <Typography sx={{
                           fontFamily: (theme) => theme.custom.fonts.display,
-                          fontWeight: 950,
+                          fontWeight: 700,
                           fontSize: "2.15rem",
                           color: "primary.main",
                           lineHeight: 0.9,
@@ -456,7 +456,7 @@ const LicensesPage = () => {
                         mt: "auto",
                         py: 1.25,
                         fontFamily: (theme) => theme.custom.fonts.display,
-                        fontWeight: 800,
+                        fontWeight: 700,
                         fontSize: "0.85rem",
                         textTransform: "none",
                         borderRadius: "var(--radius-md)",
@@ -512,7 +512,7 @@ const LicensesPage = () => {
             </Box>
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: "1.3rem",
               color: "text.primary",
             }}>
@@ -543,7 +543,7 @@ const LicensesPage = () => {
         <GlassPanel sx={{ mt: { xs: 4, md: 5 }, p: { xs: 3, md: 4 }, textAlign: "center" }}>
           <Typography sx={{
             fontFamily: (theme) => theme.custom.fonts.display,
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: { xs: "1.3rem", md: "1.7rem" },
             color: "text.primary",
             mb: 1,

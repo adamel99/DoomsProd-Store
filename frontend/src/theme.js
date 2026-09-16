@@ -134,9 +134,9 @@ const clay = {
   hairline: `1px solid ${colorRoles.line.soft}`,
 };
 
-const fontDisplay = `"Syne", "DM Sans", sans-serif`;
-const fontBody = `"DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
-const fontMono = `"JetBrains Mono", ui-monospace, monospace`;
+const fontDisplay = `"Syne", "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+const fontBody = `"DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+const fontMono = `"JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace`;
 
 const fonts = {
   display: fontDisplay,
@@ -448,28 +448,28 @@ const theme = createTheme({
     fontFamily: fontBody,
     h1: {
       fontFamily: fontDisplay,
-      fontWeight: 800,
+      fontWeight: 700,
       lineHeight: 0.92,
       letterSpacing: 0,
       color: colors.ink,
     },
     h2: {
       fontFamily: fontDisplay,
-      fontWeight: 800,
+      fontWeight: 700,
       lineHeight: 0.98,
       letterSpacing: 0,
       color: colors.ink,
     },
     h3: {
       fontFamily: fontDisplay,
-      fontWeight: 750,
+      fontWeight: 700,
       lineHeight: 1.06,
       letterSpacing: 0,
       color: colors.ink,
     },
     h4: {
       fontFamily: fontDisplay,
-      fontWeight: 750,
+      fontWeight: 700,
       letterSpacing: 0,
       color: colors.ink,
     },
@@ -483,7 +483,7 @@ const theme = createTheme({
     },
     h6: {
       fontFamily: fontBody,
-      fontWeight: 800,
+      fontWeight: 700,
       letterSpacing: 0,
       color: colors.ink,
     },
@@ -506,7 +506,7 @@ const theme = createTheme({
     },
     button: {
       fontFamily: fontBody,
-      fontWeight: 800,
+      fontWeight: 700,
       fontSize: "0.9rem",
       textTransform: "none",
       letterSpacing: 0,
@@ -568,6 +568,8 @@ const theme = createTheme({
           background: ${gradients.page};
           background-attachment: fixed;
           color: ${colors.ink};
+          font-synthesis: none;
+          text-rendering: optimizeLegibility;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
         }
@@ -590,6 +592,7 @@ const theme = createTheme({
           opacity: 1;
         }
         * { box-sizing: border-box; }
+        button, input, textarea, select { font: inherit; }
         a { color: ${colors.coralDark}; text-decoration: none; }
         a:hover { color: ${colors.ink}; }
         ::selection { background: ${colors.coral}; color: ${colors.cream}; }

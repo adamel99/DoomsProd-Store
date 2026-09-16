@@ -82,7 +82,7 @@ const FileInput = ({ name, rule, required, error, onChange }) => (
     borderRadius: "14px",
     background: theme.custom.transparent(theme.custom.colors.ink, 0.035),
   })}>
-    <Typography variant="body2" sx={{ mb: 0.75, color: "text.primary", fontWeight: 800 }}>
+    <Typography variant="body2" sx={{ mb: 0.75, color: "text.primary", fontWeight: 700 }}>
       {rule.label}{required ? " *" : ""}
     </Typography>
     <input type="file" accept={rule.accept} onChange={onChange} aria-describedby={`${name}-error`} />

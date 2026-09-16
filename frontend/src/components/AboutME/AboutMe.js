@@ -91,7 +91,7 @@ function AboutMe() {
                 fontFamily: (theme) => theme.custom.fonts.mono,
                 color: "text.disabled",
                 fontSize: "0.72rem",
-                fontWeight: 800,
+                fontWeight: 700,
                 letterSpacing: "1.8px",
                 textTransform: "uppercase",
                 mb: 1.5,
@@ -103,7 +103,7 @@ function AboutMe() {
               component="h1"
               sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
-                fontWeight: 850,
+                fontWeight: 700,
                 fontSize: { xs: "2.45rem", sm: "3.3rem", md: "4.25rem" },
                 lineHeight: 1.02,
                 maxWidth: 760,
@@ -181,7 +181,7 @@ function AboutMe() {
                   <Typography
                     sx={{
                       fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: "1.3rem",
                       lineHeight: 1.2,
                     }}
@@ -216,7 +216,7 @@ function AboutMe() {
                       fontFamily: (theme) => theme.custom.fonts.mono,
                       color: "text.disabled",
                       fontSize: "0.68rem",
-                      fontWeight: 800,
+                      fontWeight: 700,
                       letterSpacing: "1.2px",
                       textTransform: "uppercase",
                     }}
@@ -267,7 +267,7 @@ function AboutMe() {
                     component="h2"
                     sx={{
                       fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: "1.16rem",
                     }}
                   >
@@ -288,7 +288,7 @@ function AboutMe() {
               component="h2"
               sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
-                fontWeight: 850,
+                fontWeight: 700,
                 fontSize: { xs: "1.8rem", md: "2.3rem" },
                 lineHeight: 1.1,
                 mb: 2,
@@ -322,7 +322,7 @@ function AboutMe() {
                   fontFamily: (theme) => theme.custom.fonts.mono,
                   color: "text.disabled",
                   fontSize: "0.68rem",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   letterSpacing: "1.6px",
                   textTransform: "uppercase",
                   mb: 2,

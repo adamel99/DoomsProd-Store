@@ -15,7 +15,7 @@ function OpenModalMenuItem({ modalComponent, itemText, onItemClick, onModalClose
     <Typography
       onClick={onClick}
       sx={{
-        fontFamily: `"DM Sans", sans-serif`,
+        fontFamily: (theme) => theme.custom.fonts.body,
         fontSize: '0.875rem',
         fontWeight: 500,
         color: 'rgba(255,234,236,0.55)',

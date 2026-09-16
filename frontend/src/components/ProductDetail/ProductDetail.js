@@ -325,7 +325,7 @@ const ProductDetailPage = () => {
                   </Typography>
                   <Typography sx={{
                     fontFamily: (theme) => theme.custom.fonts.display,
-                    fontWeight: 800,
+                    fontWeight: 700,
                     fontSize: { xs: "2.4rem", md: "3rem" },
                     color: "text.primary",
                     lineHeight: 1,

@@ -294,7 +294,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
             </Typography>
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: "1.25rem",
               color: "text.primary",
               lineHeight: 1,

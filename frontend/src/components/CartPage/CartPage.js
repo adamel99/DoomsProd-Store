@@ -165,7 +165,7 @@ const CartItemCard = ({ item, onRemove }) => {
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1.5, flexShrink: 0 }}>
           <Typography sx={{
             fontFamily: (theme) => theme.custom.fonts.display,
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: "1.15rem",
             color: "text.primary",
           }}>
@@ -268,7 +268,7 @@ const CartPage = () => {
             <Box sx={{ width: 4, height: 36, borderRadius: "2px", bgcolor: "primary.main", boxShadow: (theme) => theme.custom.effects.glow.rule }} />
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
-              fontWeight: 800,
+              fontWeight: 700,
               fontSize: { xs: "1.8rem", md: "2.4rem" },
               color: "text.primary", lineHeight: 1.1,
             }}>
@@ -360,7 +360,7 @@ const CartPage = () => {
                     </Typography>
                     <Typography sx={{
                       fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: { xs: "2rem", md: "2.6rem" },
                       color: "text.primary", lineHeight: 1,
                     }}>

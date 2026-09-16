@@ -186,7 +186,7 @@ function SignupFormModal() {
         }} />
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
-          fontWeight: 900,
+          fontWeight: 700,
           fontSize: { xs: "1.45rem", sm: "1.65rem" },
           color: "text.primary",
           letterSpacing: 0,
@@ -298,7 +298,7 @@ function SignupFormModal() {
             mt: 2,
             py: 1.25,
             fontFamily: theme.custom.fonts.display,
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: "0.9rem",
             letterSpacing: "0.5px",
             textTransform: "none",
