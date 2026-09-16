@@ -9,7 +9,6 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  Grid,
   IconButton,
   InputAdornment,
   Link,
@@ -20,7 +19,17 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 const fieldSx = (theme) => ({
+  width: "100%",
+  "& .MuiInputBase-input": {
+    height: 20,
+    py: 0,
+    display: "flex",
+    alignItems: "center",
+    lineHeight: "20px",
+  },
   "& .MuiOutlinedInput-root": {
+    height: 48,
+    alignItems: "center",
     background: theme.custom.clay.surfaceSoft,
     borderRadius: "var(--radius-md)",
     color: theme.palette.text.primary,
@@ -37,20 +46,42 @@ const fieldSx = (theme) => ({
   "& .MuiInputLabel-root": {
     fontFamily: theme.custom.fonts.body,
     color: theme.palette.text.secondary,
+    transform: "translate(14px, 13px) scale(1)",
     "&.Mui-focused": { color: theme.palette.primary.main },
+    "&.MuiInputLabel-shrink": {
+      transform: "translate(14px, -9px) scale(0.75)",
+    },
+  },
+  "& .MuiInputAdornment-root": {
+    height: "100%",
+    maxHeight: "none",
+    alignItems: "center",
   },
   input: { color: theme.palette.text.primary },
 });
 
 const errorAlertSx = (theme) => ({
-  mt: 1,
+  mt: 0.75,
   bgcolor: `${theme.palette.primary.main}18`,
   color: theme.palette.primary.dark,
   border: `1px solid ${theme.palette.primary.main}44`,
   borderRadius: "12px",
-  boxShadow: theme.custom.clay.raisedSmall,
+    boxShadow: "none",
+    py: 0.45,
+    fontSize: "0.76rem",
   "& .MuiAlert-icon": { color: theme.palette.primary.main },
 });
+
+const FieldSlot = ({ children }) => (
+  <Box sx={{
+    minWidth: 0,
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+  }}>
+    {children}
+  </Box>
+);
 
 function SignupFormModal() {
   const dispatch = useDispatch();
@@ -99,25 +130,27 @@ function SignupFormModal() {
   };
 
   const fields = [
-    { label: "Email",            value: email,           setter: setEmail,           error: errors.email,           half: false },
-    { label: "Username",         value: username,        setter: setUsername,        error: errors.username,        half: false },
-    { label: "First Name",       value: firstName,       setter: setFirstName,       error: errors.firstName,       half: true  },
-    { label: "Last Name",        value: lastName,        setter: setLastName,        error: errors.lastName,        half: true  },
-    { label: "Password",         value: password,        setter: setPassword,        error: errors.password,        half: false, type: "password", toggle: [showPassword, setShowPassword] },
-    { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, error: errors.confirmPassword, half: false, type: "password", toggle: [showConfirm,   setShowConfirm]   },
+    { label: "Email",            value: email,           setter: setEmail,           error: errors.email },
+    { label: "Username",         value: username,        setter: setUsername,        error: errors.username },
+    { label: "First Name",       value: firstName,       setter: setFirstName,       error: errors.firstName },
+    { label: "Last Name",        value: lastName,        setter: setLastName,        error: errors.lastName },
+    { label: "Password",         value: password,        setter: setPassword,        error: errors.password,        type: "password", toggle: [showPassword, setShowPassword] },
+    { label: "Confirm Password", value: confirmPassword, setter: setConfirmPassword, error: errors.confirmPassword, type: "password", toggle: [showConfirm,   setShowConfirm] },
   ];
 
   return (
     <Box sx={(theme) => ({
-      width: { xs: 340, sm: 460 },
+      width: { xs: "min(92vw, 360px)", sm: 560, md: 640 },
+      maxHeight: "min(88vh, 760px)",
       background: theme.custom.clay.surfaceSoft,
       border: theme.custom.clay.border,
       borderRadius: "var(--radius-panel)",
       boxShadow: theme.custom.clay.floating,
-      px: { xs: 3, sm: 4.5 },
-      py: 5,
+      px: { xs: 2.5, sm: 3.5, md: 4 },
+      py: { xs: 3, sm: 3.5 },
       position: "relative",
-      overflow: "hidden",
+      overflowY: "auto",
+      overflowX: "hidden",
     })}>
 
       {/* Soft top rim */}
@@ -144,17 +177,17 @@ function SignupFormModal() {
         pointerEvents: "none",
       }} />
 
-      <Box sx={{ textAlign: "center", mb: 4 }}>
+      <Box sx={{ textAlign: "center", mb: 2.5, position: "relative", zIndex: 1 }}>
         <Box sx={{
-          width: 10, height: 10, borderRadius: "50%",
+          width: 8, height: 8, borderRadius: "50%",
           bgcolor: "primary.main",
           boxShadow: (theme) => `0 0 10px ${theme.custom.transparent(theme.palette.primary.main, 0.48)}`,
-          mx: "auto", mb: 2,
+          mx: "auto", mb: 1.25,
         }} />
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
           fontWeight: 900,
-          fontSize: "1.75rem",
+          fontSize: { xs: "1.45rem", sm: "1.65rem" },
           color: "text.primary",
           letterSpacing: 0,
         }}>
@@ -164,18 +197,26 @@ function SignupFormModal() {
           fontFamily: (theme) => theme.custom.fonts.body,
           fontSize: "0.85rem",
           color: "text.secondary",
-          mt: 0.75,
+          mt: 0.35,
         }}>
           Join and start creating
         </Typography>
       </Box>
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
-        <Grid container spacing={2}>
-          {fields.map(({ label, value, setter, error, half, type, toggle }, i) => {
+        <Box sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+          columnGap: 1.5,
+          rowGap: 1.5,
+          alignItems: "start",
+          justifyItems: "stretch",
+          width: "100%",
+        }}>
+          {fields.map(({ label, value, setter, error, type, toggle }, i) => {
             const [show, setShow] = toggle || [];
             return (
-              <Grid item xs={12} sm={half ? 6 : 12} key={i}>
+              <FieldSlot key={i}>
                 <TextField
                   label={label}
                   fullWidth
@@ -200,18 +241,18 @@ function SignupFormModal() {
                     {error}
                   </Alert>
                 )}
-              </Grid>
+              </FieldSlot>
             );
           })}
-        </Grid>
+        </Box>
 
-        <Box sx={{ mt: 2.5 }}>
+        <Box sx={{ mt: 1.75 }}>
           <Typography sx={{
             fontFamily: (theme) => theme.custom.fonts.body,
-            fontSize: "0.78rem",
+            fontSize: "0.72rem",
             color: "text.secondary",
-            lineHeight: 1.6,
-            mb: 1.5,
+            lineHeight: 1.45,
+            mb: 1,
           }}>
             We collect account details, security cookies, cart activity, and order history to run your account, process purchases, send receipts, and deliver downloads. Payments use Stripe, emails use Resend, and product files use AWS S3. By creating an account, you agree to the{" "}
             <Link component={RouterLink} to="/terms" onClick={closeModal} sx={{ color: "primary.main", fontWeight: 700 }}>
@@ -242,9 +283,9 @@ function SignupFormModal() {
               m: 0,
               "& .MuiFormControlLabel-label": {
                 fontFamily: (theme) => theme.custom.fonts.body,
-                fontSize: "0.8rem",
-                lineHeight: 1.5,
-                pt: "9px",
+                fontSize: "0.74rem",
+                lineHeight: 1.35,
+                pt: "10px",
               },
             }}
           />
@@ -254,8 +295,8 @@ function SignupFormModal() {
           type="submit"
           fullWidth
           sx={(theme) => ({
-            mt: 3,
-            py: 1.5,
+            mt: 2,
+            py: 1.25,
             fontFamily: theme.custom.fonts.display,
             fontWeight: 800,
             fontSize: "0.9rem",

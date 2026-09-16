@@ -9,6 +9,7 @@ import {
   Select,
   InputLabel,
   FormControl,
+  FormHelperText,
   Grid,
   Card,
   CardMedia,
@@ -38,6 +39,54 @@ const uploadBoxSx = (theme) => ({
   background: "rgba(241,218,191,0.32)",
 });
 
+const PRODUCT_TYPES = new Set(["beat", "loop_kit", "drum_kit", "plugin"]);
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/jpg"]);
+const ZIP_TYPES = new Set(["application/zip", "application/x-zip-compressed", "application/x-zip"]);
+const MP3_TYPES = new Set(["audio/mpeg", "audio/mp3"]);
+const WAV_TYPES = new Set(["audio/wav", "audio/wave", "audio/x-wav", "audio/vnd.wave"]);
+
+const fileRules = {
+  image: {
+    allowedTypes: IMAGE_TYPES,
+    allowedExtensions: [".jpg", ".jpeg", ".png", ".webp"],
+    invalidMessage: "Invalid type. Please upload a JPG, PNG, or WEBP image.",
+  },
+  zipFile: {
+    allowedTypes: ZIP_TYPES,
+    allowedExtensions: [".zip"],
+    invalidMessage: "Invalid type. Please upload a ZIP file.",
+  },
+  mp3File: {
+    allowedTypes: MP3_TYPES,
+    allowedExtensions: [".mp3"],
+    invalidMessage: "Invalid type. Please upload an MP3 file.",
+  },
+  wavFile: {
+    allowedTypes: WAV_TYPES,
+    allowedExtensions: [".wav"],
+    invalidMessage: "Invalid type. Please upload a WAV file.",
+  },
+};
+
+const hasAllowedExtension = (file, extensions) => {
+  const name = file?.name?.toLowerCase() || "";
+  return extensions.some((extension) => name.endsWith(extension));
+};
+
+const validateOptionalFile = (file, rule) => {
+  if (!file) return "";
+  if (!rule.allowedTypes.has(file.type) || !hasAllowedExtension(file, rule.allowedExtensions)) {
+    return rule.invalidMessage;
+  }
+  return "";
+};
+
+const normalizeApiErrors = (err) => {
+  if (Array.isArray(err?.errors)) return err.errors;
+  if (err?.errors && typeof err.errors === "object") return Object.values(err.errors);
+  return [err?.message || "Something went wrong"];
+};
+
 const UpdateProductPage = () => {
   const { productId } = useParams();
   const dispatch = useDispatch();
@@ -63,6 +112,8 @@ const UpdateProductPage = () => {
   const [zipFile, setZipFile] = useState(null);
   const [mp3File, setMp3File] = useState(null);
   const [wavFile, setWavFile] = useState(null);
+  const [formErrors, setFormErrors] = useState([]);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     dispatch(getSingleProductThunk(productId));
@@ -96,19 +147,50 @@ const UpdateProductPage = () => {
   const needsAudioFiles = !isPlugin;
 
   const handleChange = (e) => {
+    if (e.target.name === "type") {
+      setFieldErrors((prev) => ({ ...prev, type: "" }));
+    }
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
 
-  const handleImageChange = (e) => setImageFile(e.target.files[0]);
-  const handleZipFileChange = (e) => setZipFile(e.target.files[0]);
-  const handleMp3FileChange = (e) => setMp3File(e.target.files[0]);
-  const handleWavFileChange = (e) => setWavFile(e.target.files[0]);
+  const handleFileChange = (field, setter) => (e) => {
+    const file = e.target.files[0];
+    const error = validateOptionalFile(file, fileRules[field]);
+    setter(error ? null : file || null);
+    setFieldErrors((prev) => ({ ...prev, [field]: error }));
+    if (error) e.target.value = "";
+  };
+
+  const handleImageChange = handleFileChange("image", setImageFile);
+  const handleZipFileChange = handleFileChange("zipFile", setZipFile);
+  const handleMp3FileChange = handleFileChange("mp3File", setMp3File);
+  const handleWavFileChange = handleFileChange("wavFile", setWavFile);
+
+  const validateForm = () => {
+    const nextErrors = {};
+    if (!PRODUCT_TYPES.has(formData.type)) nextErrors.type = "Select a product type.";
+    nextErrors.image = validateOptionalFile(imageFile, fileRules.image);
+    nextErrors.zipFile = validateOptionalFile(zipFile, fileRules.zipFile);
+    if (needsAudioFiles) {
+      nextErrors.mp3File = validateOptionalFile(mp3File, fileRules.mp3File);
+      nextErrors.wavFile = validateOptionalFile(wavFile, fileRules.wavFile);
+    }
+
+    Object.keys(nextErrors).forEach((key) => {
+      if (!nextErrors[key]) delete nextErrors[key];
+    });
+
+    setFieldErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormErrors([]);
+    if (!validateForm()) return;
 
     const dataToSend = new FormData();
     dataToSend.append("title", formData.title);
@@ -130,9 +212,25 @@ const UpdateProductPage = () => {
     if (needsAudioFiles && mp3File) dataToSend.append("mp3File", mp3File);
     if (needsAudioFiles && wavFile) dataToSend.append("wavFile", wavFile);
 
-    const updatedProduct = await dispatch(updateProductThunk(productId, dataToSend));
-    if (updatedProduct) {
-      history.push(`/products/${productId}`);
+    try {
+      const updatedProduct = await dispatch(updateProductThunk(productId, dataToSend));
+      if (updatedProduct) {
+        history.push(`/products/${productId}`);
+      }
+    } catch (err) {
+      const apiErrors = normalizeApiErrors(err);
+      const message = apiErrors.join(" ");
+      setFormErrors(apiErrors);
+      setFieldErrors((prev) => ({
+        ...prev,
+        ...(message.toLowerCase().includes("product type") ? { type: "Select a valid product type." } : {}),
+        ...(message.toLowerCase().includes("image") || message.toLowerCase().includes("upload")
+          ? { image: message.includes("Invalid") ? "Invalid type. Please upload a JPG, PNG, or WEBP image." : message }
+          : {}),
+        ...(message.toLowerCase().includes("zip") ? { zipFile: message } : {}),
+        ...(message.toLowerCase().includes("mp3") ? { mp3File: message } : {}),
+        ...(message.toLowerCase().includes("wav") ? { wavFile: message } : {}),
+      }));
     }
   };
 
@@ -240,6 +338,12 @@ const UpdateProductPage = () => {
             boxShadow: theme.custom.clay.raised,
           })}
         >
+          {formErrors.map((err, idx) => (
+            <Typography key={idx} color="error" sx={{ mb: 1 }}>
+              {err}
+            </Typography>
+          ))}
+
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <TextField fullWidth label="Title" name="title" value={formData.title} onChange={handleChange} required />
@@ -259,7 +363,7 @@ const UpdateProductPage = () => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={Boolean(fieldErrors.type)}>
                 <InputLabel>Type</InputLabel>
                 <Select name="type" value={formData.type} label="Type" onChange={handleChange}>
                   <MenuItem value="beat">Beat</MenuItem>
@@ -267,6 +371,7 @@ const UpdateProductPage = () => {
                   <MenuItem value="drum_kit">Drum Kit</MenuItem>
                   <MenuItem value="plugin">Plugin</MenuItem>
                 </Select>
+                {fieldErrors.type && <FormHelperText>{fieldErrors.type}</FormHelperText>}
               </FormControl>
             </Grid>
 
@@ -366,6 +471,11 @@ const UpdateProductPage = () => {
                     Replace Image File:
                   </Typography>
                   <input type="file" accept="image/*" onChange={handleImageChange} />
+                  {fieldErrors.image && (
+                    <FormHelperText error sx={{ mx: 0, mt: 0.75 }}>
+                      {fieldErrors.image}
+                    </FormHelperText>
+                  )}
                 </Box>
 
                 <Box sx={uploadBoxSx}>
@@ -373,6 +483,11 @@ const UpdateProductPage = () => {
                     Replace ZIP File:
                   </Typography>
                   <input type="file" accept=".zip" onChange={handleZipFileChange} />
+                  {fieldErrors.zipFile && (
+                    <FormHelperText error sx={{ mx: 0, mt: 0.75 }}>
+                      {fieldErrors.zipFile}
+                    </FormHelperText>
+                  )}
                 </Box>
 
                 {needsAudioFiles && (
@@ -382,6 +497,11 @@ const UpdateProductPage = () => {
                         Replace MP3 File:
                       </Typography>
                       <input type="file" accept=".mp3" onChange={handleMp3FileChange} />
+                      {fieldErrors.mp3File && (
+                        <FormHelperText error sx={{ mx: 0, mt: 0.75 }}>
+                          {fieldErrors.mp3File}
+                        </FormHelperText>
+                      )}
                     </Box>
 
                     <Box sx={uploadBoxSx}>
@@ -389,6 +509,11 @@ const UpdateProductPage = () => {
                         Replace WAV File:
                       </Typography>
                       <input type="file" accept=".wav" onChange={handleWavFileChange} />
+                      {fieldErrors.wavFile && (
+                        <FormHelperText error sx={{ mx: 0, mt: 0.75 }}>
+                          {fieldErrors.wavFile}
+                        </FormHelperText>
+                      )}
                     </Box>
                   </>
                 )}

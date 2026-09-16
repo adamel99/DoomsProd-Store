@@ -88,7 +88,9 @@ export const createProductThunk = (product) => async (dispatch) => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || "Failed to create product");
+        const error = new Error(errorData?.message || "Failed to create product");
+        error.errors = errorData?.errors;
+        throw error;
       }
 
       const newProduct = await response.json();
@@ -104,7 +106,9 @@ export const createProductThunk = (product) => async (dispatch) => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || "Failed to create product");
+        const error = new Error(errorData?.message || "Failed to create product");
+        error.errors = errorData?.errors;
+        throw error;
       }
 
       const newProduct = await response.json();
@@ -113,7 +117,7 @@ export const createProductThunk = (product) => async (dispatch) => {
     }
   } catch (err) {
     console.error("Failed to create product:", err);
-    return null;
+    throw err;
   }
 };
 
@@ -162,7 +166,9 @@ export const updateProductThunk = (productId, updatedData) => async (dispatch) =
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || "Failed to update product");
+      const error = new Error(errorData?.message || "Failed to update product");
+      error.errors = errorData?.errors;
+      throw error;
     }
 
     const updatedProduct = await response.json();
@@ -170,7 +176,7 @@ export const updateProductThunk = (productId, updatedData) => async (dispatch) =
     return updatedProduct;
   } catch (err) {
     console.error("Failed to update product:", err);
-    return null;
+    throw err;
   }
 };
 
