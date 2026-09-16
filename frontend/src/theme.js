@@ -2,23 +2,23 @@ import { createTheme, alpha } from "@mui/material/styles";
 
 const colors = {
   pink: "#FF579F",
-  brown: "#8C7051",
-  cream: "#28262B",
-  blue: "#0091AD",
-  ink: "#F7EFE8",
-  inkSoft: "#D8C6B3",
-  clay: "#28262B",
-  clayDeep: "#1F1F23",
+  brown: "#FBF7F4",
+  cream: "#000000",
+  blue: "#FBF7F4",
+  ink: "#FBF7F4",
+  inkSoft: "#FBF7F4",
+  clay: "#000000",
+  clayDeep: "#000000",
   coral: "#FF579F",
-  coralDark: "#C93A78",
-  apricot: "#8C7051",
-  linen: "#1B1B1E",
-  sage: "#8C7051",
-  mint: "#23272B",
-  sky: "#0091AD",
-  lavender: "#332936",
-  muted: "rgba(247,239,232,0.72)",
-  quiet: "rgba(247,239,232,0.48)",
+  coralDark: "#FF579F",
+  apricot: "#FBF7F4",
+  linen: "#000000",
+  sage: "#FBF7F4",
+  mint: "#000000",
+  sky: "#FBF7F4",
+  lavender: "#000000",
+  muted: "rgba(251,247,244,0.72)",
+  quiet: "rgba(251,247,244,0.48)",
 };
 
 const hexToRgb = (hex) => {
@@ -48,7 +48,7 @@ const transparent = (color, opacity) => {
 const colorRoles = {
   brand: {
     primary: colors.coral,
-    primaryLight: "#FF86BA",
+    primaryLight: colors.coral,
     primaryDark: colors.coralDark,
     secondary: colors.brown,
     secondarySoft: colors.inkSoft,
@@ -58,7 +58,7 @@ const colorRoles = {
   canvas: {
     page: colors.linen,
     base: colors.cream,
-    soft: "#FFF1DF",
+    soft: colors.cream,
     muted: colors.mint,
     warm: colors.apricot,
     cool: colors.lavender,
@@ -71,52 +71,66 @@ const colorRoles = {
     link: colors.coralDark,
   },
   line: {
-    soft: "rgba(247,239,232,0.12)",
-    medium: "rgba(247,239,232,0.18)",
-    strong: "rgba(247,239,232,0.28)",
-    light: "rgba(247,239,232,0.16)",
-    lightStrong: "rgba(247,239,232,0.28)",
+    soft: "rgba(251,247,244,0.12)",
+    medium: "rgba(251,247,244,0.18)",
+    strong: "rgba(251,247,244,0.28)",
+    light: "rgba(251,247,244,0.16)",
+    lightStrong: "rgba(251,247,244,0.28)",
   },
   state: {
-    hover: "rgba(247,239,232,0.08)",
+    hover: "rgba(251,247,244,0.08)",
     selected: "rgba(255,87,159,0.16)",
     focus: transparent(colors.coral, 0.24),
-    disabled: "rgba(247,239,232,0.28)",
-    disabledBackground: "rgba(247,239,232,0.08)",
+    disabled: "rgba(251,247,244,0.28)",
+    disabledBackground: "rgba(251,247,244,0.08)",
   },
 };
 
 const gradients = {
   page:
-    "radial-gradient(circle at 12% 8%, rgba(255,87,159,0.18) 0 15rem, transparent 26rem), radial-gradient(circle at 88% 16%, rgba(0,145,173,0.16) 0 13rem, transparent 24rem), radial-gradient(circle at 50% 90%, rgba(140,112,81,0.18) 0 16rem, transparent 30rem), linear-gradient(135deg, #1B1B1E 0%, #222127 48%, #1F2427 100%)",
-  pageFade: `linear-gradient(180deg, transparent 0%, ${colors.linen} 72%)`,
-  surface: "linear-gradient(145deg, #302B31 0%, #28262B 52%, #1F1F23 100%)",
-  surfaceSoft: "linear-gradient(145deg, #343039 0%, #28262B 58%, #212127 100%)",
-  surfaceCool: "linear-gradient(145deg, #253138 0%, #23272B 52%, #1D2225 100%)",
-  brand: `linear-gradient(145deg, ${colors.pink} 0%, ${colors.brown} 100%)`,
-  brandHover: `linear-gradient(145deg, ${colors.coralDark} 0%, ${colors.inkSoft} 100%)`,
+    "radial-gradient(circle at 10% 9%, rgba(255,87,159,0.18) 0 13rem, transparent 28rem), radial-gradient(circle at 84% 10%, rgba(251,247,244,0.08) 0 12rem, transparent 26rem), linear-gradient(135deg, #000000 0%, #000000 100%)",
+  pageFade: `linear-gradient(180deg, rgba(0,0,0,0) 0%, ${transparent(colors.linen, 0.78)} 58%, ${colors.linen} 100%)`,
+  surface:
+    "radial-gradient(circle at 24% 20%, rgba(251,247,244,0.045), transparent 34%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+  surfaceSoft:
+    "radial-gradient(circle at 24% 18%, rgba(251,247,244,0.055), transparent 36%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+  surfaceCool:
+    "radial-gradient(circle at 26% 18%, rgba(251,247,244,0.052), transparent 34%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+  clayWarm:
+    "radial-gradient(circle at 28% 18%, rgba(251,247,244,0.07), transparent 35%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+  clayPink:
+    "radial-gradient(circle at 28% 18%, rgba(251,247,244,0.1), transparent 34%), linear-gradient(145deg, #FF579F 0%, #FF579F 100%)",
+  clayBlue:
+    "radial-gradient(circle at 28% 18%, rgba(251,247,244,0.075), transparent 36%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+  brand: `linear-gradient(145deg, ${colors.pink} 0%, ${colors.pink} 100%)`,
+  brandHover: `linear-gradient(145deg, ${colors.coralDark} 0%, ${colors.coralDark} 100%)`,
   brandSoft: `linear-gradient(135deg, ${colors.coral} 0%, ${colors.coralDark} 100%)`,
   brandGlow: `linear-gradient(90deg, ${colors.coral}, transparent)`,
   mediaScrim:
     "linear-gradient(to top, rgba(10,10,12,0.82) 0%, rgba(10,10,12,0.24) 55%, transparent 100%)",
   imageScrim:
     "linear-gradient(to top, rgba(10,10,12,0.66) 0%, rgba(10,10,12,0.16) 48%, transparent 100%)",
-  shine: "linear-gradient(120deg, rgba(255,255,255,0.12) 0%, transparent 35%)",
+  shine: "linear-gradient(120deg, rgba(255,255,255,0.045) 0%, transparent 34%)",
 };
 
 const clay = {
   surface: gradients.surface,
   surfaceSoft: gradients.surfaceSoft,
   surfaceCool: gradients.surfaceCool,
+  surfaceWarm: gradients.clayWarm,
+  surfacePink: gradients.clayPink,
+  surfaceBlue: gradients.clayBlue,
   raised:
-    "12px 14px 28px rgba(0,0,0,0.32), -10px -10px 24px rgba(255,255,255,0.035)",
+    "16px 18px 34px rgba(0,0,0,0.36), -10px -10px 22px rgba(255,255,255,0.032), inset 1px 1px 0 rgba(255,255,255,0.035)",
   raisedSmall:
-    "7px 8px 16px rgba(0,0,0,0.28), -6px -6px 14px rgba(255,255,255,0.03)",
+    "8px 9px 18px rgba(0,0,0,0.32), -6px -6px 14px rgba(255,255,255,0.028), inset 1px 1px 0 rgba(255,255,255,0.035)",
   pressed:
-    "inset 6px 7px 13px rgba(0,0,0,0.32), inset -6px -6px 14px rgba(255,255,255,0.03)",
+    "inset 8px 9px 16px rgba(0,0,0,0.34), inset -7px -7px 15px rgba(255,255,255,0.03)",
   floating:
-    "0 24px 60px rgba(0,0,0,0.42), 0 7px 18px rgba(0,0,0,0.26)",
-  border: `1px solid ${colorRoles.line.light}`,
+    "22px 28px 62px rgba(0,0,0,0.43), -10px -10px 24px rgba(255,255,255,0.032), inset 1px 1px 0 rgba(255,255,255,0.045)",
+  pillow:
+    "18px 20px 38px rgba(0,0,0,0.34), -10px -10px 24px rgba(255,255,255,0.03), inset 3px 3px 9px rgba(255,255,255,0.022), inset -7px -7px 18px rgba(0,0,0,0.16)",
+  border: `1px solid ${colorRoles.line.medium}`,
   hairline: `1px solid ${colorRoles.line.soft}`,
 };
 
@@ -273,7 +287,7 @@ const patterns = {
       background: clay.surfaceSoft,
       border: clay.border,
       borderRadius: `${radius["2xl"]}px`,
-      boxShadow: clay.raised,
+      boxShadow: clay.pillow,
       position: "relative",
       overflow: "hidden",
     },

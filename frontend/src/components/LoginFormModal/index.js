@@ -75,14 +75,27 @@ const LoginFormModal = () => {
       overflow: "hidden",
     })}>
 
-      {/* Subtle top glow */}
+      {/* Soft top rim */}
       <Box sx={{
         position: "absolute",
-        top: -60, left: "50%",
-        transform: "translateX(-50%)",
-        width: 200, height: 100,
-        borderRadius: "50%",
-        background: (theme) => theme.custom.effects.orb.rose,
+        top: 0,
+        left: 18,
+        right: 18,
+        height: 3,
+        borderRadius: "0 0 999px 999px",
+        background: (theme) =>
+          `linear-gradient(90deg, transparent, ${theme.custom.transparent(theme.palette.primary.main, 0.72)} 28%, ${theme.custom.transparent(theme.custom.colors.ink, 0.58)} 50%, ${theme.custom.transparent(theme.palette.primary.main, 0.72)} 72%, transparent)`,
+        opacity: 0.9,
+        pointerEvents: "none",
+      }} />
+      <Box sx={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 92,
+        background: (theme) =>
+          `linear-gradient(180deg, ${theme.custom.transparent(theme.palette.primary.main, 0.12)}, transparent 78%)`,
         pointerEvents: "none",
       }} />
 
@@ -91,7 +104,7 @@ const LoginFormModal = () => {
         <Box sx={{
           width: 10, height: 10, borderRadius: "50%",
           bgcolor: "primary.main",
-          boxShadow: (theme) => theme.custom.effects.glow.primaryStrong,
+          boxShadow: (theme) => `0 0 10px ${theme.custom.transparent(theme.palette.primary.main, 0.48)}`,
           mx: "auto", mb: 2,
         }} />
         <Typography sx={{

@@ -119,12 +119,10 @@ function Navigation({ isLoaded }) {
             : `${theme.palette.background.paper}cc`,
           backdropFilter: scrolled ? 'blur(10px) saturate(120%)' : 'blur(28px) saturate(150%)',
           WebkitBackdropFilter: scrolled ? 'blur(10px) saturate(120%)' : 'blur(28px) saturate(150%)',
-          borderBottom: scrolled
-            ? `1px solid ${theme.custom.transparent(theme.custom.colors.ink, 0.08)}`
-            : theme.custom.clay.border,
+          borderBottom: `1px solid ${theme.custom.transparent(theme.custom.colors.ink, 0.08)}`,
           boxShadow: scrolled
             ? 'none'
-            : `0 1px 0 ${theme.custom.colors.cream}73 inset`,
+            : `0 1px 0 ${theme.custom.transparent(theme.custom.colors.ink, 0.04)} inset`,
           transition: theme.custom.motion.transition.lift,
         })}
       >
@@ -133,18 +131,6 @@ function Navigation({ isLoaded }) {
           position: 'absolute', inset: 0, opacity: 0.018, pointerEvents: 'none',
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat', backgroundSize: '128px',
-        }} />
-
-        {/* Bottom glow */}
-        <Box sx={{
-          position: 'absolute', bottom: '-1px',
-          left: '50%', transform: 'translateX(-50%)',
-          width: scrolled ? '60%' : '30%',
-          height: '1px',
-          background: (theme) => theme.custom.gradients.brandGlow,
-          opacity: scrolled ? 0.42 : 0.55,
-          transition: 'var(--motion-lift)',
-          pointerEvents: 'none',
         }} />
 
         {/* True three-column grid: logo | center | actions */}
@@ -280,10 +266,10 @@ function Navigation({ isLoaded }) {
                           borderColor: (theme) => theme.palette.divider,
                         },
                         '&.active': {
-                          color: 'primary.main',
+                          color: 'text.primary',
                           fontWeight: 700,
-                          background: (theme) => `${theme.palette.primary.main}18`,
-                          borderColor: (theme) => `${theme.palette.primary.main}55`,
+                          background: 'transparent',
+                          borderColor: 'transparent',
                         },
                       }}
                     >
@@ -305,9 +291,9 @@ function Navigation({ isLoaded }) {
               sx={(theme) => ({
                 ...iconBtnSx(theme),
                 ...(showSearch && {
-                  color: theme.palette.primary.main,
-                  borderColor: `${theme.palette.primary.main}66`,
-                  background: `${theme.palette.primary.main}18`,
+                  color: theme.palette.text.primary,
+                  borderColor: theme.custom.transparent(theme.custom.colors.ink, 0.1),
+                  background: 'transparent',
                 }),
               })}
               aria-label="search"
@@ -323,9 +309,9 @@ function Navigation({ isLoaded }) {
               sx={(theme) => ({
                 ...iconBtnSx(theme),
                 '&.active': {
-                  color: theme.palette.primary.main,
-                  borderColor: `${theme.palette.primary.main}66`,
-                  background: `${theme.palette.primary.main}18`,
+                  color: theme.palette.text.primary,
+                  borderColor: theme.custom.transparent(theme.custom.colors.ink, 0.1),
+                  background: 'transparent',
                 },
               })}
               aria-label="cart"
@@ -364,16 +350,16 @@ function Navigation({ isLoaded }) {
                           : theme.palette.background.paper,
                         border: '1px solid',
                         borderColor: (theme) => profileOpen
-                          ? `${theme.palette.primary.main}66`
-                          : theme.custom.colors.cream,
+                          ? theme.custom.transparent(theme.custom.colors.ink, 0.14)
+                          : 'transparent',
                         borderRadius: '10px',
                         cursor: 'pointer',
                         userSelect: 'none',
                         boxShadow: (theme) => theme.custom.clay.raisedSmall,
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          borderColor: (theme) => `${theme.palette.primary.main}66`,
-                          background: (theme) => `${theme.palette.primary.main}14`,
+                          borderColor: (theme) => theme.custom.transparent(theme.custom.colors.ink, 0.12),
+                          background: 'transparent',
                         },
                       }}
                     >
@@ -507,7 +493,7 @@ function Navigation({ isLoaded }) {
                           transition: 'all 0.2s ease',
                           '&:hover': {
                             color: 'text.primary',
-                            borderColor: (theme) => `${theme.palette.primary.main}66`,
+                            borderColor: 'transparent',
                             background: (theme) => theme.custom.clay.surfaceSoft,
                           },
                         },
@@ -612,7 +598,7 @@ function Navigation({ isLoaded }) {
             <Box sx={{
               px: 1, py: 0.15,
               background: (theme) => `${theme.palette.primary.main}22`,
-              border: (theme) => `1px solid ${theme.palette.primary.main}66`,
+              border: (theme) => `1px solid ${theme.custom.transparent(theme.custom.colors.ink, 0.12)}`,
               borderRadius: '100px',
             }}>
               <Typography sx={{

@@ -26,13 +26,14 @@ const routeMap = {
 };
 
 const flatPinkButtonSx = {
-  background: (theme) => theme.custom.colors.pink,
-  backgroundImage: "none",
+  background: (theme) => theme.custom.clay.surfacePink,
+  backgroundImage: (theme) => theme.custom.clay.surfacePink,
   borderColor: (theme) => theme.custom.transparent(theme.custom.colors.pink, 0.5),
   color: "primary.contrastText",
+  boxShadow: (theme) => theme.custom.clay.raisedSmall,
   "&:hover": {
-    background: (theme) => theme.custom.colors.coralDark,
-    backgroundImage: "none",
+    background: (theme) => theme.custom.gradients.brandHover,
+    backgroundImage: (theme) => theme.custom.gradients.brandHover,
     borderColor: (theme) => theme.custom.transparent(theme.custom.colors.coralDark, 0.55),
   },
 };
@@ -71,6 +72,31 @@ const LiquidBackground = React.memo(() => (
       inset: 0,
       background: theme.custom.gradients.pageFade,
     })} />
+    <Box sx={(theme) => ({
+      position: "absolute",
+      inset: 0,
+      background:
+        "linear-gradient(145deg, rgba(255,255,255,0.032) 0%, transparent 30%, rgba(0,0,0,0.16) 100%)",
+      boxShadow:
+        "inset 18px 18px 48px rgba(255,255,255,0.018), inset -30px -34px 68px rgba(0,0,0,0.24)",
+      opacity: 0.82,
+    })} />
+    <Box sx={(theme) => ({
+      position: "absolute",
+      inset: 0,
+      opacity: 0.2,
+      backgroundImage:
+        "repeating-linear-gradient(135deg, transparent 0 118px, rgba(255,255,255,0.024) 118px 119px, transparent 119px 238px)",
+      maskImage: "linear-gradient(180deg, transparent 0%, #000 12%, #000 64%, transparent 100%)",
+      WebkitMaskImage: "linear-gradient(180deg, transparent 0%, #000 12%, #000 64%, transparent 100%)",
+    })} />
+    <Box sx={{
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(ellipse at top, rgba(255,87,159,0.075), transparent 48%), radial-gradient(ellipse at bottom, rgba(0,145,173,0.055), transparent 52%)",
+      opacity: 0.68,
+    }} />
   </Box>
 ));
 
@@ -85,24 +111,6 @@ const GlassPanel = ({ children, sx = {}, ...rest }) => (
     },
     ...sx,
   })} {...rest}>
-    {children}
-  </Box>
-);
-
-// ─── Neumorphic Card ──────────────────────────────────────────────────────────
-const NeumorphCard = ({ children, sx = {}, onClick }) => (
-  <Box onClick={onClick} sx={(theme) => ({
-    ...theme.custom.patterns.surface.raised,
-    borderRadius: `${theme.custom.radius["4xl"]}px`,
-    transition: theme.custom.motion.transition.lift,
-    cursor: onClick ? "pointer" : "default",
-    "&:hover": onClick ? {
-      transform: "translateY(-6px)",
-      boxShadow: theme.custom.clay.floating,
-      borderColor: theme.custom.transparent(theme.palette.primary.main, 0.4),
-    } : {},
-    ...sx,
-  })}>
     {children}
   </Box>
 );
@@ -125,32 +133,34 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
   return (
     <Box sx={(theme) => ({
       position: "relative",
-      minHeight: { xs: 420, md: 620 },
+      minHeight: { xs: 430, sm: 500, md: 600 },
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       isolation: "isolate",
-      mt: { xs: 2, md: 0 },
+      mt: { xs: 3, md: 0 },
+      mx: "auto",
+      maxWidth: { xs: 520, md: "none" },
     })}>
       <Box sx={(theme) => ({
         position: "absolute",
         width: { xs: 250, sm: 340, md: 410 },
         height: { xs: 250, sm: 340, md: 410 },
-        borderRadius: "50%",
-        background: theme.custom.effects.orb.brown,
-        filter: "blur(4px)",
-        opacity: 0.74,
+        borderRadius: "46% 54% 45% 55% / 56% 45% 55% 44%",
+        background: theme.custom.clay.surfacePink,
+        boxShadow: theme.custom.clay.raised,
+        opacity: 0.42,
         zIndex: -1,
       })} />
 
       <Box sx={(theme) => ({
         position: "absolute",
         top: { xs: 18, md: 42 },
-        left: { xs: 0, md: 10 },
+        left: { xs: 8, sm: 24, md: 10 },
         width: { xs: 150, md: 178 },
-        p: 2,
-        ...theme.custom.patterns.surface.glass,
-        borderRadius: `${theme.custom.radius["2xl"]}px`,
+        pl: 2,
+        borderLeft: `2px solid ${theme.custom.transparent(theme.palette.primary.main, 0.72)}`,
+        filter: "drop-shadow(0 12px 22px rgba(0,0,0,0.34))",
         zIndex: 2,
       })}>
         <Typography sx={{
@@ -181,9 +191,10 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
         borderRadius: { xs: "34px", md: "44px" },
         overflow: "hidden",
         position: "relative",
-        background: theme.custom.gradients.surfaceCool,
+        background: theme.custom.clay.surfaceBlue,
         border: theme.custom.clay.border,
-        boxShadow: theme.custom.clay.floating,
+        boxShadow: theme.custom.clay.raised,
+        transform: "rotate(-1.5deg)",
       })}>
         <Box
           component="img"
@@ -212,10 +223,10 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
             transform: "translate(-50%, -50%)",
             width: { xs: 68, md: 82 },
             height: { xs: 68, md: 82 },
-            background: theme.custom.transparent(theme.custom.colors.cream, 0.8),
+            background: theme.custom.clay.surfaceSoft,
             border: theme.custom.clay.border,
             color: "primary.main",
-            boxShadow: theme.custom.clay.raised,
+            boxShadow: theme.custom.clay.raisedSmall,
             "&:hover": {
               background: theme.custom.colors.pink,
               color: "primary.contrastText",
@@ -232,12 +243,16 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
 
       <Box sx={(theme) => ({
         position: "absolute",
-        right: { xs: 2, md: -10 },
+        right: { xs: 8, sm: 18, md: -10 },
         top: { xs: 96, md: 118 },
         width: { xs: 158, md: 206 },
-        p: 2,
-        ...theme.custom.patterns.surface.glass,
-        borderRadius: `${theme.custom.radius["2xl"]}px`,
+        p: 1.6,
+        background: theme.custom.transparent(theme.custom.colors.clayDeep, 0.54),
+        border: theme.custom.clay.hairline,
+        boxShadow: theme.custom.clay.pressed,
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderRadius: "20px",
         zIndex: 3,
       })}>
         <Typography sx={{
@@ -270,12 +285,14 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
 
       <Box sx={(theme) => ({
         position: "absolute",
-        left: { xs: 8, md: 28 },
-        bottom: { xs: 4, md: 38 },
-        width: { xs: "calc(100% - 16px)", sm: 360, md: 390 },
-        p: 2.25,
-        ...theme.custom.patterns.surface.glass,
-        borderRadius: `${theme.custom.radius["2xl"]}px`,
+        left: { xs: 12, sm: 30, md: 28 },
+        bottom: { xs: 0, md: 38 },
+        width: { xs: "calc(100% - 24px)", sm: 360, md: 390 },
+        px: 0.5,
+        py: 1.25,
+        borderTop: theme.custom.clay.hairline,
+        borderBottom: theme.custom.clay.hairline,
+        filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.34))",
         zIndex: 4,
       })}>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 1.5 }}>
@@ -378,7 +395,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
       cursor: "pointer",
       display: "grid",
       gridTemplateRows: { xs: "minmax(250px, 34vw) auto", sm: "minmax(270px, 33vw) auto", lg: "390px auto" },
-      gap: { xs: 2.25, md: 3 },
+      gap: { xs: 2.5, md: 3.25 },
       transition: theme.custom.motion.transition.lift,
       "&:hover": {
         transform: "translateY(-6px)",
@@ -393,7 +410,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
       position: "relative",
       minWidth: 0,
       minHeight: 0,
-      background: theme.custom.gradients.surfaceCool,
+      background: theme.custom.clay.surfaceBlue,
       border: theme.custom.clay.border,
       borderRadius: `${theme.custom.radius["4xl"]}px`,
       boxShadow: theme.custom.clay.raised,
@@ -424,7 +441,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
         px: 1.2,
         py: 0.55,
         borderRadius: `${theme.custom.radius.pill}px`,
-        background: theme.custom.transparent(theme.custom.colors.clay, 0.9),
+        background: theme.custom.clay.surfaceSoft,
         border: `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.28)}`,
         boxShadow: theme.custom.clay.raisedSmall,
       })}>
@@ -445,8 +462,9 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
       px: { xs: 0.5, md: 1 },
       display: "flex",
       flexDirection: "column",
-      gap: 1.5,
+      gap: 1.7,
       minWidth: 0,
+      height: "100%",
     }}>
       <Typography variant="h3" sx={{
         fontSize: { xs: "1.7rem", md: "2.1rem" },
@@ -469,7 +487,15 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
           {product.description}
         </Typography>
       )}
-      <Box sx={{ mt: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+      <Box sx={{
+        mt: "auto",
+        pt: 1,
+        display: "flex",
+        alignItems: { xs: "stretch", sm: "center" },
+        justifyContent: "space-between",
+        gap: 2,
+        flexDirection: { xs: "column", sm: "row" },
+      }}>
         <Typography sx={{
           fontFamily: (theme) => theme.custom.fonts.display,
           fontWeight: 900,
@@ -481,7 +507,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
         <Button
           variant="contained"
           endIcon={<ArrowForwardIcon />}
-          sx={{ ...flatPinkButtonSx, px: 2.4 }}
+          sx={{ ...flatPinkButtonSx, px: 2.4, alignSelf: { xs: "flex-start", sm: "center" } }}
           onClick={(e) => {
             e.stopPropagation();
             onCardClick(product.id);
@@ -507,10 +533,10 @@ const InteractiveFeatureSection = ({ history }) => {
 
   return (
     <Box
-      sx={{ position: "relative", zIndex: 2, py: { xs: 8, md: 12 } }}
+      sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}
     >
       <Container maxWidth="lg">
-        <Box sx={{ mb: 5, maxWidth: 620 }}>
+        <Box sx={{ mb: { xs: 4, md: 6 }, maxWidth: 620 }}>
           <AccentRule width={32} sx={{ mb: 2 }} />
           <Typography sx={{
             fontFamily: (theme) => theme.custom.fonts.mono,
@@ -527,28 +553,39 @@ const InteractiveFeatureSection = ({ history }) => {
           </Typography>
         </Box>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch">
           <Grid item xs={12} md={5}>
-            <Box sx={{ display: "grid", gap: 1.5 }}>
+            <Box sx={{ display: "grid", gap: 1.5, height: "100%", alignContent: "stretch" }}>
               {menuItems.map((item) => {
                 const isActive = active === item.title;
                 return (
                   <Box
-                    key={item.title}
-                    onMouseEnter={() => setActive(item.title)}
-                    onClick={() => history.push(routeMap[item.title])}
-                    sx={(theme) => ({
-                      p: { xs: 2.25, md: 2.75 },
-                      borderRadius: `${theme.custom.radius.xl}px`,
+                  key={item.title}
+                  onMouseEnter={() => setActive(item.title)}
+                  onClick={() => history.push(routeMap[item.title])}
+                  sx={(theme) => ({
+                      py: { xs: 2.1, md: 2.45 },
+                      px: { xs: 1.5, md: 2 },
+                      minHeight: { xs: 94, md: 104 },
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      borderRadius: `${theme.custom.radius.lg}px`,
                       cursor: "pointer",
-                      border: isActive
-                        ? `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.33)}`
+                      border: "1px solid transparent",
+                      borderLeft: isActive
+                        ? `3px solid ${theme.palette.primary.main}`
                         : theme.custom.clay.hairline,
                       background: isActive
-                        ? theme.custom.clay.surfaceSoft
-                        : theme.custom.transparent(theme.custom.colors.cream, 0.24),
-                      boxShadow: isActive ? theme.custom.clay.raisedSmall : "none",
+                        ? "linear-gradient(90deg, rgba(255,87,159,0.16), transparent 72%)"
+                        : "transparent",
+                      boxShadow: isActive ? "inset 10px 0 18px rgba(255,87,159,0.045)" : "none",
                       transition: theme.custom.motion.transition.interactive,
+                      "&:hover": {
+                        background: isActive
+                          ? "linear-gradient(90deg, rgba(255,87,159,0.14), transparent 72%)"
+                          : theme.custom.transparent(theme.custom.colors.ink, 0.035),
+                      },
                     })}
                   >
                     <Typography sx={{
@@ -576,7 +613,7 @@ const InteractiveFeatureSection = ({ history }) => {
 
           <Grid item xs={12} md={7}>
             <GlassPanel sx={{
-              minHeight: { xs: 340, md: 430 },
+              minHeight: { xs: 360, md: "100%" },
               p: { xs: 3, md: 5 },
               display: "flex",
               flexDirection: "column",
@@ -704,9 +741,9 @@ const LandingPage = () => {
       <Box sx={{
         position: "relative",
         zIndex: 2,
-        pt: { xs: 9, md: 10 },
-        pb: { xs: 5, md: 8 },
-        minHeight: { md: "calc(100vh - 32px)" },
+        pt: { xs: 10, md: 12 },
+        pb: { xs: 7, md: 10 },
+        minHeight: { md: "calc(100vh - 12px)" },
         display: "flex",
         alignItems: "center",
         overflow: "hidden",
@@ -733,9 +770,15 @@ const LandingPage = () => {
         </Typography>
 
         <Container maxWidth="lg" sx={{ position: "relative" }}>
-          <Grid container spacing={{ xs: 4, md: 7 }} alignItems="center">
+          <Grid container spacing={{ xs: 5, md: 8, lg: 10 }} alignItems="center">
             <Grid item xs={12} md={6}>
-              <Box sx={{ maxWidth: 610, position: "relative", zIndex: 4 }}>
+              <Box sx={{
+                maxWidth: 610,
+                position: "relative",
+                zIndex: 4,
+                mx: { xs: "auto", md: 0 },
+                textAlign: { xs: "center", md: "left" },
+              }}>
                 <Box sx={(theme) => ({
                   display: "inline-flex",
                   alignItems: "center",
@@ -744,6 +787,7 @@ const LandingPage = () => {
                   py: 0.85,
                   mb: 2.5,
                   ...theme.custom.patterns.badge.soft,
+                  maxWidth: "100%",
                 })}>
                   <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "primary.main", boxShadow: (theme) => theme.custom.effects.glow.primary }} />
                   <Typography sx={{
@@ -764,7 +808,7 @@ const LandingPage = () => {
                   mb: 2.5,
                   maxWidth: 760,
                 }}>
-                  Beats That Feel Finished
+                 DOOMS
                 </Typography>
 
                 <Typography sx={{
@@ -773,6 +817,7 @@ const LandingPage = () => {
                   maxWidth: 550,
                   mb: 3.5,
                   lineHeight: 1.75,
+                  mx: { xs: "auto", md: 0 },
                 }}>
                   Hip-hop, trap & R&B instrumentals mixed, mastered, and ready for artists who want the record to hit on first play.
                 </Typography>
@@ -783,9 +828,10 @@ const LandingPage = () => {
                   sx={(theme) => ({
                     display: "flex",
                     maxWidth: 540,
-                    mb: 3,
-                    background: theme.custom.clay.surfaceSoft,
-                    borderRadius: `${theme.custom.radius["2xl"]}px`,
+                    mb: 3.25,
+                    mx: { xs: "auto", md: 0 },
+                    background: theme.custom.clay.surfaceWarm,
+                    borderRadius: "24px 18px 24px 18px",
                     border: theme.custom.clay.border,
                     overflow: "hidden",
                     boxShadow: theme.custom.clay.pressed,
@@ -817,17 +863,25 @@ const LandingPage = () => {
                       width: 44,
                       height: 44,
                       borderRadius: (theme) => `${theme.custom.radius.md}px`,
-                      bgcolor: "primary.main",
+                      background: (theme) => theme.custom.clay.surfacePink,
                       color: "primary.contrastText",
+                      boxShadow: (theme) => theme.custom.clay.raisedSmall,
                       flexShrink: 0,
-                      "&:hover": { bgcolor: "primary.dark" },
+                      "&:hover": { background: (theme) => theme.custom.gradients.brandHover },
                     }}
                   >
                     <SearchIcon fontSize="small" />
                   </IconButton>
                 </Box>
 
-                <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", mb: { xs: 3, md: 0 } }}>
+                <Box sx={{
+                  display: "flex",
+                  gap: 1.5,
+                  flexWrap: "wrap",
+                  justifyContent: { xs: "center", md: "flex-start" },
+                  alignItems: "center",
+                  mb: { xs: 2, md: 0 },
+                }}>
                   <Button variant="contained" size="large" onClick={handleContactOpen} sx={flatPinkButtonSx}>
                     Start a project
                   </Button>
@@ -861,8 +915,8 @@ const LandingPage = () => {
           <Box sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "repeat(3, minmax(0, 1fr))" },
-            gap: 2,
-            mt: { xs: 4, md: -2 },
+            gap: { xs: 2, md: 2.5 },
+            mt: { xs: 5, md: 7 },
             position: "relative",
             zIndex: 5,
           }}>
@@ -870,9 +924,18 @@ const LandingPage = () => {
               <Box
                 key={stat.label}
                 sx={(theme) => ({
-                  ...theme.custom.patterns.surface.glass,
-                  borderRadius: `${theme.custom.radius["2xl"]}px`,
-                  p: { xs: 2.4, md: 3 },
+                  p: { xs: 2.2, md: 2.8 },
+                  minHeight: { xs: 106, md: 124 },
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  textAlign: { xs: "center", sm: "left" },
+                  borderTop: theme.custom.clay.hairline,
+                  borderBottom: theme.custom.clay.hairline,
+                  boxShadow: "inset 0 10px 22px rgba(255,255,255,0.025), inset 0 -12px 22px rgba(0,0,0,0.12)",
+                  "&:not(:last-of-type)": {
+                    borderRight: { sm: theme.custom.clay.hairline },
+                  },
                 })}
               >
                 <Typography sx={{
@@ -898,19 +961,19 @@ const LandingPage = () => {
             ))}
           </Box>
 
-          <Box sx={{ mt: { xs: 5, md: 6 } }}>
+          <Box sx={{ mt: { xs: 5, md: 7 } }}>
             <StatusTicker />
           </Box>
         </Container>
       </Box>
 
       {/* ── PLUGIN SHOWCASE ──────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 8, md: 12 } }}>
+      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}>
         <Container maxWidth="lg">
           <Box sx={{
             display: "flex", alignItems: "flex-end",
-            justifyContent: "space-between", mb: 6,
-            flexWrap: "wrap", gap: 2, pb: 4,
+            justifyContent: "space-between", mb: { xs: 5, md: 7 },
+            flexWrap: "wrap", gap: { xs: 2.5, md: 3 }, pb: 4,
             borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           }}>
             <Box>
@@ -940,7 +1003,7 @@ const LandingPage = () => {
             <Box sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
-              gap: { xs: 5, md: 4 },
+              gap: { xs: 5.5, md: 5 },
               alignItems: "stretch",
             }}>
               {featuredPlugins.map((product) => (
@@ -952,11 +1015,17 @@ const LandingPage = () => {
               ))}
             </Box>
           ) : (
-            <GlassPanel sx={{ py: 8, px: 4, textAlign: "center" }}>
+            <Box sx={(theme) => ({
+              py: 8,
+              px: 4,
+              textAlign: "center",
+              borderTop: theme.custom.clay.hairline,
+              borderBottom: theme.custom.clay.hairline,
+            })}>
               <Typography sx={{ color: "text.secondary" }}>
                 Plugins are on the way — check back soon.
               </Typography>
-            </GlassPanel>
+            </Box>
           )}
         </Container>
       </Box>
@@ -965,9 +1034,9 @@ const LandingPage = () => {
       <InteractiveFeatureSection history={history} />
 
       {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 8, md: 12 } }}>
+      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}>
         <Container maxWidth="md">
-          <Box sx={{ textAlign: "center", mb: 7 }}>
+          <Box sx={{ textAlign: "center", mb: { xs: 5, md: 7 } }}>
             <AccentRule width={32} sx={{ mx: "auto", mb: 3 }} />
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.mono, fontSize: "0.7rem",
@@ -982,16 +1051,27 @@ const LandingPage = () => {
           </Box>
 
           {testimonials.map(({ name, quote, videoUrl }, i) => (
-            <NeumorphCard key={i} sx={{ p: { xs: 3, md: 5 } }}>
-              <Box sx={{ display: "flex", gap: 3, mb: 4, alignItems: "flex-start" }}>
-                <Box sx={{
+            <Box key={i} sx={(theme) => ({
+              mx: "auto",
+              py: { xs: 2, md: 3 },
+              borderTop: theme.custom.clay.hairline,
+              borderBottom: theme.custom.clay.hairline,
+            })}>
+              <Box sx={{
+                display: "flex",
+                gap: { xs: 2, md: 3 },
+                mb: 4,
+                alignItems: "flex-start",
+                flexDirection: { xs: "column", sm: "row" },
+              }}>
+                <Box sx={(theme) => ({
                   width: 48, height: 48, borderRadius: "14px",
-                  background: (theme) => theme.custom.clay.surface,
-                  border: (theme) => theme.custom.clay.border,
-                  boxShadow: (theme) => theme.custom.clay.raisedSmall,
+                  background: theme.custom.transparent(theme.palette.primary.main, 0.12),
+                  border: theme.custom.clay.hairline,
+                  boxShadow: theme.custom.clay.pressed,
                   display: "flex", alignItems: "center",
                   justifyContent: "center", flexShrink: 0, mt: 0.5,
-                }}>
+                })}>
                   <Typography sx={{
                     fontSize: "1.2rem", color: "primary.main",
                     fontFamily: (theme) => theme.custom.fonts.display,
@@ -1035,15 +1115,22 @@ const LandingPage = () => {
                   />
                 </Box>
               )}
-            </NeumorphCard>
+            </Box>
           ))}
         </Container>
       </Box>
 
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 10, md: 16 } }}>
+      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 10, md: 15 } }}>
         <Container maxWidth="sm">
-          <GlassPanel sx={{ p: { xs: 5, md: 7 }, textAlign: "center", overflow: "hidden" }}>
+          <Box sx={(theme) => ({
+            py: { xs: 4, sm: 5, md: 7 },
+            px: { xs: 1, sm: 2 },
+            textAlign: "center",
+            borderTop: theme.custom.clay.hairline,
+            borderBottom: theme.custom.clay.hairline,
+            boxShadow: "inset 0 18px 34px rgba(255,255,255,0.026), inset 0 -18px 34px rgba(0,0,0,0.12)",
+          })}>
             <Box sx={{ opacity: 0.5, mb: 4 }}>
               <LevelMeter bars={32} />
             </Box>
@@ -1056,7 +1143,13 @@ const LandingPage = () => {
             }}>
               Browse premium beats and start creating your next hit today.
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
+            <Box sx={{
+              display: "flex",
+              gap: 2,
+              justifyContent: "center",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}>
               <Button
                 variant="contained" size="large"
                 onClick={() => history.push("/products")}
@@ -1072,7 +1165,7 @@ const LandingPage = () => {
                 Get in Touch
               </Button>
             </Box>
-          </GlassPanel>
+          </Box>
         </Container>
       </Box>
 
