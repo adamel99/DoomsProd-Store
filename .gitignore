@@ -3,3 +3,4 @@ node_modules
 build
 .DS_Store
 *.db
+RECRUITER_PROJECT_NOTES.md

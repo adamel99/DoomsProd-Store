@@ -1,8 +1,6 @@
 # DoomsProd Beat Store
 
-DoomsProd Beat Store is a full-stack ecommerce platform for selling digital music products: beats, loop kits, drum kits, and audio plugins. It combines a polished React storefront with an Express/Sequelize API that handles authentication, product management, carts, checkout, Stripe payments, protected downloads, and admin order tools.
-
-This project is both a creator storefront and a portfolio piece. It shows how I approach production-minded web applications: secure checkout, role-based access, file validation, cloud storage, signed download links, transactional email, and a UI designed around the real workflow of browsing, licensing, purchasing, and receiving digital audio assets.
+DoomsProd Beat Store is a full-stack ecommerce platform for selling digital music products: beats, loop kits, drum kits, and audio plugins. It combines a React storefront with an Express/Sequelize API that handles authentication, product management, carts, checkout, Stripe payments, protected downloads, and admin order tools.
 
 ## What This App Does
 
@@ -45,9 +43,9 @@ This project is both a creator storefront and a portfolio piece. It shows how I 
 - AWS S3 uploads and signed download delivery
 - Resend/Nodemailer email utilities
 
-## Key Engineering Highlights
+## Key Features
 
-### Secure Ecommerce Flow
+### Ecommerce Checkout
 
 The backend creates orders from cart state, sends customers through Stripe Checkout, verifies Stripe webhook signatures, marks paid orders as completed, clears purchased cart items, and generates downloadable product delivery links. Webhook events are tracked so repeated Stripe events do not duplicate fulfillment work.
 
@@ -55,26 +53,13 @@ The backend creates orders from cart state, sends customers through Stripe Check
 
 Admin-uploaded files are validated before upload, stored in S3, and delivered to customers through protected API routes. Customers can only access downloads for their own completed orders, and download URLs are signed instead of exposing private storage objects directly.
 
-### Role-Based Admin Features
+### Admin Product Management
 
-The app separates customer behavior from admin behavior. Admin-only routes support product creation, product editing, file uploads, license management, order inspection, and receipt resending.
+Admin-only routes support product creation, product editing, file uploads, license management, order inspection, revenue summaries, customer details, and receipt resending.
 
-### Security-Conscious Backend
+### Backend Security
 
 The API includes JWT auth restoration, CSRF protection, CORS allowlisting, Helmet headers, request validation, login attempt tracking, rate limits, and restricted download endpoints. Production config also supports PostgreSQL schemas and SSL database settings.
-
-### Recruiter-Relevant Scope
-
-This is not a static portfolio page. It is a working full-stack product with real-world concerns: payments, permissions, file storage, transactional email, schema migrations, seed data, frontend state management, protected routes, and production deployment configuration.
-
-## Resume-Ready Security Bullets
-
-- Built and secured a full-stack digital ecommerce platform using React, Express.js, Sequelize, Stripe Checkout, AWS S3, and PostgreSQL/SQLite for selling beats, kits, and audio plugins.
-- Implemented JWT authentication with signed HTTP-only cookies, CSRF protection, role-based access control, admin-only routes, secure cookie settings, Helmet security headers, and CORS allowlisting.
-- Hardened payment fulfillment by integrating Stripe webhook signature verification, processed-event tracking, duplicate webhook prevention, protected order updates, and secure receipt/download delivery.
-- Secured digital file delivery with private AWS S3 object storage, server-side file upload validation, protected download endpoints, and limited-time signed download URLs.
-- Added abuse-prevention controls including login-attempt tracking, account/IP-based authentication rate limits, route-specific limits for checkout/downloads/uploads/password changes, global API rate limiting, and rate-limit event logging.
-- Built admin security/operations tooling for searchable order monitoring, customer/order inspection, payment identifier review, order status tracking, revenue metrics, and receipt resend actions.
 
 ## Project Structure
 
@@ -115,7 +100,7 @@ Adam-Portfolio/
 - `/checkout` - checkout flow
 - `/downloads/:sessionId` - protected download page
 - `/account` - authenticated user account page
-- `/about` - creator/developer background
+- `/about` - about page
 
 **Admin**
 
@@ -207,7 +192,3 @@ Production configuration supports:
 - Add frontend integration tests for cart, checkout, and admin product flows.
 - Move demo credentials out of seeders and into documented local-only fixtures.
 - Add CI for linting, tests, and migration checks.
-
-## Why I Built It
-
-I built this project to connect my background in music production, software engineering, and audio technology. It gave me a realistic way to practice the problems that matter in production apps: payments, files, permissions, secure delivery, admin tooling, and a frontend that feels like an actual product rather than a demo shell.
