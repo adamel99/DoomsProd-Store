@@ -134,9 +134,10 @@ const clay = {
   hairline: `1px solid ${colorRoles.line.soft}`,
 };
 
-const fontDisplay = `"Syne", "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-const fontBody = `"DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-const fontMono = `"JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace`;
+const fontHelvetica = `"Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif`;
+const fontDisplay = fontHelvetica;
+const fontBody = fontHelvetica;
+const fontMono = fontHelvetica;
 
 const fonts = {
   display: fontDisplay,
