@@ -522,8 +522,6 @@ const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: `
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
         :root {
           --clay-bg: ${colorRoles.canvas.page};
           --clay-surface: ${colorRoles.canvas.base};
