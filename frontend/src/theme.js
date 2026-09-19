@@ -489,12 +489,12 @@ const theme = createTheme({
       color: colors.ink,
     },
     body1: {
-      fontSize: "1rem",
+      fontSize: "1.05rem",
       lineHeight: 1.68,
       color: colors.muted,
     },
     body2: {
-      fontSize: "0.875rem",
+      fontSize: "0.95rem",
       lineHeight: 1.55,
       color: colors.quiet,
     },
@@ -508,7 +508,7 @@ const theme = createTheme({
     button: {
       fontFamily: fontBody,
       fontWeight: 700,
-      fontSize: "0.9rem",
+      fontSize: "0.98rem",
       textTransform: "none",
       letterSpacing: 0,
     },
@@ -658,8 +658,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: radius.lg,
-          minHeight: 44,
-          padding: "0.74rem 1.28rem",
+          minHeight: 48,
+          padding: "0.84rem 1.38rem",
           textTransform: "none",
           boxShadow: clay.raisedSmall,
           transition: motion.transition.interactive,
@@ -711,6 +711,8 @@ const theme = createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: {
+          minWidth: 48,
+          minHeight: 48,
           color: colors.inkSoft,
           background: transparent(colors.cream, 0.44),
           border: clay.border,
@@ -764,6 +766,7 @@ const theme = createTheme({
     MuiInputBase: {
       styleOverrides: {
         root: {
+          minHeight: 48,
           color: colors.ink,
           borderRadius: radius.lg,
           background: transparent(colors.cream, 0.46),
@@ -775,6 +778,10 @@ const theme = createTheme({
           },
         },
         input: {
+          fontSize: "1rem",
+          lineHeight: 1.35,
+          paddingTop: "12px",
+          paddingBottom: "12px",
           "&::placeholder": {
             color: alpha(colors.ink, 0.45),
             opacity: 1,

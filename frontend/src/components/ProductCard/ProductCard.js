@@ -173,8 +173,8 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
                 position: "absolute",
                 left: 14,
                 bottom: 14,
-                width: 38,
-                height: 38,
+                width: { xs: 48, md: 38 },
+                height: { xs: 48, md: 38 },
                 color: "primary.main",
                 background: theme.custom.clay.surfaceSoft,
                 border: `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.3)}`,
@@ -203,7 +203,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
       }}>
         <Box>
           <Typography variant="h4" sx={{
-            fontSize: { xs: "1.05rem", md: isList ? "1.25rem" : "1.08rem" },
+            fontSize: { xs: "1.18rem", md: isList ? "1.25rem" : "1.08rem" },
             lineHeight: 1.18,
             mb: 0.75,
             overflowWrap: "anywhere",
@@ -218,7 +218,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
           {description && (
             <Typography sx={{
               color: "text.secondary",
-              fontSize: "0.78rem",
+              fontSize: { xs: "0.95rem", md: "0.78rem" },
               lineHeight: 1.45,
               overflowWrap: "anywhere",
               display: "-webkit-box",
@@ -295,7 +295,7 @@ const ProductCard = ({ customProduct, viewMode = "grid" }) => {
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
               fontWeight: 700,
-              fontSize: "1.25rem",
+              fontSize: { xs: "1.4rem", md: "1.25rem" },
               color: "text.primary",
               lineHeight: 1,
             }}>

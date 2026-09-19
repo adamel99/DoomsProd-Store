@@ -189,9 +189,17 @@ const ProductList = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 fullWidth
                 inputProps={{ "aria-label": "Search products" }}
-                sx={{ px: 2, py: 1.15, fontSize: "0.95rem" }}
+                sx={{
+                  px: { xs: 2.25, md: 2 },
+                  py: { xs: 1.35, md: 1.15 },
+                  fontSize: { xs: "1.05rem", md: "0.95rem" },
+                }}
               />
-              <IconButton type="submit" aria-label="Search" sx={{ m: 0.6, borderRadius: "12px" }}>
+              <IconButton
+                type="submit"
+                aria-label="Search"
+                sx={{ m: 0.6, borderRadius: "12px", width: { xs: 50, md: 44 }, height: { xs: 50, md: 44 } }}
+              >
                 <SearchIcon fontSize="small" />
               </IconButton>
             </Box>
@@ -216,6 +224,9 @@ const ProductList = () => {
                     onClick={() => setFilterType(type)}
                     sx={(theme) => ({
                       justifyContent: "space-between",
+                      minHeight: { xs: 52, md: 44 },
+                      fontSize: { xs: "1rem", md: "0.9rem" },
+                      px: { xs: 2, md: 1.5 },
                       color: isActive ? "primary.contrastText" : "text.secondary",
                       background: isActive ? theme.palette.primary.main : "transparent",
                       boxShadow: isActive ? theme.custom.clay.raisedSmall : "none",

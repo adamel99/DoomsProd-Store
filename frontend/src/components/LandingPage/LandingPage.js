@@ -38,6 +38,11 @@ const flatPinkButtonSx = {
   },
 };
 
+const mobileFullButtonSx = {
+  width: { xs: "100%", sm: "auto" },
+  justifyContent: "center",
+};
+
 const testimonials = [
   {
     name: "Fivio Foreign - Dribble",
@@ -352,7 +357,11 @@ const StatusTicker = () => {
   const loop = [...tickerItems, ...tickerItems];
   return (
     <Box sx={(theme) => ({
-      position: "relative", overflow: "hidden",
+      position: "relative",
+      overflow: "hidden",
+      width: "100vw",
+      ml: "calc(50% - 50vw)",
+      mr: "calc(50% - 50vw)",
       borderTop: `1px solid ${theme.palette.divider}`,
       borderBottom: `1px solid ${theme.palette.divider}`,
       py: 1.5,
@@ -521,7 +530,7 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
 );
 
 // ─── Interactive Feature Section ──────────────────────────────────────────────
-const InteractiveFeatureSection = ({ history }) => {
+const InteractiveFeatureSection = ({ history, testimonials }) => {
   const [active, setActive] = useState("Browse Beats");
 
   const menuItems = [
@@ -532,130 +541,122 @@ const InteractiveFeatureSection = ({ history }) => {
   const activeItem = menuItems.find((i) => i.title === active);
 
   return (
-    <Box
-      sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}
-    >
+    <Box sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}>
       <Container maxWidth="lg">
-        <Box sx={{ mb: { xs: 4, md: 6 }, maxWidth: 620 }}>
-          <AccentRule width={32} sx={{ mb: 2 }} />
-          <Typography sx={{
-            fontFamily: (theme) => theme.custom.fonts.mono,
-            fontSize: "0.7rem",
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            color: "primary.main",
-            mb: 1,
-          }}>
-            Studio map
-          </Typography>
-          <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "3rem" }, lineHeight: 1.05 }}>
-            Find what you need without the maze.
-          </Typography>
-        </Box>
-
-        <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch">
-          <Grid item xs={12} md={5}>
-            <Box sx={{ display: "grid", gap: 1.5, height: "100%", alignContent: "stretch" }}>
-              {menuItems.map((item) => {
-                const isActive = active === item.title;
-                return (
-                  <Box
-                  key={item.title}
-                  onMouseEnter={() => setActive(item.title)}
-                  onClick={() => history.push(routeMap[item.title])}
-                  sx={(theme) => ({
-                      py: { xs: 2.1, md: 2.45 },
-                      px: { xs: 1.5, md: 2 },
-                      minHeight: { xs: 94, md: 104 },
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      borderRadius: `${theme.custom.radius.lg}px`,
-                      cursor: "pointer",
-                      border: "1px solid transparent",
-                      borderLeft: isActive
-                        ? `3px solid ${theme.palette.primary.main}`
-                        : theme.custom.clay.hairline,
-                      background: isActive
-                        ? "linear-gradient(90deg, rgba(255,87,159,0.16), transparent 72%)"
-                        : "transparent",
-                      boxShadow: isActive ? "inset 10px 0 18px rgba(255,87,159,0.045)" : "none",
-                      transition: theme.custom.motion.transition.interactive,
-                      "&:hover": {
-                        background: isActive
-                          ? "linear-gradient(90deg, rgba(255,87,159,0.14), transparent 72%)"
-                          : theme.custom.transparent(theme.custom.colors.ink, 0.035),
-                      },
-                    })}
-                  >
-                    <Typography sx={{
-                      fontFamily: (theme) => theme.custom.fonts.mono,
-                      fontSize: "0.68rem",
-                      color: isActive ? "primary.main" : "text.disabled",
-                      fontWeight: 700,
-                      mb: 0.75,
-                      letterSpacing: "1.4px",
-                      textTransform: "uppercase",
-                    }}>
-                      {item.label}
-                    </Typography>
-                    <Typography variant="h4" sx={{
-                      fontSize: { xs: "1.35rem", md: "1.55rem" },
-                      color: "text.primary",
-                    }}>
-                      {item.title}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={7}>
-            <GlassPanel sx={{
-              minHeight: { xs: 360, md: "100%" },
-              p: { xs: 3, md: 5 },
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              overflow: "hidden",
-            }}>
-              <Box sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 2,
-                alignItems: "flex-start",
-                mb: 5,
-              }}>
+        <Grid container spacing={{ xs: 7, md: 6 }} alignItems="stretch">
+          <Grid item xs={12} md={6}>
+            <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+              <Box sx={{ mb: { xs: 4, md: 5 }, maxWidth: 520 }}>
+                <AccentRule width={32} sx={{ mb: 2 }} />
                 <Typography sx={{
                   fontFamily: (theme) => theme.custom.fonts.mono,
-                  fontSize: "0.68rem",
-                  letterSpacing: "2px",
-                  color: "text.disabled",
+                  fontSize: "0.7rem",
+                  letterSpacing: "3px",
                   textTransform: "uppercase",
+                  color: "primary.main",
+                  mb: 1,
                 }}>
-                  Selected route
+                  Studio map
                 </Typography>
-                <Typography sx={{
-                  fontFamily: (theme) => theme.custom.fonts.mono,
-                  fontSize: "0.68rem",
-                  letterSpacing: "2px",
-                  color: "text.disabled",
-                  textTransform: "uppercase",
-                }}>
-                  0{menuItems.findIndex((item) => item.title === active) + 1} / 03
+                <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.8rem" }, lineHeight: 1.05 }}>
+                  Find what you need without the maze.
                 </Typography>
               </Box>
 
-              <Box>
-                <Typography variant="h3" sx={{ fontSize: { xs: "2rem", md: "3.4rem" }, mb: 2 }}>
+              <Box sx={{ display: "grid", gap: 1.5, mb: 2.5 }}>
+                {menuItems.map((item) => {
+                  const isActive = active === item.title;
+                  return (
+                    <Box
+                      key={item.title}
+                      onMouseEnter={() => setActive(item.title)}
+                      onClick={() => history.push(routeMap[item.title])}
+                      sx={(theme) => ({
+                        py: { xs: 2.1, md: 2.35 },
+                        px: { xs: 1.5, md: 2 },
+                        minHeight: { xs: 94, md: 100 },
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        borderRadius: `${theme.custom.radius.lg}px`,
+                        cursor: "pointer",
+                        border: "1px solid transparent",
+                        borderLeft: isActive
+                          ? `3px solid ${theme.palette.primary.main}`
+                          : theme.custom.clay.hairline,
+                        background: isActive
+                          ? "linear-gradient(90deg, rgba(255,87,159,0.16), transparent 72%)"
+                          : "transparent",
+                        boxShadow: isActive ? "inset 10px 0 18px rgba(255,87,159,0.045)" : "none",
+                        transition: theme.custom.motion.transition.interactive,
+                        "&:hover": {
+                          background: isActive
+                            ? "linear-gradient(90deg, rgba(255,87,159,0.14), transparent 72%)"
+                            : theme.custom.transparent(theme.custom.colors.ink, 0.035),
+                        },
+                      })}
+                    >
+                      <Typography sx={{
+                        fontFamily: (theme) => theme.custom.fonts.mono,
+                        fontSize: "0.68rem",
+                        color: isActive ? "primary.main" : "text.disabled",
+                        fontWeight: 700,
+                        mb: 0.75,
+                        letterSpacing: "1.4px",
+                        textTransform: "uppercase",
+                      }}>
+                        {item.label}
+                      </Typography>
+                      <Typography variant="h4" sx={{
+                        fontSize: { xs: "1.35rem", md: "1.5rem" },
+                        color: "text.primary",
+                      }}>
+                        {item.title}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              <GlassPanel sx={{
+                mt: "auto",
+                p: { xs: 3, md: 3.5 },
+                overflow: "hidden",
+              }}>
+                <Box sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 2,
+                  alignItems: "flex-start",
+                  mb: 3,
+                }}>
+                  <Typography sx={{
+                    fontFamily: (theme) => theme.custom.fonts.mono,
+                    fontSize: "0.68rem",
+                    letterSpacing: "2px",
+                    color: "text.disabled",
+                    textTransform: "uppercase",
+                  }}>
+                    Selected route
+                  </Typography>
+                  <Typography sx={{
+                    fontFamily: (theme) => theme.custom.fonts.mono,
+                    fontSize: "0.68rem",
+                    letterSpacing: "2px",
+                    color: "text.disabled",
+                    textTransform: "uppercase",
+                  }}>
+                    0{menuItems.findIndex((item) => item.title === active) + 1} / 03
+                  </Typography>
+                </Box>
+
+                <Typography variant="h3" sx={{ fontSize: { xs: "1.9rem", md: "2.45rem" }, mb: 1.5 }}>
                   {active}
                 </Typography>
                 <Typography sx={{
                   color: "text.secondary",
-                  fontSize: { xs: "1rem", md: "1.12rem" },
-                  maxWidth: 520,
-                  mb: 4,
+                  fontSize: { xs: "1rem", md: "1.05rem" },
+                  mb: 3,
                   lineHeight: 1.7,
                 }}>
                   {activeItem?.desc}
@@ -668,12 +669,110 @@ const InteractiveFeatureSection = ({ history }) => {
                 >
                   {activeItem?.cta}
                 </Button>
+              </GlassPanel>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+              <Box sx={{ mb: { xs: 4, md: 5 }, maxWidth: 520 }}>
+                <AccentRule width={32} sx={{ mb: 2 }} />
+                <Typography sx={{
+                  fontFamily: (theme) => theme.custom.fonts.mono,
+                  fontSize: "0.7rem",
+                  fontWeight: 500,
+                  letterSpacing: "3px",
+                  textTransform: "uppercase",
+                  color: "primary.main",
+                  mb: 1,
+                }}>
+                  Trusted by
+                </Typography>
+                <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.8rem" }, lineHeight: 1.05 }}>
+                  Heard Worldwide
+                </Typography>
               </Box>
 
-              <Box sx={{ mt: 5, opacity: 0.42 }}>
-                <LevelMeter bars={24} />
+              <Box sx={{ display: "grid", gap: { xs: 3, md: 3.5 }, flex: 1 }}>
+                {testimonials.map(({ name, quote, videoUrl }, i) => (
+                  <Box key={i} sx={(theme) => ({
+                    py: { xs: 2.5, md: 3 },
+                    borderTop: theme.custom.clay.hairline,
+                    borderBottom: theme.custom.clay.hairline,
+                  })}>
+                    <Box sx={{
+                      display: "flex",
+                      gap: { xs: 2, md: 2.5 },
+                      mb: getYouTubeEmbedUrl(videoUrl) ? 3 : 0,
+                      alignItems: "flex-start",
+                    }}>
+                      <Box sx={(theme) => ({
+                        width: 48,
+                        height: 48,
+                        borderRadius: "14px",
+                        background: theme.custom.transparent(theme.palette.primary.main, 0.12),
+                        border: theme.custom.clay.hairline,
+                        boxShadow: theme.custom.clay.pressed,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        mt: 0.5,
+                      })}>
+                        <Typography sx={{
+                          fontSize: "1.2rem",
+                          color: "primary.main",
+                          fontFamily: (theme) => theme.custom.fonts.display,
+                          fontWeight: 700,
+                          lineHeight: 1,
+                        }}>
+                          "
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{
+                          fontFamily: (theme) => theme.custom.fonts.display,
+                          fontWeight: 700,
+                          fontSize: "1rem",
+                          color: "primary.main",
+                          mb: 1,
+                        }}>
+                          {name}
+                        </Typography>
+                        <Typography sx={{
+                          fontFamily: (theme) => theme.custom.fonts.body,
+                          fontSize: { xs: "1.05rem", md: "1.14rem" },
+                          color: "text.secondary",
+                          fontStyle: "italic",
+                          lineHeight: 1.7,
+                        }}>
+                          "{quote}"
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {getYouTubeEmbedUrl(videoUrl) && (
+                      <Box sx={{
+                        borderRadius: "20px",
+                        overflow: "hidden",
+                        border: (theme) => theme.custom.clay.border,
+                        boxShadow: (theme) => theme.custom.clay.raised,
+                      }}>
+                        <iframe
+                          src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
+                          title={`Video by ${name}`}
+                          referrerPolicy="strict-origin-when-cross-origin"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          loading="lazy"
+                          style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
+                        />
+                      </Box>
+                    )}
+                  </Box>
+                ))}
               </Box>
-            </GlassPanel>
+            </Box>
           </Grid>
         </Grid>
       </Container>
@@ -848,9 +947,9 @@ const LandingPage = () => {
                     fullWidth
                     inputProps={{ "aria-label": "Search beats, kits, and loops" }}
                     sx={{
-                      px: 2.5,
-                      py: 1.35,
-                      fontSize: "1rem",
+                      px: { xs: 2, sm: 2.5 },
+                      py: { xs: 1.45, sm: 1.35 },
+                      fontSize: { xs: "1.05rem", md: "1rem" },
                       color: "text.primary",
                       "& input::placeholder": { color: "text.disabled" },
                     }}
@@ -860,8 +959,8 @@ const LandingPage = () => {
                     aria-label="Search"
                     sx={{
                       m: 0.75,
-                      width: 44,
-                      height: 44,
+                      width: { xs: 50, sm: 44 },
+                      height: { xs: 50, sm: 44 },
                       borderRadius: (theme) => `${theme.custom.radius.md}px`,
                       background: (theme) => theme.custom.clay.surfacePink,
                       color: "primary.contrastText",
@@ -876,13 +975,18 @@ const LandingPage = () => {
 
                 <Box sx={{
                   display: "flex",
-                  gap: 1.5,
+                  gap: { xs: 1.25, sm: 1.5 },
                   flexWrap: "wrap",
                   justifyContent: { xs: "center", md: "flex-start" },
                   alignItems: "center",
                   mb: { xs: 2, md: 0 },
+                  "& .MuiButton-root": {
+                    width: { xs: "100%", sm: "auto" },
+                    minHeight: { xs: 52, sm: 48 },
+                    fontSize: { xs: "1rem", sm: "0.98rem" },
+                  },
                 }}>
-                  <Button variant="contained" size="large" onClick={handleContactOpen} sx={flatPinkButtonSx}>
+                  <Button variant="contained" size="large" onClick={handleContactOpen} sx={{ ...flatPinkButtonSx, ...mobileFullButtonSx }}>
                     Start a project
                   </Button>
                   <Button
@@ -899,7 +1003,7 @@ const LandingPage = () => {
                     size="large"
                     onClick={() => history.push("/products")}
                     endIcon={<ArrowForwardIcon />}
-                    sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}
+                    sx={{ ...mobileFullButtonSx, color: "text.secondary", "&:hover": { color: "primary.main" } }}
                   >
                     Browse catalog
                   </Button>
@@ -1031,139 +1135,54 @@ const LandingPage = () => {
       </Box>
 
       {/* ── FEATURE SECTION ──────────────────────────────────────────────── */}
-      <InteractiveFeatureSection history={history} />
-
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
-      <Box sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}>
-        <Container maxWidth="md">
-          <Box sx={{ textAlign: "center", mb: { xs: 5, md: 7 } }}>
-            <AccentRule width={32} sx={{ mx: "auto", mb: 3 }} />
-            <Typography sx={{
-              fontFamily: (theme) => theme.custom.fonts.mono, fontSize: "0.7rem",
-              fontWeight: 500, letterSpacing: "3px",
-              textTransform: "uppercase", color: "primary.main", mb: 1.5,
-            }}>
-              Trusted by
-            </Typography>
-            <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "3rem" } }}>
-              Heard Worldwide
-            </Typography>
-          </Box>
-
-          {testimonials.map(({ name, quote, videoUrl }, i) => (
-            <Box key={i} sx={(theme) => ({
-              mx: "auto",
-              py: { xs: 2, md: 3 },
-              borderTop: theme.custom.clay.hairline,
-              borderBottom: theme.custom.clay.hairline,
-            })}>
-              <Box sx={{
-                display: "flex",
-                gap: { xs: 2, md: 3 },
-                mb: 4,
-                alignItems: "flex-start",
-                flexDirection: { xs: "column", sm: "row" },
-              }}>
-                <Box sx={(theme) => ({
-                  width: 48, height: 48, borderRadius: "14px",
-                  background: theme.custom.transparent(theme.palette.primary.main, 0.12),
-                  border: theme.custom.clay.hairline,
-                  boxShadow: theme.custom.clay.pressed,
-                  display: "flex", alignItems: "center",
-                  justifyContent: "center", flexShrink: 0, mt: 0.5,
-                })}>
-                  <Typography sx={{
-                    fontSize: "1.2rem", color: "primary.main",
-                    fontFamily: (theme) => theme.custom.fonts.display,
-                    fontWeight: 700, lineHeight: 1,
-                  }}>
-                    "
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{
-                    fontFamily: (theme) => theme.custom.fonts.display, fontWeight: 700,
-                    fontSize: "1rem", color: "primary.main", mb: 1,
-                  }}>
-                    {name}
-                  </Typography>
-                  <Typography sx={{
-                    fontFamily: (theme) => theme.custom.fonts.body,
-                    fontSize: { xs: "1.05rem", md: "1.2rem" },
-                    color: "text.secondary",
-                    fontStyle: "italic", lineHeight: 1.7,
-                  }}>
-                    "{quote}"
-                  </Typography>
-                </Box>
-              </Box>
-
-              {getYouTubeEmbedUrl(videoUrl) && (
-                <Box sx={{
-                  borderRadius: "20px", overflow: "hidden",
-                  border: (theme) => theme.custom.clay.border,
-                  boxShadow: (theme) => theme.custom.clay.raised,
-                }}>
-                  <iframe
-                    src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
-                    title={`Video by ${name}`}
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                    style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
-                  />
-                </Box>
-              )}
-            </Box>
-          ))}
-        </Container>
-      </Box>
+      <InteractiveFeatureSection history={history} testimonials={testimonials} />
 
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
       <Box sx={{ position: "relative", zIndex: 2, py: { xs: 10, md: 15 } }}>
-        <Container maxWidth="sm">
+        <Container maxWidth={false} disableGutters>
           <Box sx={(theme) => ({
             py: { xs: 4, sm: 5, md: 7 },
-            px: { xs: 1, sm: 2 },
+            px: { xs: 2.5, sm: 4, md: 6 },
             textAlign: "center",
             borderTop: theme.custom.clay.hairline,
             borderBottom: theme.custom.clay.hairline,
             boxShadow: "inset 0 18px 34px rgba(255,255,255,0.026), inset 0 -18px 34px rgba(0,0,0,0.12)",
           })}>
-            <Box sx={{ opacity: 0.5, mb: 4 }}>
-              <LevelMeter bars={32} />
-            </Box>
-            <Typography variant="h2" sx={{ fontSize: { xs: "1.8rem", md: "2.6rem" }, mb: 2 }}>
-              Ready to Elevate Your Sound?
-            </Typography>
-            <Typography sx={{
-              fontFamily: (theme) => theme.custom.fonts.body,
-              color: "text.secondary", fontSize: "1rem", mb: 5, lineHeight: 1.8,
-            }}>
-              Browse premium beats and start creating your next hit today.
-            </Typography>
-            <Box sx={{
-              display: "flex",
-              gap: 2,
-              justifyContent: "center",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}>
-              <Button
-                variant="contained" size="large"
-                onClick={() => history.push("/products")}
-                sx={{ ...flatPinkButtonSx, px: 5, py: 1.6, fontSize: "1rem" }}
-              >
-                Explore Beats
-              </Button>
-              <Button
-                variant="outlined" size="large"
-                onClick={handleContactOpen}
-                sx={{ px: 5, py: 1.6, fontSize: "1rem" }}
-              >
-                Get in Touch
-              </Button>
+            <Box sx={{ maxWidth: 640, mx: "auto" }}>
+              <Box sx={{ opacity: 0.5, mb: 4 }}>
+                <LevelMeter bars={32} />
+              </Box>
+              <Typography variant="h2" sx={{ fontSize: { xs: "1.8rem", md: "2.6rem" }, mb: 2 }}>
+                Ready to Elevate Your Sound?
+              </Typography>
+              <Typography sx={{
+                fontFamily: (theme) => theme.custom.fonts.body,
+                color: "text.secondary", fontSize: "1rem", mb: 5, lineHeight: 1.8,
+              }}>
+                Browse premium beats and start creating your next hit today.
+              </Typography>
+              <Box sx={{
+                display: "flex",
+                gap: 2,
+                justifyContent: "center",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}>
+                <Button
+                  variant="contained" size="large"
+                  onClick={() => history.push("/products")}
+                  sx={{ ...flatPinkButtonSx, px: 5, py: 1.6, fontSize: "1rem" }}
+                >
+                  Explore Beats
+                </Button>
+                <Button
+                  variant="outlined" size="large"
+                  onClick={handleContactOpen}
+                  sx={{ px: 5, py: 1.6, fontSize: "1rem" }}
+                >
+                  Get in Touch
+                </Button>
+              </Box>
             </Box>
           </Box>
         </Container>

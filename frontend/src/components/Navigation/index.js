@@ -32,7 +32,10 @@ const NAV_LINKS = [
 const ADMIN_LINK = { path: '/admin/orders', label: 'Admin' };
 
 const iconBtnSx = (theme) => ({
-  width: 34, height: 34,
+  width: { xs: 40, md: 34 },
+  height: { xs: 40, md: 34 },
+  minWidth: { xs: 40, md: 34 },
+  minHeight: { xs: 40, md: 34 },
   border: theme.custom.clay.border,
   borderRadius: theme.custom.radius.sm,
   color: theme.palette.text.secondary,
@@ -136,11 +139,11 @@ function Navigation({ isLoaded }) {
         {/* True three-column grid: logo | center | actions */}
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
+          gridTemplateColumns: { xs: 'minmax(0, 1fr) auto', md: '1fr auto 1fr' },
           alignItems: 'center',
-          px: { xs: 2, sm: 3, md: 5 },
+          px: { xs: 1.5, sm: 3, md: 5 },
           height: { xs: 56, sm: 62 },
-          gap: 2,
+          gap: { xs: 1, md: 2 },
         }}>
 
           {/* ── Col 1: Logo ── */}
@@ -162,9 +165,12 @@ function Navigation({ isLoaded }) {
             <Typography sx={{
               fontFamily: (theme) => theme.custom.fonts.display,
               fontWeight: 700,
-              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              fontSize: { xs: '1rem', sm: '1.25rem' },
               color: 'text.primary',
               letterSpacing: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}>
               doomsprod
             </Typography>
@@ -282,7 +288,7 @@ function Navigation({ isLoaded }) {
           </Box>
 
           {/* ── Col 3: Right actions ── */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', justifySelf: 'end' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '5px', md: '6px' }, justifySelf: 'end' }}>
 
             {/* Search icon */}
             <IconButton
@@ -298,7 +304,7 @@ function Navigation({ isLoaded }) {
               })}
               aria-label="search"
             >
-              <SearchIcon sx={{ fontSize: 17 }} />
+              <SearchIcon sx={{ fontSize: { xs: 16, md: 17 } }} />
             </IconButton>
 
             {/* Cart */}
@@ -327,7 +333,7 @@ function Navigation({ isLoaded }) {
                   },
                 }}
               >
-                <ShoppingCartIcon sx={{ fontSize: 17 }} />
+                <ShoppingCartIcon sx={{ fontSize: { xs: 16, md: 17 } }} />
               </Badge>
             </IconButton>
 
@@ -537,7 +543,7 @@ function Navigation({ isLoaded }) {
               sx={(theme) => ({ ...iconBtnSx(theme), display: { xs: 'flex', md: 'none' } })}
               aria-label="menu"
             >
-              <MenuIcon sx={{ fontSize: 17 }} />
+              <MenuIcon sx={{ fontSize: { xs: 16, md: 17 } }} />
             </IconButton>
           </Box>
         </Box>
@@ -569,9 +575,10 @@ function Navigation({ isLoaded }) {
             onClick={() => handleNav(path)}
             sx={{
               fontFamily: (theme) => theme.custom.fonts.body,
-              fontSize: '0.875rem', fontWeight: 500,
+              fontSize: '1rem', fontWeight: 500,
               color: 'text.secondary',
-              py: 1.2, px: 2.5,
+              py: 1.55, px: 2.5,
+              minHeight: 52,
               transition: 'all 0.15s ease',
               '&:hover': { color: 'text.primary', background: (theme) => `${theme.custom.colors.cream}80` },
             }}
@@ -586,9 +593,10 @@ function Navigation({ isLoaded }) {
           onClick={() => handleNav('/cart')}
           sx={{
             fontFamily: (theme) => theme.custom.fonts.body,
-            fontSize: '0.875rem', fontWeight: 500,
+            fontSize: '1rem', fontWeight: 500,
             color: 'text.secondary',
-            py: 1.2, px: 2.5,
+            py: 1.55, px: 2.5,
+            minHeight: 52,
             display: 'flex', justifyContent: 'space-between',
             '&:hover': { color: 'text.primary', background: (theme) => `${theme.custom.colors.cream}80` },
           }}
