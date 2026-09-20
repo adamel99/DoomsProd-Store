@@ -9,6 +9,10 @@ import {
   IconButton,
   ToggleButtonGroup,
   ToggleButton,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import { useLocation, useHistory } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
@@ -20,6 +24,53 @@ import * as productActions from "../../store/products";
 import { formatProductType } from "../../utils/formatProductType";
 
 const useQuery = () => new URLSearchParams(useLocation().search);
+
+const sortOptions = [
+  { value: "newest", label: "Most recent" },
+  { value: "oldest", label: "Least recent" },
+  { value: "title-az", label: "Title A-Z" },
+  { value: "title-za", label: "Title Z-A" },
+  { value: "price-low", label: "Price low-high" },
+  { value: "price-high", label: "Price high-low" },
+  { value: "bpm-low", label: "BPM low-high" },
+  { value: "bpm-high", label: "BPM high-low" },
+];
+
+const getTime = (product) => {
+  const time = new Date(product?.createdAt || product?.updatedAt || 0).getTime();
+  return Number.isNaN(time) ? 0 : time;
+};
+
+const getNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const getProductPrice = (product) => {
+  const fixedPrice = getNumber(product?.price);
+  if (fixedPrice !== null && fixedPrice > 0) return fixedPrice;
+
+  const licensePrices = (product?.licenses || [])
+    .map((license) => getNumber(license.price))
+    .filter((price) => price !== null);
+
+  return licensePrices.length ? Math.min(...licensePrices) : fixedPrice;
+};
+
+const compareNullableNumbers = (a, b, direction = "asc") => {
+  const aNumber = getNumber(a);
+  const bNumber = getNumber(b);
+
+  if (aNumber === null && bNumber === null) return 0;
+  if (aNumber === null) return 1;
+  if (bNumber === null) return -1;
+
+  return direction === "asc" ? aNumber - bNumber : bNumber - aNumber;
+};
+
+const newestFirst = (a, b) => (
+  (getTime(b) - getTime(a)) || ((b.id || 0) - (a.id || 0))
+);
 
 const SectionLabel = ({ children }) => (
   <Typography sx={{
@@ -43,6 +94,7 @@ const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState(urlSearchTerm);
   const [viewMode, setViewMode] = useState("grid");
   const [filterType, setFilterType] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
 
   const allProducts = useSelector((state) => state.products.allProducts);
   const sessionUser = useSelector((state) => state.session.user);
@@ -53,6 +105,7 @@ const ProductList = () => {
   const allProductsArray = Object.values(allProducts || {});
   const isAdmin = sessionUser?.role === "admin";
   const displaySearchTerm = searchTerm.replace(/_/g, " ");
+  const activeSortLabel = sortOptions.find((option) => option.value === sortBy)?.label || "Most recent";
 
   const productTypes = useMemo(() => {
     const types = new Set(allProductsArray.map((p) => p.type).filter(Boolean));
@@ -60,7 +113,7 @@ const ProductList = () => {
   }, [allProductsArray]);
 
   const filteredProducts = useMemo(() => {
-    return allProductsArray.filter((product) => {
+    const matches = allProductsArray.filter((product) => {
       const title = product.title?.toLowerCase() || "";
       const description = product.description?.toLowerCase() || "";
       const genre = product.genre?.toLowerCase() || "";
@@ -78,7 +131,29 @@ const ProductList = () => {
 
       return matchesSearch && matchesType;
     });
-  }, [allProductsArray, searchTerm, filterType]);
+
+    return [...matches].sort((a, b) => {
+      switch (sortBy) {
+        case "oldest":
+          return (getTime(a) - getTime(b)) || ((a.id || 0) - (b.id || 0));
+        case "title-az":
+          return (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" }) || newestFirst(a, b);
+        case "title-za":
+          return (b.title || "").localeCompare(a.title || "", undefined, { sensitivity: "base" }) || newestFirst(a, b);
+        case "price-low":
+          return compareNullableNumbers(getProductPrice(a), getProductPrice(b), "asc") || newestFirst(a, b);
+        case "price-high":
+          return compareNullableNumbers(getProductPrice(a), getProductPrice(b), "desc") || newestFirst(a, b);
+        case "bpm-low":
+          return compareNullableNumbers(a.bpm, b.bpm, "asc") || newestFirst(a, b);
+        case "bpm-high":
+          return compareNullableNumbers(a.bpm, b.bpm, "desc") || newestFirst(a, b);
+        case "newest":
+        default:
+          return newestFirst(a, b);
+      }
+    });
+  }, [allProductsArray, searchTerm, filterType, sortBy]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -141,6 +216,14 @@ const ProductList = () => {
               whiteSpace: "nowrap",
             }}>
               {filteredProducts.length} {filteredProducts.length === 1 ? "item" : "items"}
+            </Typography>
+            <Typography sx={{
+              fontFamily: (theme) => theme.custom.fonts.body,
+              color: "text.disabled",
+              fontSize: { xs: "0.88rem", md: "0.82rem" },
+              whiteSpace: "nowrap",
+            }}>
+              Sorted by {activeSortLabel}
             </Typography>
 
             {isAdmin && (
@@ -242,6 +325,35 @@ const ProductList = () => {
                 );
               })}
             </Box>
+
+            <FormControl
+              fullWidth
+              size="small"
+              sx={{
+                mb: 2.5,
+                "& .MuiInputLabel-root": {
+                  color: "text.disabled",
+                },
+                "& .MuiSelect-select": {
+                  py: { xs: 1.45, md: 1.1 },
+                  fontSize: { xs: "1rem", md: "0.9rem" },
+                },
+              }}
+            >
+              <InputLabel id="product-sort-label">Sort</InputLabel>
+              <Select
+                labelId="product-sort-label"
+                label="Sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                {sortOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             <ToggleButtonGroup
               value={viewMode}

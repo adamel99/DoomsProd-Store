@@ -162,16 +162,16 @@ const GlobalAudioPlayer = ({ track }) => {
     <Box
       sx={(theme) => ({
         position: "fixed",
-        left: { xs: 12, md: 24 },
-        right: { xs: 12, md: 24 },
-        bottom: { xs: 12, md: 22 },
+        left: { xs: 8, md: 24 },
+        right: { xs: 8, md: 24 },
+        bottom: { xs: 8, md: 22 },
         zIndex: 1400,
         display: "grid",
-        gridTemplateColumns: { xs: "44px minmax(0, 1fr) auto", md: "56px minmax(0, 1fr) 360px auto" },
-        gap: { xs: 1.25, md: 2 },
+        gridTemplateColumns: { xs: "38px minmax(0, 1fr) auto auto", md: "56px minmax(0, 1fr) 360px auto" },
+        gap: { xs: 0.75, md: 2 },
         alignItems: "center",
-        p: { xs: 1.25, md: 1.5 },
-        borderRadius: "18px",
+        p: { xs: 0.75, md: 1.5 },
+        borderRadius: { xs: "14px", md: "18px" },
         background: theme.custom.clay.surfaceSoft,
         border: theme.custom.clay.border,
         boxShadow: theme.custom.clay.floating,
@@ -184,9 +184,9 @@ const GlobalAudioPlayer = ({ track }) => {
         src={track.imageUrl || "/placeholder.jpg"}
         alt={track.title}
         sx={{
-          width: { xs: 44, md: 56 },
-          height: { xs: 44, md: 56 },
-          borderRadius: "12px",
+          width: { xs: 38, md: 56 },
+          height: { xs: 38, md: 56 },
+          borderRadius: { xs: "10px", md: "12px" },
           objectFit: "cover",
           bgcolor: "background.paper",
         }}
@@ -194,7 +194,8 @@ const GlobalAudioPlayer = ({ track }) => {
 
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{
-          fontWeight: 800,
+          fontWeight: 700,
+          fontSize: { xs: "0.82rem", md: "1rem" },
           lineHeight: 1.15,
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -202,8 +203,21 @@ const GlobalAudioPlayer = ({ track }) => {
         }}>
           {track.title}
         </Typography>
-        <Box sx={{ display: "grid", gridTemplateColumns: "40px minmax(0, 1fr) 40px", gap: 1, alignItems: "center", mt: 0.8 }}>
-          <Typography sx={{ fontSize: "0.72rem", color: "text.secondary", fontFamily: (theme) => theme.custom.fonts.mono }}>
+        <Box sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "40px minmax(0, 1fr) 40px" },
+          gap: { xs: 0, md: 1 },
+          alignItems: "center",
+          mt: { xs: 0.15, md: 0.8 },
+          "& .MuiSlider-root": {
+            py: { xs: 0.35, md: 1 },
+          },
+          "& .MuiSlider-thumb": {
+            width: { xs: 10, md: 12 },
+            height: { xs: 10, md: 12 },
+          },
+        }}>
+          <Typography sx={{ display: { xs: "none", md: "block" }, fontSize: "0.72rem", color: "text.secondary", fontFamily: (theme) => theme.custom.fonts.mono }}>
             {formatTime(currentTime)}
           </Typography>
           <Slider
@@ -214,29 +228,38 @@ const GlobalAudioPlayer = ({ track }) => {
             onChange={(e, value) => seek(Number(value))}
             aria-label="Audio progress"
           />
-          <Typography sx={{ fontSize: "0.72rem", color: "text.secondary", fontFamily: (theme) => theme.custom.fonts.mono, textAlign: "right" }}>
+          <Typography sx={{ display: { xs: "none", md: "block" }, fontSize: "0.72rem", color: "text.secondary", fontFamily: (theme) => theme.custom.fonts.mono, textAlign: "right" }}>
             {formatTime(duration)}
           </Typography>
         </Box>
       </Box>
 
       <Box sx={{
-        gridColumn: { xs: "1 / -1", md: "auto" },
+        gridColumn: "auto",
         display: "flex",
-        gap: 0.75,
+        gap: { xs: 0, md: 0.75 },
         alignItems: "center",
-        justifyContent: { xs: "space-between", md: "center" },
+        justifyContent: "center",
       }}>
-        <IconButton aria-label="Rewind 10 seconds" onClick={rewind}>
+        <IconButton aria-label="Rewind 10 seconds" onClick={rewind} sx={{ display: { xs: "none", md: "inline-flex" } }}>
           <Replay10Icon fontSize="small" />
         </IconButton>
-        <IconButton aria-label={isPlaying ? "Pause" : "Play"} onClick={isPlaying ? pause : resume}>
+        <IconButton
+          aria-label={isPlaying ? "Pause" : "Play"}
+          onClick={isPlaying ? pause : resume}
+          sx={{
+            width: { xs: 38, md: 48 },
+            height: { xs: 38, md: 48 },
+            minWidth: { xs: 38, md: 48 },
+            minHeight: { xs: 38, md: 48 },
+          }}
+        >
           {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
         </IconButton>
-        <IconButton aria-label="Stop" onClick={stop}>
+        <IconButton aria-label="Stop" onClick={stop} sx={{ display: { xs: "none", md: "inline-flex" } }}>
           <StopIcon fontSize="small" />
         </IconButton>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: { xs: 124, md: 150 } }}>
+        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1, width: 150 }}>
           <VolumeDownIcon sx={{ color: "text.secondary", fontSize: 18 }} />
           <Slider
             size="small"
@@ -251,8 +274,17 @@ const GlobalAudioPlayer = ({ track }) => {
         </Box>
       </Box>
 
-      <IconButton aria-label="Close player" onClick={close}>
-        <CloseIcon />
+      <IconButton
+        aria-label="Close player"
+        onClick={close}
+        sx={{
+          width: { xs: 34, md: 48 },
+          height: { xs: 34, md: 48 },
+          minWidth: { xs: 34, md: 48 },
+          minHeight: { xs: 34, md: 48 },
+        }}
+      >
+        <CloseIcon sx={{ fontSize: { xs: 18, md: 24 } }} />
       </IconButton>
     </Box>
   );
