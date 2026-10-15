@@ -94,6 +94,7 @@ const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState(urlSearchTerm);
   const [viewMode, setViewMode] = useState("grid");
   const [filterType, setFilterType] = useState("all");
+  const [filterGenre, setFilterGenre] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
 
   const allProducts = useSelector((state) => state.products.allProducts);
@@ -112,6 +113,28 @@ const ProductList = () => {
     return ["all", ...Array.from(types)];
   }, [allProductsArray]);
 
+  const genres = useMemo(() => {
+    const genreCounts = new Map();
+    allProductsArray.forEach((product) => {
+      const label = typeof product.genre === "string" ? product.genre.trim() : "";
+      if (!label) return;
+
+      const key = label.toLocaleLowerCase();
+      const existing = genreCounts.get(key);
+      genreCounts.set(key, {
+        key,
+        label: existing?.label || label,
+        count: (existing?.count || 0) + 1,
+      });
+    });
+
+    return Array.from(genreCounts.values()).sort((a, b) => (
+      a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
+    ));
+  }, [allProductsArray]);
+
+  const activeGenre = genres.some((genre) => genre.key === filterGenre) ? filterGenre : "all";
+
   const filteredProducts = useMemo(() => {
     const matches = allProductsArray.filter((product) => {
       const title = product.title?.toLowerCase() || "";
@@ -128,8 +151,10 @@ const ProductList = () => {
         artistTags.includes(searchTerm);
       const matchesType =
         filterType === "all" || product.type?.toLowerCase() === filterType.toLowerCase();
+      const productGenre = product.genre?.trim().toLocaleLowerCase() || "";
+      const matchesGenre = activeGenre === "all" || productGenre === activeGenre;
 
-      return matchesSearch && matchesType;
+      return matchesSearch && matchesType && matchesGenre;
     });
 
     return [...matches].sort((a, b) => {
@@ -153,7 +178,7 @@ const ProductList = () => {
           return newestFirst(a, b);
       }
     });
-  }, [allProductsArray, searchTerm, filterType, sortBy]);
+  }, [allProductsArray, searchTerm, filterType, activeGenre, sortBy]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -354,6 +379,56 @@ const ProductList = () => {
                 ))}
               </Select>
             </FormControl>
+
+            {genres.length > 0 && (
+              <Box sx={{ mb: 2.5 }}>
+                <Typography sx={{
+                  fontFamily: (theme) => theme.custom.fonts.mono,
+                  color: "text.disabled",
+                  fontSize: "0.68rem",
+                  letterSpacing: "1.6px",
+                  textTransform: "uppercase",
+                  mb: 1.25,
+                }}>
+                  Genre
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+                  {[{ key: "all", label: "All" }, ...genres].map((genre) => {
+                    const isActive = activeGenre === genre.key;
+                    return (
+                      <Button
+                        key={genre.key}
+                        size="small"
+                        aria-pressed={isActive}
+                        onClick={() => setFilterGenre(genre.key)}
+                        sx={(theme) => ({
+                          minWidth: 0,
+                          minHeight: 36,
+                          px: 1.25,
+                          borderRadius: "12px",
+                          fontSize: "0.82rem",
+                          color: isActive ? "primary.contrastText" : "text.secondary",
+                          background: isActive ? theme.palette.primary.main : "transparent",
+                          border: isActive ? "1px solid rgba(255,255,255,0.36)" : theme.custom.clay.hairline,
+                          boxShadow: isActive ? theme.custom.clay.raisedSmall : "none",
+                          "&:hover": {
+                            color: isActive ? "primary.contrastText" : "text.primary",
+                            background: isActive ? theme.palette.primary.dark : "rgba(241,218,191,0.42)",
+                          },
+                        })}
+                      >
+                        {genre.label}
+                        {genre.count && (
+                          <Box component="span" sx={{ ml: 0.75, opacity: isActive ? 0.8 : 0.62, fontSize: "0.72rem" }}>
+                            {genre.count}
+                          </Box>
+                        )}
+                      </Button>
+                    );
+                  })}
+                </Box>
+              </Box>
+            )}
 
             <ToggleButtonGroup
               value={viewMode}
