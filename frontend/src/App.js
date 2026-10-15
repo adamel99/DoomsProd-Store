@@ -5,6 +5,7 @@ import { Switch, Route, Redirect, useLocation } from "react-router-dom";
 
 import Navigation from "./components/Navigation";
 import LandingPage from "./components/LandingPage/LandingPage";
+import StudioBackdrop from "./components/StudioBackdrop/StudioBackdrop";
 import ProductList from "./components/ProductList/ProductList";
 import PluginsPage from "./components/Plugins/Plugins";
 import NewProduct from "./components/NewProduct/NewProduct";
@@ -37,6 +38,7 @@ function App() {
   const location = useLocation();
   const [isLoaded, setIsLoaded] = useState(false);
   const showFooter = location.pathname !== "/admin/orders";
+  const showStudioBackdrop = location.pathname !== "/admin/orders";
 
   useEffect(() => {
     dispatch(restoreUser())
@@ -92,6 +94,7 @@ function App() {
     <>
       <Navigation isLoaded={isLoaded} />
       <Box sx={{ height: { xs: 56, sm: 62 } }} />
+      {showStudioBackdrop && <StudioBackdrop />}
       {isLoaded && (
         <Switch>
           <Route exact path="/" component={LandingPage} />
