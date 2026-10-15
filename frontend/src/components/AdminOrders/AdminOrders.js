@@ -137,6 +137,9 @@ const buildAnalyticsQuery = ({ startDate, endDate }) => {
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [orderTotalCount, setOrderTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -213,6 +216,33 @@ const AdminOrders = () => {
     loadOrders();
     return () => { isMounted = false; };
   }, [loading, page, rowsPerPage, search, statusFilter, typeFilter, sortBy, startDate, endDate]);
+
+  useEffect(() => {
+    if (loading || tab !== "users") return undefined;
+    let isMounted = true;
+
+    const loadUsers = async () => {
+      setUsersLoading(true);
+      setUsersError(null);
+      try {
+        const res = await csrfFetch("/api/admin/users");
+        const data = await res.json();
+        if (isMounted) setRegisteredUsers(data.users || []);
+      } catch (err) {
+        let message = "Could not load registered users.";
+        if (err?.json) {
+          const data = await err.json();
+          message = data.message || message;
+        }
+        if (isMounted) setUsersError(message);
+      } finally {
+        if (isMounted) setUsersLoading(false);
+      }
+    };
+
+    loadUsers();
+    return () => { isMounted = false; };
+  }, [loading, tab]);
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
@@ -328,6 +358,18 @@ const AdminOrders = () => {
     downloadCsv("admin-customers.csv", rows);
   };
 
+  const exportUsers = () => {
+    const rows = [
+      ["Name", "Email"],
+      ...registeredUsers.map((user) => [
+        [user.firstName, user.lastName].filter(Boolean).join(" ") || "Name unavailable",
+        user.email,
+      ]),
+    ];
+
+    downloadCsv("admin-users.csv", rows);
+  };
+
   return (
     <Box sx={{
       minHeight: "100vh",
@@ -366,8 +408,8 @@ const AdminOrders = () => {
           <Button
             variant="contained"
             startIcon={<DownloadIcon />}
-            onClick={tab === "customers" ? exportCustomers : exportOrders}
-            disabled={loading || Boolean(error)}
+            onClick={tab === "users" ? exportUsers : tab === "customers" ? exportCustomers : exportOrders}
+            disabled={loading || Boolean(error) || (tab === "users" && (usersLoading || Boolean(usersError)))}
           >
             Export CSV
           </Button>
@@ -396,6 +438,7 @@ const AdminOrders = () => {
               <Tabs value={tab} onChange={(event, value) => setTab(value)} variant="scrollable" scrollButtons="auto" sx={{ px: 1 }}>
                 <Tab value="orders" label="Orders" />
                 <Tab value="customers" label="Customers" />
+                <Tab value="users" label="Users" />
                 <Tab value="products" label="Products" />
                 <Tab value="revenue" label="Revenue" />
                 <Tab value="licenses" label="Licenses" />
@@ -457,6 +500,7 @@ const AdminOrders = () => {
             )}
 
             {tab === "customers" && <CustomersTable customers={customers} />}
+            {tab === "users" && <UsersTable users={registeredUsers} loading={usersLoading} error={usersError} />}
             {tab === "products" && <ProductsTable products={products} />}
             {tab === "revenue" && <RevenuePanel summary={summary} breakdowns={analytics?.breakdowns} />}
             {tab === "licenses" && <LicensesTable licenses={analytics?.licenses || []} />}
@@ -621,13 +665,19 @@ const OrdersTable = ({
   setPage,
   setRowsPerPage,
   onResendReceipt,
-}) => (
+}) => {
+  return (
   <Panel>
     {loading && (
       <Box sx={{ height: 3, bgcolor: "primary.main", opacity: 0.75 }} />
     )}
     <TableContainer>
-      <Table size="small" stickyHeader>
+      <Table size="small" stickyHeader sx={{ width: "100%", minWidth: 0, tableLayout: "fixed" }}>
+        <colgroup>
+          {[5, 5, 8, 9, 12, 7, 13, 8, 7, 4, 7, 9, 6].map((width, index) => (
+            <col key={index} style={{ width: `${width}%` }} />
+          ))}
+        </colgroup>
         <TableHead>
           <TableRow>
             <AdminHeadCell />
@@ -686,7 +736,8 @@ const OrdersTable = ({
       }}
     />
   </Panel>
-);
+  );
+};
 
 const AdminHeadCell = ({ children, align }) => (
   <TableCell
@@ -699,7 +750,10 @@ const AdminHeadCell = ({ children, align }) => (
       fontWeight: 700,
       letterSpacing: "0.8px",
       textTransform: "uppercase",
-      whiteSpace: "nowrap",
+      whiteSpace: "normal",
+      lineHeight: 1.2,
+      px: { xs: 0.5, sm: 0.75, lg: 1 },
+      py: 1,
     })}
   >
     {children}
@@ -715,35 +769,35 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
 
   return (
     <TableRow hover>
-      <TableCell sx={{ width: 42 }}>
+      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
         <Tooltip title={expanded ? "Collapse" : "Expand"}>
           <IconButton size="small" onClick={onToggle}>
             {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
       </TableCell>
-      <TableCell sx={{ fontWeight: 700 }}>#{order.id}</TableCell>
-      <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDate(order.createdAt)}</TableCell>
-      <TableCell sx={{ minWidth: 170 }}>{getCustomerName(user)}</TableCell>
-      <TableCell sx={{ minWidth: 210, color: "text.secondary" }}>{user.email || "No email"}</TableCell>
-      <TableCell>
+      <TableCell sx={{ fontWeight: 700, overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>#{order.id}</TableCell>
+      <TableCell sx={{ overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{formatDate(order.createdAt)}</TableCell>
+      <TableCell sx={{ overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getCustomerName(user)}</TableCell>
+      <TableCell sx={{ color: "text.secondary", overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{user.email || "No email"}</TableCell>
+      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
         <Chip label={status.label} color={status.color} size="small" sx={{ fontWeight: 700 }} />
       </TableCell>
-      <TableCell sx={{ minWidth: 240, maxWidth: 340 }}>
-        <Typography sx={{ fontSize: "0.86rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
+        <Typography title={productNames || "No items"} sx={{ fontSize: "0.78rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {productNames || "No items"}
         </Typography>
       </TableCell>
-      <TableCell sx={{ minWidth: 150 }}>{getOrderLicenses(order).join(", ") || "None"}</TableCell>
-      <TableCell sx={{ minWidth: 140 }}>{getOrderProductTypes(order).map(formatProductType).join(", ") || "None"}</TableCell>
-      <TableCell align="right">{getOrderQuantity(order)}</TableCell>
-      <TableCell align="right" sx={{ fontWeight: 700 }}>{formatMoney(order.totalPrice)}</TableCell>
-      <TableCell sx={{ maxWidth: 170 }}>
-        <Typography sx={{ fontSize: "0.8rem", color: "text.secondary", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <TableCell sx={{ fontSize: "0.72rem", overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getOrderLicenses(order).join(", ") || "None"}</TableCell>
+      <TableCell sx={{ fontSize: "0.72rem", overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getOrderProductTypes(order).map(formatProductType).join(", ") || "None"}</TableCell>
+      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getOrderQuantity(order)}</TableCell>
+      <TableCell align="right" sx={{ fontWeight: 700, px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{formatMoney(order.totalPrice)}</TableCell>
+      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
+        <Typography title={order.paymentIntentId || "None"} sx={{ fontSize: "0.72rem", color: "text.secondary", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {order.paymentIntentId || "None"}
         </Typography>
       </TableCell>
-      <TableCell align="right">
+      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
         <Tooltip title={canResend ? "Resend receipt" : "Completed orders only"}>
           <span>
             <IconButton size="small" onClick={onResendReceipt} disabled={!canResend || receiptInfo?.loading}>
@@ -817,6 +871,29 @@ const CustomersTable = ({ customers }) => (
     ])}
   />
 );
+
+const UsersTable = ({ users, loading, error }) => {
+  if (loading) {
+    return (
+      <Panel sx={{ py: 6, display: "flex", justifyContent: "center" }}>
+        <CircularProgress size={28} />
+      </Panel>
+    );
+  }
+
+  if (error) return <Alert severity="error">{error}</Alert>;
+
+  return (
+    <SimpleTable
+      headers={["Name", "Email"]}
+      rows={users.map((user) => [
+        [user.firstName, user.lastName].filter(Boolean).join(" ") || "Name unavailable",
+        user.email,
+      ])}
+      empty="No registered users found."
+    />
+  );
+};
 
 const ProductsTable = ({ products }) => (
   <SimpleTable

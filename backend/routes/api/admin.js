@@ -9,6 +9,19 @@ const toNumber = (value) => Number(value || 0);
 const monthKey = (date) => new Date(date).toISOString().slice(0, 7);
 const dayKey = (date) => new Date(date).toISOString().slice(0, 10);
 
+router.get('/users', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['firstName', 'lastName', 'email'],
+      order: [['createdAt', 'DESC']],
+    });
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 const addDateRange = (where, startDate, endDate) => {
   const createdAt = {};
   if (startDate) {

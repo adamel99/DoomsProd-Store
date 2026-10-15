@@ -105,6 +105,54 @@ const LiquidBackground = React.memo(() => (
   </Box>
 ));
 
+// Quiet line-art monitors frame the hero and angle toward the listening position.
+const StudioMonitor = ({ side }) => {
+  const isLeft = side === "left";
+  return (
+    <Box
+      aria-hidden="true"
+      sx={{
+        position: "fixed",
+        top: 0,
+        [isLeft ? "left" : "right"]: "-22vh",
+        display: "block",
+        width: "min(44vh, 360px)",
+        height: "100dvh",
+        transform: `perspective(700px) rotateY(${isLeft ? "17deg" : "-17deg"})`,
+        opacity: { xs: 0.035, sm: 0.07, md: 0.14, lg: 0.17 },
+        pointerEvents: "none",
+        zIndex: 1,
+        filter: "drop-shadow(0 22px 26px rgba(0,0,0,0.22))",
+      }}
+    >
+      <svg viewBox="0 0 180 340" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id={`monitor-case-${side}`} x1="0" y1="0" x2="180" y2="340" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#FFFFFF" stopOpacity=".12" />
+            <stop offset="1" stopColor="#000000" stopOpacity=".24" />
+          </linearGradient>
+          <radialGradient id={`monitor-cone-${side}`} cx="0" cy="0" r="1" gradientTransform="translate(90 222) rotate(90) scale(67)" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#FFFFFF" stopOpacity=".14" />
+            <stop offset=".72" stopColor="#000000" stopOpacity=".14" />
+            <stop offset="1" stopColor="#FFFFFF" stopOpacity=".34" />
+          </radialGradient>
+        </defs>
+        <rect x="8" y="8" width="164" height="324" rx="12" fill={`url(#monitor-case-${side})`} stroke="white" strokeOpacity=".34" strokeWidth="2" />
+        <rect x="17" y="17" width="146" height="306" rx="8" stroke="white" strokeOpacity=".12" />
+        <circle cx="90" cy="83" r="27" fill="#08090D" fillOpacity=".32" stroke="white" strokeOpacity=".4" strokeWidth="2" />
+        <circle cx="90" cy="83" r="15" stroke="white" strokeOpacity=".3" />
+        <circle cx="90" cy="83" r="5" fill="white" fillOpacity=".3" />
+        <circle cx="90" cy="222" r="68" fill={`url(#monitor-cone-${side})`} stroke="white" strokeOpacity=".4" strokeWidth="2" />
+        <circle cx="90" cy="222" r="53" stroke="white" strokeOpacity=".23" />
+        <circle cx="90" cy="222" r="34" fill="#08090D" fillOpacity=".24" stroke="white" strokeOpacity=".3" strokeWidth="2" />
+        <circle cx="90" cy="222" r="12" fill="white" fillOpacity=".22" />
+        <path d="M59 299H121" stroke="white" strokeOpacity=".25" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="90" cy="299" r="3" fill="#FF579F" fillOpacity=".7" />
+      </svg>
+    </Box>
+  );
+};
+
 const GlassPanel = ({ children, sx = {}, ...rest }) => (
   <Box sx={(theme) => ({
     ...theme.custom.patterns.surface.glass,
@@ -835,6 +883,8 @@ const LandingPage = () => {
       backgroundColor: "background.default", color: "text.primary", overflowX: "hidden",
     }}>
       <LiquidBackground />
+      <StudioMonitor side="left" />
+      <StudioMonitor side="right" />
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
       <Box sx={{
@@ -868,7 +918,7 @@ const LandingPage = () => {
           DOOMS
         </Typography>
 
-        <Container maxWidth="lg" sx={{ position: "relative" }}>
+        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
           <Grid container spacing={{ xs: 5, md: 8, lg: 10 }} alignItems="center">
             <Grid item xs={12} md={6}>
               <Box sx={{
@@ -1027,20 +1077,14 @@ const LandingPage = () => {
             {stats.map((stat) => (
               <Box
                 key={stat.label}
-                sx={(theme) => ({
+                sx={{
                   p: { xs: 2.2, md: 2.8 },
                   minHeight: { xs: 106, md: 124 },
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
                   textAlign: { xs: "center", sm: "left" },
-                  borderTop: theme.custom.clay.hairline,
-                  borderBottom: theme.custom.clay.hairline,
-                  boxShadow: "inset 0 10px 22px rgba(255,255,255,0.025), inset 0 -12px 22px rgba(0,0,0,0.12)",
-                  "&:not(:last-of-type)": {
-                    borderRight: { sm: theme.custom.clay.hairline },
-                  },
-                })}
+                }}
               >
                 <Typography sx={{
                   fontFamily: (theme) => theme.custom.fonts.display,
@@ -1140,14 +1184,11 @@ const LandingPage = () => {
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
       <Box sx={{ position: "relative", zIndex: 2, py: { xs: 10, md: 15 } }}>
         <Container maxWidth={false} disableGutters>
-          <Box sx={(theme) => ({
+          <Box sx={{
             py: { xs: 4, sm: 5, md: 7 },
             px: { xs: 2.5, sm: 4, md: 6 },
             textAlign: "center",
-            borderTop: theme.custom.clay.hairline,
-            borderBottom: theme.custom.clay.hairline,
-            boxShadow: "inset 0 18px 34px rgba(255,255,255,0.026), inset 0 -18px 34px rgba(0,0,0,0.12)",
-          })}>
+          }}>
             <Box sx={{ maxWidth: 640, mx: "auto" }}>
               <Box sx={{ opacity: 0.5, mb: 4 }}>
                 <LevelMeter bars={32} />
