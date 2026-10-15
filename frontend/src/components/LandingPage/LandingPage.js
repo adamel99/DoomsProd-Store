@@ -105,21 +105,6 @@ const LiquidBackground = React.memo(() => (
   </Box>
 ));
 
-const GlassPanel = ({ children, sx = {}, ...rest }) => (
-  <Box sx={(theme) => ({
-    ...theme.custom.patterns.surface.glass,
-    "&::before": {
-      content: '""',
-      position: "absolute", inset: 0, borderRadius: "inherit",
-      background: theme.custom.gradients.shine,
-      pointerEvents: "none",
-    },
-    ...sx,
-  })} {...rest}>
-    {children}
-  </Box>
-);
-
 const AccentRule = ({ width = 40, sx = {} }) => (
   <Box sx={(theme) => ({
     width, height: "2px",
@@ -531,250 +516,118 @@ const PluginShowcaseCard = ({ product, onCardClick }) => (
 
 // ─── Interactive Feature Section ──────────────────────────────────────────────
 const InteractiveFeatureSection = ({ history, testimonials }) => {
-  const [active, setActive] = useState("Browse Beats");
-
-  const menuItems = [
-    { title: "Browse Beats", label: "SONIC CATALOG", desc: "Access the full vault of industry-standard production.", cta: "Browse the catalog" },
-    { title: "Meet the Creator", label: "THE ARCHITECT", desc: "Go behind the scenes of the signature sound design.", cta: "Meet the creator" },
-    { title: "Licenses & Terms", label: "USAGE RIGHTS", desc: "Transparent, flexible legal framework for your hits.", cta: "View licensing" },
-  ];
-  const activeItem = menuItems.find((i) => i.title === active);
+  const menuItems = ["Browse Beats", "Meet the Creator", "Licenses & Terms"];
 
   return (
-    <Box sx={{ position: "relative", zIndex: 2, py: { xs: 9, md: 13 } }}>
+    <Box sx={{ position: "relative", zIndex: 2, py: { xs: 6, md: 8 } }}>
       <Container maxWidth="lg">
-        <Grid container spacing={{ xs: 7, md: 6 }} alignItems="stretch">
-          <Grid item xs={12} md={6}>
-            <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-              <Box sx={{ mb: { xs: 4, md: 5 }, maxWidth: 520 }}>
-                <AccentRule width={32} sx={{ mb: 2 }} />
-                <Typography sx={{
-                  fontFamily: (theme) => theme.custom.fonts.mono,
-                  fontSize: "0.7rem",
-                  letterSpacing: "3px",
-                  textTransform: "uppercase",
-                  color: "primary.main",
-                  mb: 1,
-                }}>
-                  Studio map
-                </Typography>
-                <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.8rem" }, lineHeight: 1.05 }}>
-                  Find what you need without the maze.
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: "grid", gap: 1.5, mb: 2.5 }}>
-                {menuItems.map((item) => {
-                  const isActive = active === item.title;
-                  return (
-                    <Box
-                      key={item.title}
-                      onMouseEnter={() => setActive(item.title)}
-                      onClick={() => history.push(routeMap[item.title])}
-                      sx={(theme) => ({
-                        py: { xs: 2.1, md: 2.35 },
-                        px: { xs: 1.5, md: 2 },
-                        minHeight: { xs: 94, md: 100 },
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        borderRadius: `${theme.custom.radius.lg}px`,
-                        cursor: "pointer",
-                        border: "1px solid transparent",
-                        borderLeft: isActive
-                          ? `3px solid ${theme.palette.primary.main}`
-                          : theme.custom.clay.hairline,
-                        background: isActive
-                          ? "linear-gradient(90deg, rgba(255,87,159,0.16), transparent 72%)"
-                          : "transparent",
-                        boxShadow: isActive ? "inset 10px 0 18px rgba(255,87,159,0.045)" : "none",
-                        transition: theme.custom.motion.transition.interactive,
-                        "&:hover": {
-                          background: isActive
-                            ? "linear-gradient(90deg, rgba(255,87,159,0.14), transparent 72%)"
-                            : theme.custom.transparent(theme.custom.colors.ink, 0.035),
-                        },
-                      })}
-                    >
-                      <Typography sx={{
-                        fontFamily: (theme) => theme.custom.fonts.mono,
-                        fontSize: "0.68rem",
-                        color: isActive ? "primary.main" : "text.disabled",
-                        fontWeight: 700,
-                        mb: 0.75,
-                        letterSpacing: "1.4px",
-                        textTransform: "uppercase",
-                      }}>
-                        {item.label}
-                      </Typography>
-                      <Typography variant="h4" sx={{
-                        fontSize: { xs: "1.35rem", md: "1.5rem" },
-                        color: "text.primary",
-                      }}>
-                        {item.title}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </Box>
-
-              <GlassPanel sx={{
-                mt: "auto",
-                p: { xs: 3, md: 3.5 },
-                overflow: "hidden",
-              }}>
+        <Box sx={{
+          borderTop: (theme) => theme.custom.clay.hairline,
+          borderBottom: (theme) => theme.custom.clay.hairline,
+          py: { xs: 2.5, md: 3.5 },
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1.15fr) minmax(320px, 0.85fr)" },
+          gap: { xs: 3, md: 6 },
+          alignItems: "center",
+        }}>
+          {testimonials.map(({ name, quote, videoUrl }) => (
+            <React.Fragment key={name}>
+              {getYouTubeEmbedUrl(videoUrl) && (
                 <Box sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  alignItems: "flex-start",
-                  mb: 3,
+                  overflow: "hidden",
+                  borderRadius: { xs: "18px", md: "24px" },
+                  border: (theme) => theme.custom.clay.border,
+                  boxShadow: (theme) => theme.custom.clay.raised,
+                  background: (theme) => theme.custom.clay.surfaceBlue,
                 }}>
-                  <Typography sx={{
-                    fontFamily: (theme) => theme.custom.fonts.mono,
-                    fontSize: "0.68rem",
-                    letterSpacing: "2px",
-                    color: "text.disabled",
-                    textTransform: "uppercase",
-                  }}>
-                    Selected route
-                  </Typography>
-                  <Typography sx={{
-                    fontFamily: (theme) => theme.custom.fonts.mono,
-                    fontSize: "0.68rem",
-                    letterSpacing: "2px",
-                    color: "text.disabled",
-                    textTransform: "uppercase",
-                  }}>
-                    0{menuItems.findIndex((item) => item.title === active) + 1} / 03
-                  </Typography>
+                  <iframe
+                    src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
+                    title={`Video featuring ${name}`}
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                    style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
+                  />
                 </Box>
+              )}
 
-                <Typography variant="h3" sx={{ fontSize: { xs: "1.9rem", md: "2.45rem" }, mb: 1.5 }}>
-                  {active}
-                </Typography>
-                <Typography sx={{
-                  color: "text.secondary",
-                  fontSize: { xs: "1rem", md: "1.05rem" },
-                  mb: 3,
-                  lineHeight: 1.7,
-                }}>
-                  {activeItem?.desc}
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => history.push(routeMap[active])}
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{ ...flatPinkButtonSx, px: 3.5 }}
-                >
-                  {activeItem?.cta}
-                </Button>
-              </GlassPanel>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-              <Box sx={{ mb: { xs: 4, md: 5 }, maxWidth: 520 }}>
-                <AccentRule width={32} sx={{ mb: 2 }} />
+              <Box sx={{ py: { xs: 0, md: 1 }, minWidth: 0 }}>
                 <Typography sx={{
                   fontFamily: (theme) => theme.custom.fonts.mono,
-                  fontSize: "0.7rem",
-                  fontWeight: 500,
-                  letterSpacing: "3px",
+                  fontSize: "0.68rem",
+                  letterSpacing: "2.5px",
                   textTransform: "uppercase",
                   color: "primary.main",
-                  mb: 1,
+                  mb: 2,
                 }}>
-                  Trusted by
+                  In the studio / on the record
                 </Typography>
-                <Typography variant="h2" sx={{ fontSize: { xs: "2rem", md: "2.8rem" }, lineHeight: 1.05 }}>
-                  Heard Worldwide
+                <Typography sx={{
+                  fontFamily: (theme) => theme.custom.fonts.display,
+                  fontSize: { xs: "1.6rem", sm: "2rem", md: "2.5rem" },
+                  fontWeight: 700,
+                  lineHeight: 1.08,
+                  color: "text.primary",
+                  mb: 2,
+                }}>
+                  “{quote}”
+                </Typography>
+                <Typography sx={{ color: "text.secondary", fontSize: "0.94rem", mb: 3 }}>
+                  {name}
                 </Typography>
               </Box>
-
-              <Box sx={{ display: "grid", gap: { xs: 3, md: 3.5 }, flex: 1 }}>
-                {testimonials.map(({ name, quote, videoUrl }, i) => (
-                  <Box key={i} sx={(theme) => ({
-                    py: { xs: 2.5, md: 3 },
-                    borderTop: theme.custom.clay.hairline,
-                    borderBottom: theme.custom.clay.hairline,
-                  })}>
-                    <Box sx={{
-                      display: "flex",
-                      gap: { xs: 2, md: 2.5 },
-                      mb: getYouTubeEmbedUrl(videoUrl) ? 3 : 0,
-                      alignItems: "flex-start",
-                    }}>
-                      <Box sx={(theme) => ({
-                        width: 48,
-                        height: 48,
-                        borderRadius: "14px",
-                        background: theme.custom.transparent(theme.palette.primary.main, 0.12),
-                        border: theme.custom.clay.hairline,
-                        boxShadow: theme.custom.clay.pressed,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        mt: 0.5,
-                      })}>
-                        <Typography sx={{
-                          fontSize: "1.2rem",
-                          color: "primary.main",
-                          fontFamily: (theme) => theme.custom.fonts.display,
-                          fontWeight: 700,
-                          lineHeight: 1,
-                        }}>
-                          "
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography sx={{
-                          fontFamily: (theme) => theme.custom.fonts.display,
-                          fontWeight: 700,
-                          fontSize: "1rem",
-                          color: "primary.main",
-                          mb: 1,
-                        }}>
-                          {name}
-                        </Typography>
-                        <Typography sx={{
-                          fontFamily: (theme) => theme.custom.fonts.body,
-                          fontSize: { xs: "1.05rem", md: "1.14rem" },
-                          color: "text.secondary",
-                          fontStyle: "italic",
-                          lineHeight: 1.7,
-                        }}>
-                          "{quote}"
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {getYouTubeEmbedUrl(videoUrl) && (
-                      <Box sx={{
-                        borderRadius: "20px",
-                        overflow: "hidden",
-                        border: (theme) => theme.custom.clay.border,
-                        boxShadow: (theme) => theme.custom.clay.raised,
-                      }}>
-                        <iframe
-                          src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
-                          title={`Video by ${name}`}
-                          referrerPolicy="strict-origin-when-cross-origin"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          loading="lazy"
-                          style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
-                        />
-                      </Box>
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
+            </React.Fragment>
+          ))}
+          <Box sx={{
+            gridColumn: "1 / -1",
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            alignItems: "center",
+            gap: { xs: 0.75, sm: 1.5 },
+            pt: { xs: 1.75, md: 2.25 },
+            borderTop: (theme) => theme.custom.clay.hairline,
+          }}>
+            {menuItems.map((item) => (
+              <Button
+                key={item}
+                variant="text"
+                onClick={() => history.push(routeMap[item])}
+                endIcon={<ArrowForwardIcon />}
+                sx={(theme) => item === "Browse Beats" ? {
+                  width: "100%",
+                  px: { xs: 0.75, sm: 2.2 },
+                  py: 1.15,
+                  minHeight: 48,
+                  borderRadius: `${theme.custom.radius.pill}px`,
+                  color: "primary.contrastText",
+                  background: theme.custom.gradients.brand,
+                  boxShadow: theme.custom.clay.raisedSmall,
+                  fontSize: { xs: "0.82rem", sm: "1.05rem" },
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  "& .MuiButton-endIcon": { ml: { xs: 0.25, sm: 0.8 }, "& svg": { fontSize: { xs: 16, sm: 20 } } },
+                  "&:hover": {
+                    color: "primary.contrastText",
+                    background: theme.custom.gradients.brandHover,
+                    boxShadow: theme.custom.clay.floating,
+                  },
+                } : {
+                  width: "100%",
+                  minWidth: 0,
+                  px: { xs: 0, sm: 1 },
+                  color: "text.secondary",
+                  fontSize: { xs: "0.76rem", sm: "0.94rem" },
+                  whiteSpace: "nowrap",
+                  "& .MuiButton-endIcon": { ml: { xs: 0.2, sm: 0.6 }, "& svg": { fontSize: { xs: 15, sm: 18 } } },
+                  "&:hover": { color: "primary.main", bgcolor: "transparent" },
+                }}
+              >
+                {item}
+              </Button>
+            ))}
+          </Box>
+        </Box>
       </Container>
     </Box>
   );
