@@ -1,24 +1,24 @@
 import { createTheme, alpha } from "@mui/material/styles";
 
 const colors = {
-  pink: "#FF579F",
-  brown: "#FBF7F4",
+  pink: "#E91E63",
+  brown: "#F48FB1",
   cream: "#000000",
-  blue: "#FBF7F4",
-  ink: "#FBF7F4",
-  inkSoft: "#FBF7F4",
+  blue: "#2694BF",
+  ink: "#F48FB1",
+  inkSoft: "#F48FB1",
   clay: "#000000",
   clayDeep: "#000000",
-  coral: "#FF579F",
-  coralDark: "#FF579F",
-  apricot: "#FBF7F4",
+  coral: "#E91E63",
+  coralDark: "#E91E63",
+  apricot: "#F48FB1",
   linen: "#000000",
-  sage: "#FBF7F4",
-  mint: "#000000",
-  sky: "#FBF7F4",
-  lavender: "#000000",
-  muted: "rgba(251,247,244,0.72)",
-  quiet: "rgba(251,247,244,0.48)",
+  sage: "#2694BF",
+  mint: "#2694BF",
+  sky: "#2694BF",
+  lavender: "#1C1C1C",
+  muted: "rgba(244,143,177,0.72)",
+  quiet: "rgba(244,143,177,0.48)",
 };
 
 const hexToRgb = (hex) => {
@@ -71,37 +71,37 @@ const colorRoles = {
     link: colors.coralDark,
   },
   line: {
-    soft: "rgba(251,247,244,0.12)",
-    medium: "rgba(251,247,244,0.18)",
-    strong: "rgba(251,247,244,0.28)",
-    light: "rgba(251,247,244,0.16)",
-    lightStrong: "rgba(251,247,244,0.28)",
+    soft: transparent(colors.ink, 0.12),
+    medium: transparent(colors.ink, 0.18),
+    strong: transparent(colors.ink, 0.28),
+    light: transparent(colors.ink, 0.16),
+    lightStrong: transparent(colors.ink, 0.28),
   },
   state: {
-    hover: "rgba(251,247,244,0.08)",
-    selected: "rgba(255,87,159,0.16)",
+    hover: transparent(colors.ink, 0.08),
+    selected: transparent(colors.coral, 0.16),
     focus: transparent(colors.coral, 0.24),
-    disabled: "rgba(251,247,244,0.28)",
-    disabledBackground: "rgba(251,247,244,0.08)",
+    disabled: transparent(colors.ink, 0.28),
+    disabledBackground: transparent(colors.ink, 0.08),
   },
 };
 
 const gradients = {
   page:
-    "radial-gradient(circle at 10% 9%, rgba(255,87,159,0.18) 0 13rem, transparent 28rem), radial-gradient(circle at 84% 10%, rgba(251,247,244,0.08) 0 12rem, transparent 26rem), linear-gradient(135deg, #000000 0%, #000000 100%)",
+    `radial-gradient(circle at 10% 9%, ${transparent(colors.coral, 0.18)} 0 13rem, transparent 28rem), radial-gradient(circle at 84% 10%, ${transparent(colors.blue, 0.1)} 0 12rem, transparent 26rem), linear-gradient(135deg, ${colors.linen} 0%, ${colors.clayDeep} 100%)`,
   pageFade: `linear-gradient(180deg, rgba(0,0,0,0) 0%, ${transparent(colors.linen, 0.78)} 58%, ${colors.linen} 100%)`,
   surface:
-    "radial-gradient(circle at 24% 20%, rgba(251,247,244,0.045), transparent 34%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+    `radial-gradient(circle at 24% 20%, ${transparent(colors.ink, 0.045)}, transparent 34%), linear-gradient(145deg, ${colors.clay} 0%, ${colors.clayDeep} 100%)`,
   surfaceSoft:
-    "radial-gradient(circle at 24% 18%, rgba(251,247,244,0.055), transparent 36%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+    `radial-gradient(circle at 24% 18%, ${transparent(colors.ink, 0.055)}, transparent 36%), linear-gradient(145deg, ${colors.clay} 0%, ${colors.clayDeep} 100%)`,
   surfaceCool:
-    "radial-gradient(circle at 26% 18%, rgba(251,247,244,0.052), transparent 34%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+    `radial-gradient(circle at 26% 18%, ${transparent(colors.blue, 0.052)}, transparent 34%), linear-gradient(145deg, ${colors.clay} 0%, ${colors.clayDeep} 100%)`,
   clayWarm:
-    "radial-gradient(circle at 28% 18%, rgba(251,247,244,0.07), transparent 35%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+    `radial-gradient(circle at 28% 18%, ${transparent(colors.apricot, 0.07)}, transparent 35%), linear-gradient(145deg, ${colors.clay} 0%, ${colors.clayDeep} 100%)`,
   clayPink:
-    "radial-gradient(circle at 28% 18%, rgba(251,247,244,0.1), transparent 34%), linear-gradient(145deg, #FF579F 0%, #FF579F 100%)",
+    `radial-gradient(circle at 28% 18%, ${transparent(colors.ink, 0.1)}, transparent 34%), linear-gradient(145deg, ${colors.coral} 0%, ${colors.coralDark} 100%)`,
   clayBlue:
-    "radial-gradient(circle at 28% 18%, rgba(251,247,244,0.075), transparent 36%), linear-gradient(145deg, #000000 0%, #000000 100%)",
+    `radial-gradient(circle at 28% 18%, ${transparent(colors.blue, 0.075)}, transparent 36%), linear-gradient(145deg, ${colors.clay} 0%, ${colors.clayDeep} 100%)`,
   brand: `linear-gradient(145deg, ${colors.pink} 0%, ${colors.pink} 100%)`,
   brandHover: `linear-gradient(145deg, ${colors.coralDark} 0%, ${colors.coralDark} 100%)`,
   brandSoft: `linear-gradient(135deg, ${colors.coral} 0%, ${colors.coralDark} 100%)`,
@@ -612,7 +612,7 @@ const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: "rgba(40,38,43,0.78)",
+          background: transparent(colors.cream, 0.78),
           color: colors.ink,
           backdropFilter: effects.blur.appBar,
           WebkitBackdropFilter: effects.blur.appBar,
@@ -698,7 +698,7 @@ const theme = createTheme({
           color: colors.coralDark,
           boxShadow: "none",
           "&:hover": {
-            background: "rgba(255,87,159,0.1)",
+            background: transparent(colors.coral, 0.1),
             boxShadow: "none",
           },
           "&:active": {
@@ -829,7 +829,7 @@ const theme = createTheme({
     MuiMenu: {
       styleOverrides: {
         paper: {
-          background: "rgba(40,38,43,0.92)",
+          background: transparent(colors.cream, 0.92),
           backdropFilter: effects.blur.menu,
           WebkitBackdropFilter: effects.blur.menu,
           border: clay.border,
