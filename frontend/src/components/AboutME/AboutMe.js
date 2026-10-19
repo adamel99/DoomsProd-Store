@@ -1,148 +1,123 @@
 import React from "react";
-import {
-  Avatar,
-  Box,
-  Button,
-  Container,
-  Divider,
-  Grid,
-  Link as MuiLink,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, Grid, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CodeIcon from "@mui/icons-material/Code";
 import GraphicEqIcon from "@mui/icons-material/GraphicEq";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import SecurityIcon from "@mui/icons-material/Security";
 import VerifiedIcon from "@mui/icons-material/Verified";
 
 const disciplines = [
   {
-    title: "Full-Stack Development",
-    icon: CodeIcon,
-    body: "I build modern web applications with React, Node.js, Express, REST APIs, database-backed workflows, authentication, payments, and production-minded security controls.",
-  },
-  {
-    title: "Audio Plugin Engineering",
-    icon: GraphicEqIcon,
-    body: "I work on audio tools with JUCE and C++, combining DSP, real-time controls, and practical producer-facing UX for expressive sound design.",
-  },
-  {
-    title: "Music Production",
+    number: "01",
+    title: "Music, made to move",
     icon: MusicNoteIcon,
-    body: "I produce emotionally driven beats across Jazz, RnB, Afrobeats, and Latin Pop, with a focus on musicality, clean mixes, texture, and release-ready arrangement.",
+    body: "Production is where it starts. I make instrumentals across hip-hop, trap, R&B, jazz, Afrobeats, and Latin pop, with a focus on feel, texture, and a mix that leaves room for the artist.",
   },
   {
-    title: "Cybersecurity",
-    icon: SecurityIcon,
-    body: "I approach software with a security-first mindset: authentication, access control, private file delivery, rate limiting, payment integrity, and secure system design.",
+    number: "02",
+    title: "Tools for creative work",
+    icon: GraphicEqIcon,
+    body: "I build audio tools with the same attention I bring to a session. Aurora, my granular effect plugin in development, explores expressive sound manipulation through controls designed for producers.",
+  },
+  {
+    number: "03",
+    title: "The craft behind the product",
+    icon: CodeIcon,
+    body: "doomsprod is a working music storefront as well as a product I built. Its catalog, checkout, account experience, and protected digital delivery bring my interests in music and full stack development together.",
   },
 ];
 
 const credentials = [
-  "Built this full-stack beat store from product catalog to secure checkout and digital delivery.",
-  "Integrated Stripe payments, webhook fulfillment, account downloads, and private S3 file access.",
-  "Developing Aurora, a professional audio effect plugin focused on expressive granular sound manipulation.",
-  "Advancing cybersecurity knowledge through Security+ study and practical secure-build habits.",
+  { title: "CompTIA Security+", detail: "Certified · January 2026" },
+  { title: "NJIT Cybersecurity Certificate", detail: "Certificate program · 2025" },
+  { title: "SOC Log Analyzer", detail: "Detection engineering project · 2026" },
 ];
 
-const tools = [
-  "React",
-  "Node.js",
-  "Express",
-  "Sequelize",
-  "PostgreSQL",
-  "Stripe",
-  "AWS S3",
-  "JUCE",
-  "C++",
-  "DSP",
-  "Python",
-  "Security+",
-];
+const Eyebrow = ({ children, sx = {} }) => (
+  <Typography
+    sx={(theme) => ({
+      fontFamily: theme.custom.fonts.mono,
+      color: "primary.main",
+      fontSize: "0.68rem",
+      fontWeight: 700,
+      letterSpacing: "2px",
+      lineHeight: 1.5,
+      textTransform: "uppercase",
+      ...sx,
+    })}
+  >
+    {children}
+  </Typography>
+);
 
 function AboutMe() {
   return (
     <Box
       component="main"
-      sx={{
+      sx={(theme) => ({
         minHeight: "100vh",
-        backgroundColor: "background.default",
         color: "text.primary",
-        pt: { xs: 7, md: 10 },
-        pb: { xs: 8, md: 12 },
-      }}
+        background: theme.custom.gradients.page,
+        pt: { xs: 10, md: 14 },
+        pb: { xs: 9, md: 14 },
+        overflow: "hidden",
+      })}
     >
       <Container maxWidth="lg">
-        <Grid
-          container
-          spacing={{ xs: 4, md: 7 }}
-          alignItems="center"
-          sx={(theme) => ({
-            pb: { xs: 4, md: 6 },
-            mb: { xs: 4, md: 6 },
-            borderBottom: `1px solid ${theme.palette.divider}`,
-          })}
-        >
-          <Grid item xs={12} md={7}>
-            <Typography
-              sx={{
-                fontFamily: (theme) => theme.custom.fonts.mono,
-                color: "text.disabled",
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                letterSpacing: "1.8px",
-                textTransform: "uppercase",
-                mb: 1.5,
-              }}
-            >
-              About
-            </Typography>
+        <Box sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "minmax(0, 1.3fr) minmax(180px, 0.7fr)" },
+          gap: { xs: 5, sm: 4, md: 8 },
+          alignItems: "center",
+        }}>
+          <Box>
+            <Eyebrow sx={{ mb: 2 }}>The creator behind doomsprod</Eyebrow>
             <Typography
               component="h1"
               sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
+                fontSize: { xs: "3.1rem", sm: "3.6rem", md: "5.4rem", lg: "6rem" },
                 fontWeight: 700,
-                fontSize: { xs: "2.45rem", sm: "3.3rem", md: "4.25rem" },
-                lineHeight: 1.02,
-                maxWidth: 760,
-                mb: 2.5,
-              }}
-            >
-              Adam Elhamami, creator behind doomsprod.
-            </Typography>
-            <Typography
-              sx={{
-                color: "text.secondary",
-                fontSize: { xs: "1rem", md: "1.08rem" },
-                lineHeight: 1.85,
-                maxWidth: 720,
+                lineHeight: 0.94,
+                letterSpacing: "-0.035em",
+                maxWidth: 780,
                 mb: 3,
               }}
             >
-              I am a multidisciplinary developer, music producer, audio plugin engineer, and security-minded technologist. My work sits where creative tools, production-quality software, and music culture meet.
+              Music with feeling. Built with care.
             </Typography>
             <Typography
               sx={{
                 color: "text.secondary",
-                fontSize: { xs: "1rem", md: "1.08rem" },
+                fontSize: { xs: "1.04rem", md: "1.15rem" },
                 lineHeight: 1.85,
-                maxWidth: 720,
+                maxWidth: 660,
+                mb: 2,
               }}
             >
-              doomsprod is both my producer storefront and a demonstration of how I build: practical interfaces, secure commerce flows, protected digital delivery, and tools made for artists, producers, and engineers who want to move quickly without losing quality.
+              I’m Adam Elhamami, a music producer and software developer creating under the name doomsprod. My work moves between the studio and the screen: making records, shaping audio tools, and building the digital products that help artists get their ideas out into the world.
+            </Typography>
+            <Typography sx={{ color: "text.secondary", lineHeight: 1.8, maxWidth: 630 }}>
+              I bring a producer’s ear for sound together with an engineer’s care for how things work. That combination guides every beat, plugin, and part of the doomsprod experience.
             </Typography>
 
-            <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", mt: 4 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 4 }}>
               <Button
                 component={Link}
                 to="/products"
                 variant="contained"
                 endIcon={<ArrowForwardIcon />}
-                sx={{ px: 3 }}
+                sx={(theme) => ({
+                  px: 2.8,
+                  py: 1.25,
+                  borderRadius: `${theme.custom.radius.pill}px`,
+                  background: theme.custom.gradients.brand,
+                  boxShadow: theme.custom.clay.raisedSmall,
+                  "&:hover": { background: theme.custom.gradients.brandHover },
+                })}
               >
-                Browse Catalog
+                Explore the music
               </Button>
               <Button
                 component="a"
@@ -150,207 +125,265 @@ function AboutMe() {
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="outlined"
-                sx={{ px: 3 }}
+                sx={{ px: 2.8, py: 1.25, borderRadius: (theme) => `${theme.custom.radius.pill}px` }}
               >
-                GitHub
+                View my GitHub
               </Button>
             </Box>
-          </Grid>
+          </Box>
 
-          <Grid item xs={12} md={5}>
+          <Box>
             <Box
               sx={(theme) => ({
-                backgroundColor: "background.paper",
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: "8px",
-                p: { xs: 2.5, sm: 3 },
-                boxShadow: "0 18px 50px rgba(0,0,0,0.16)",
+                position: "relative",
+                width: "100%",
+                maxWidth: { xs: 340, sm: 300, md: 360 },
+                mx: "auto",
+                p: { xs: 1.2, md: 1.5 },
+                borderRadius: { xs: "28px", md: "36px" },
+                background: theme.custom.clay.surfaceSoft,
+                border: theme.custom.clay.border,
+                boxShadow: theme.custom.clay.raised,
+                transform: { xs: "none", md: "rotate(1.2deg)" },
               })}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2.5, mb: 3 }}>
-                <Avatar
-                  alt="Adam Elhassan"
-                  src="/Images/selfie.jpg"
-                  sx={{
-                    width: 96,
-                    height: 96,
-                    border: (theme) => `1px solid ${theme.palette.divider}`,
-                  }}
-                />
-                <Box>
-                  <Typography
-                    sx={{
-                      fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 700,
-                      fontSize: "1.3rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    Adam Elhassan
-                  </Typography>
-                  <Typography sx={{ color: "text.secondary", fontSize: "0.94rem", mt: 0.5 }}>
-                    Developer / Producer / Plugin Engineer
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Divider sx={{ mb: 2.5 }} />
-
-              {[
-                ["Brand", "doomsprod"],
-                ["Focus", "Beats, plugins, secure ecommerce"],
-                ["Audience", "Artists, producers, engineers"],
-                ["Contact", "adamelh1999@gmail.com"],
-              ].map(([label, value]) => (
-                <Box
-                  key={label}
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "92px minmax(0, 1fr)",
-                    gap: 2,
-                    py: 1,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontFamily: (theme) => theme.custom.fonts.mono,
-                      color: "text.disabled",
-                      fontSize: "0.68rem",
-                      fontWeight: 700,
-                      letterSpacing: "1.2px",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {label}
-                  </Typography>
-                  <Typography sx={{ color: "text.secondary", fontSize: "0.92rem" }}>
-                    {label === "Contact" ? (
-                      <MuiLink href="mailto:adamelh1999@gmail.com" sx={{ color: "primary.main", fontWeight: 700 }}>
-                        {value}
-                      </MuiLink>
-                    ) : value}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={3} sx={{ mb: { xs: 5, md: 7 } }}>
-          {disciplines.map(({ title, icon: Icon, body }) => (
-            <Grid item xs={12} sm={6} key={title}>
+              <Box
+                component="img"
+                src="/Images/selfie.jpg"
+                alt="Adam Elhamami in front of the city skyline at night"
+                sx={{
+                  display: "block",
+                  width: "100%",
+                  aspectRatio: "0.92 / 1",
+                  objectFit: "cover",
+                  objectPosition: "center 42%",
+                  borderRadius: { xs: "21px", md: "28px" },
+                  filter: "saturate(0.86)",
+                }}
+              />
               <Box
                 sx={(theme) => ({
-                  height: "100%",
-                  backgroundColor: "background.paper",
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: "8px",
-                  p: { xs: 2.5, md: 3 },
+                  position: "absolute",
+                  right: { xs: 14, md: 20 },
+                  bottom: { xs: 14, md: 20 },
+                  left: { xs: 14, md: 20 },
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 2,
+                  p: { xs: 1.5, md: 2 },
+                  borderRadius: `${theme.custom.radius.lg}px`,
+                  background: theme.custom.transparent(theme.custom.colors.clayDeep, 0.82),
+                  border: `1px solid ${theme.custom.transparent(theme.custom.colors.ink, 0.12)}`,
+                  backdropFilter: "blur(14px)",
                 })}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
-                  <Box
-                    sx={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: "rgba(255,87,159,0.1)",
-                      color: "primary.main",
-                    }}
-                  >
-                    <Icon fontSize="small" />
+                <Box>
+                  <Typography sx={{ fontWeight: 700, fontSize: "1.04rem" }}>Adam Elhamami</Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.84rem", mt: 0.25 }}>
+                    Producer · Developer · Creator
+                  </Typography>
+                </Box>
+                <Box
+                  aria-hidden="true"
+                  sx={(theme) => ({
+                    width: 38,
+                    height: 38,
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: "50%",
+                    color: "primary.main",
+                    background: theme.custom.transparent(theme.custom.colors.pink, 0.13),
+                  })}
+                >
+                  <MusicNoteIcon fontSize="small" />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+
+        <Box
+          component="section"
+          aria-labelledby="approach-heading"
+          sx={{ pt: { xs: 9, md: 14 }, mt: { xs: 8, md: 12 }, borderTop: (theme) => theme.custom.clay.hairline }}
+        >
+          <Grid container spacing={{ xs: 2, md: 6 }} sx={{ mb: { xs: 4, md: 6 } }} alignItems="end">
+            <Grid item xs={12} md={5}>
+              <Eyebrow sx={{ mb: 1.5 }}>A creative practice</Eyebrow>
+              <Typography
+                id="approach-heading"
+                component="h2"
+                sx={{
+                  fontFamily: (theme) => theme.custom.fonts.display,
+                  fontWeight: 700,
+                  fontSize: { xs: "2.4rem", md: "3.35rem" },
+                  lineHeight: 1,
+                }}
+              >
+                Three sides of the same work.
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              <Typography sx={{ color: "text.secondary", lineHeight: 1.8, maxWidth: 620, ml: { md: "auto" } }}>
+                Music, software, and the experience around them belong together. I bring those disciplines into one practice, with the listener and creator in mind at every step.
+              </Typography>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={2.5}>
+            {disciplines.map(({ number, title, icon: Icon, body }) => (
+              <Grid item xs={12} md={4} key={title}>
+                <Box
+                  sx={(theme) => ({
+                    height: "100%",
+                    p: { xs: 2.6, md: 3.2 },
+                    borderRadius: `${theme.custom.radius.xl}px`,
+                    border: theme.custom.clay.border,
+                    background: theme.custom.clay.surfaceSoft,
+                    boxShadow: theme.custom.clay.raisedSmall,
+                    transition: theme.custom.motion.transition.interactive,
+                    "&:hover": { transform: "translateY(-4px)", boxShadow: theme.custom.clay.floating },
+                  })}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4 }}>
+                    <Box
+                      sx={(theme) => ({
+                        width: 46,
+                        height: 46,
+                        display: "grid",
+                        placeItems: "center",
+                        borderRadius: `${theme.custom.radius.md}px`,
+                        color: "primary.main",
+                        background: theme.custom.transparent(theme.custom.colors.pink, 0.12),
+                      })}
+                    >
+                      <Icon />
+                    </Box>
+                    <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, color: "text.disabled", fontSize: "0.72rem", letterSpacing: "1px" }}>
+                      {number}
+                    </Typography>
                   </Box>
                   <Typography
-                    component="h2"
-                    sx={{
-                      fontFamily: (theme) => theme.custom.fonts.display,
-                      fontWeight: 700,
-                      fontSize: "1.16rem",
-                    }}
+                    component="h3"
+                    sx={{ fontFamily: (theme) => theme.custom.fonts.display, fontSize: "1.4rem", fontWeight: 700, mb: 1.3 }}
                   >
                     {title}
                   </Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.94rem", lineHeight: 1.8 }}>
+                    {body}
+                  </Typography>
                 </Box>
-                <Typography sx={{ color: "text.secondary", lineHeight: 1.75, fontSize: "0.95rem" }}>
-                  {body}
-                </Typography>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
 
-        <Grid container spacing={{ xs: 4, md: 6 }} alignItems="start">
-          <Grid item xs={12} md={7}>
+        <Grid
+          container
+          spacing={{ xs: 4, md: 8 }}
+          component="section"
+          aria-labelledby="outside-studio-heading"
+          sx={{ pt: { xs: 8, md: 12 }, mt: { xs: 8, md: 12 }, borderTop: (theme) => theme.custom.clay.hairline }}
+        >
+          <Grid item xs={12} md={5}>
+            <Eyebrow sx={{ mb: 1.5 }}>Outside the studio</Eyebrow>
             <Typography
+              id="outside-studio-heading"
               component="h2"
               sx={{
                 fontFamily: (theme) => theme.custom.fonts.display,
                 fontWeight: 700,
-                fontSize: { xs: "1.8rem", md: "2.3rem" },
-                lineHeight: 1.1,
+                fontSize: { xs: "2.4rem", md: "3.2rem" },
+                lineHeight: 1,
                 mb: 2,
               }}
             >
-              What I bring to the work
+              Building with security in mind.
             </Typography>
-            <Box sx={{ display: "grid", gap: 1.75 }}>
-              {credentials.map((item) => (
-                <Box key={item} sx={{ display: "flex", gap: 1.4, alignItems: "flex-start" }}>
-                  <VerifiedIcon sx={{ color: "primary.main", fontSize: 19, mt: 0.35, flexShrink: 0 }} />
-                  <Typography sx={{ color: "text.secondary", lineHeight: 1.75 }}>
-                    {item}
+            <Typography sx={{ color: "text.secondary", lineHeight: 1.85, maxWidth: 460 }}>
+              My cybersecurity training informs how I think about the products I make: protecting accounts, payments, and digital files is part of creating a dependable experience.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={7}>
+            <Box sx={{ display: "grid", gap: 1.3 }}>
+              {credentials.map(({ title, detail }) => (
+                <Box
+                  key={title}
+                  sx={(theme) => ({
+                    display: "flex",
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    justifyContent: "space-between",
+                    gap: 2,
+                    flexDirection: { xs: "column", sm: "row" },
+                    p: { xs: 2, sm: 2.3 },
+                    borderRadius: `${theme.custom.radius.lg}px`,
+                    border: theme.custom.clay.hairline,
+                    background: theme.custom.transparent(theme.custom.colors.ink, 0.025),
+                  })}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.3 }}>
+                    <VerifiedIcon sx={{ color: "primary.main", fontSize: 19, flexShrink: 0 }} />
+                    <Typography sx={{ fontWeight: 700 }}>{title}</Typography>
+                  </Box>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.86rem", pl: { xs: 3.8, sm: 0 } }}>
+                    {detail}
                   </Typography>
                 </Box>
               ))}
             </Box>
           </Grid>
-
-          <Grid item xs={12} md={5}>
-            <Box
-              sx={(theme) => ({
-                backgroundColor: "background.paper",
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: "8px",
-                p: { xs: 2.5, md: 3 },
-              })}
-            >
-              <Typography
-                sx={{
-                  fontFamily: (theme) => theme.custom.fonts.mono,
-                  color: "text.disabled",
-                  fontSize: "0.68rem",
-                  fontWeight: 700,
-                  letterSpacing: "1.6px",
-                  textTransform: "uppercase",
-                  mb: 2,
-                }}
-              >
-                Tools And Skills
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {tools.map((tool) => (
-                  <Box
-                    key={tool}
-                    sx={(theme) => ({
-                      px: 1.35,
-                      py: 0.7,
-                      borderRadius: "8px",
-                      border: `1px solid ${theme.palette.divider}`,
-                      backgroundColor: "rgba(247,239,232,0.04)",
-                    })}
-                  >
-                    <Typography sx={{ color: "text.secondary", fontSize: "0.82rem", fontWeight: 700 }}>
-                      {tool}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          </Grid>
         </Grid>
+
+        <Box
+          component="section"
+          sx={(theme) => ({
+            mt: { xs: 8, md: 12 },
+            p: { xs: 3, sm: 4, md: 6 },
+            textAlign: "center",
+            borderRadius: { xs: "28px", md: "36px" },
+            border: theme.custom.clay.border,
+            background: theme.custom.clay.surfacePink,
+            boxShadow: theme.custom.clay.raised,
+          })}
+        >
+          <Eyebrow sx={{ mb: 1.5 }}>Let’s make something</Eyebrow>
+          <Typography
+            component="h2"
+            sx={{
+              fontFamily: (theme) => theme.custom.fonts.display,
+              fontSize: { xs: "2.25rem", md: "3.3rem" },
+              fontWeight: 700,
+              lineHeight: 1,
+              mb: 1.5,
+            }}
+          >
+            Have a record in mind?
+          </Typography>
+          <Typography sx={{ color: "text.secondary", maxWidth: 500, mx: "auto", lineHeight: 1.75, mb: 3 }}>
+            Explore the catalog, or get in touch about a production or creative project.
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 1.5 }}>
+            <Button
+              component={Link}
+              to="/products"
+              variant="contained"
+              endIcon={<ArrowForwardIcon />}
+              sx={{ px: 2.8, py: 1.2, borderRadius: (theme) => `${theme.custom.radius.pill}px` }}
+            >
+              Browse the catalog
+            </Button>
+            <Button
+              component="a"
+              href="mailto:adamelh1999@gmail.com"
+              variant="outlined"
+              sx={{ px: 2.8, py: 1.2, borderRadius: (theme) => `${theme.custom.radius.pill}px` }}
+            >
+              Get in touch
+            </Button>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

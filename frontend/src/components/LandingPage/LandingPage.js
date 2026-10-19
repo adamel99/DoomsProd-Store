@@ -45,7 +45,8 @@ const mobileFullButtonSx = {
 
 const testimonials = [
   {
-    name: "Fivio Foreign - Dribble",
+    artist: "Fivio Foreign",
+    track: "Dribble",
     quote: "They aint never even seen no sh*t like this before",
     videoUrl: "https://www.youtube.com/watch?v=sBsax2S2G9s&list=RDsBsax2S2G9s&start_radio=1",
   },
@@ -184,7 +185,6 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
         background: theme.custom.clay.surfaceBlue,
         border: theme.custom.clay.border,
         boxShadow: theme.custom.clay.raised,
-        transform: "rotate(-1.5deg)",
       })}>
         <Box
           component="img"
@@ -273,28 +273,6 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
         </Box>
       </Box>
 
-      <Box sx={(theme) => ({
-        position: "absolute",
-        left: { xs: 12, sm: 30, md: 28 },
-        bottom: { xs: 0, md: 38 },
-        width: { xs: "calc(100% - 24px)", sm: 360, md: 390 },
-        px: 0.5,
-        py: 1.25,
-        borderTop: theme.custom.clay.hairline,
-        borderBottom: theme.custom.clay.hairline,
-        filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.34))",
-        zIndex: 4,
-      })}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 1.5 }}>
-          <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, color: "text.disabled", fontSize: "0.64rem", letterSpacing: "1.6px", textTransform: "uppercase" }}>
-            Studio pulse
-          </Typography>
-          <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, color: "primary.main", fontSize: "0.64rem", letterSpacing: "1.6px" }}>
-            LIVE
-          </Typography>
-        </Box>
-        <LevelMeter bars={20} />
-      </Box>
     </Box>
   );
 };
@@ -316,7 +294,7 @@ const WaveformBars = ({ count = 5 }) => (
 );
 
 // ─── Decorative Level Meter (studio motif, purely ambient) ──────────────────
-const LevelMeter = ({ bars = 28 }) => (
+const LevelMeter = ({ bars = 28, tone = "primary" }) => (
   <Box sx={{
     display: "flex", alignItems: "flex-end", gap: "3px",
     height: 64, width: "100%",
@@ -324,9 +302,13 @@ const LevelMeter = ({ bars = 28 }) => (
     {[...Array(bars)].map((_, i) => (
       <Box key={i} sx={{
         flex: 1, borderRadius: "2px",
-        background: i % 7 === 0
-          ? (theme) => `linear-gradient(to top, ${theme.palette.primary.main}, ${theme.palette.primary.light})`
-          : (theme) => `${theme.palette.text.primary}22`,
+        background: (theme) => tone === "contrast"
+          ? i % 7 === 0
+            ? `linear-gradient(to top, ${theme.custom.colors.blue}, ${theme.custom.colors.mint})`
+            : theme.custom.transparent(theme.custom.colors.blue, 0.42)
+          : i % 7 === 0
+            ? `linear-gradient(to top, ${theme.palette.primary.main}, ${theme.palette.primary.light})`
+            : `${theme.palette.text.primary}22`,
         animation: `meterBar ${1.6 + (i % 5) * 0.25}s ease-in-out ${(i % 9) * 0.09}s infinite`,
         "@keyframes meterBar": {
           "0%,100%": { height: "18%" },
@@ -530,8 +512,8 @@ const InteractiveFeatureSection = ({ history, testimonials }) => {
           gap: { xs: 3, md: 6 },
           alignItems: "center",
         }}>
-          {testimonials.map(({ name, quote, videoUrl }) => (
-            <React.Fragment key={name}>
+          {testimonials.map(({ artist, track, quote, videoUrl }) => (
+            <React.Fragment key={`${artist}-${track}`}>
               {getYouTubeEmbedUrl(videoUrl) && (
                 <Box sx={{
                   overflow: "hidden",
@@ -542,7 +524,7 @@ const InteractiveFeatureSection = ({ history, testimonials }) => {
                 }}>
                   <iframe
                     src={`${getYouTubeEmbedUrl(videoUrl)}?rel=0&controls=1`}
-                    title={`Video featuring ${name}`}
+                    title={`Video featuring ${artist} on ${track}`}
                     referrerPolicy="strict-origin-when-cross-origin"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -573,9 +555,34 @@ const InteractiveFeatureSection = ({ history, testimonials }) => {
                 }}>
                   “{quote}”
                 </Typography>
-                <Typography sx={{ color: "text.secondary", fontSize: "0.94rem", mb: 3 }}>
-                  {name}
-                </Typography>
+                <Box sx={{ mb: 3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.1 }}>
+                    <Typography sx={{ color: "text.primary", fontSize: { xs: "1.08rem", sm: "1.2rem" }, fontWeight: 700 }}>
+                      {artist}
+                    </Typography>
+                    <Box component="span" sx={{ color: "primary.main", fontSize: "0.9rem" }} aria-hidden="true">
+                      ·
+                    </Box>
+                    <Typography sx={{
+                      color: "text.secondary",
+                      fontFamily: (theme) => theme.custom.fonts.mono,
+                      fontSize: { xs: "0.92rem", sm: "1rem" },
+                      letterSpacing: "0.5px",
+                    }}>
+                      “{track}”
+                    </Typography>
+                  </Box>
+                  <Typography sx={{
+                    mt: 0.6,
+                    color: "primary.main",
+                    fontFamily: (theme) => theme.custom.fonts.mono,
+                    fontSize: "0.68rem",
+                    letterSpacing: "1.2px",
+                    textTransform: "uppercase",
+                  }}>
+                    2,000,000+ streams
+                  </Typography>
+                </Box>
               </Box>
             </React.Fragment>
           ))}
@@ -986,17 +993,55 @@ const LandingPage = () => {
 
       {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
       <Box sx={{ position: "relative", zIndex: 2, py: { xs: 10, md: 15 } }}>
-        <Container maxWidth={false} disableGutters>
-          <Box sx={{
-            py: { xs: 4, sm: 5, md: 7 },
-            px: { xs: 2.5, sm: 4, md: 6 },
-            textAlign: "center",
-          }}>
-            <Box sx={{ maxWidth: 640, mx: "auto" }}>
-              <Box sx={{ opacity: 0.5, mb: 4 }}>
-                <LevelMeter bars={32} />
+        <Container maxWidth="lg">
+          <Box
+            component="section"
+            aria-labelledby="landing-final-cta-heading"
+            sx={(theme) => ({
+              py: { xs: 4, sm: 5, md: 6 },
+              px: { xs: 2.5, sm: 4, md: 6 },
+              textAlign: "center",
+              borderRadius: { xs: "28px", md: "36px" },
+              border: theme.custom.clay.border,
+              background: theme.custom.clay.surfacePink,
+              boxShadow: theme.custom.clay.raised,
+              position: "relative",
+              overflow: "hidden",
+            })}
+          >
+            <Box
+              aria-hidden="true"
+              sx={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                opacity: 0.62,
+              }}
+            >
+              <Box
+                component="img"
+                src="/Images/landing-cassette.png"
+                alt=""
+                sx={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "fill",
+                }}
+              />
+            </Box>
+            <Box sx={{ maxWidth: 640, mx: "auto", position: "relative", zIndex: 1 }}>
+              <Box sx={(theme) => ({
+                mb: 4,
+                p: 1.5,
+                borderRadius: `${theme.custom.radius.lg}px`,
+                border: theme.custom.clay.border,
+                background: theme.custom.clay.surfaceCool,
+                boxShadow: theme.custom.clay.pressed,
+              })}>
+                <LevelMeter bars={32} tone="contrast" />
               </Box>
-              <Typography variant="h2" sx={{ fontSize: { xs: "1.8rem", md: "2.6rem" }, mb: 2 }}>
+              <Typography id="landing-final-cta-heading" variant="h2" sx={{ fontSize: { xs: "1.8rem", md: "2.6rem" }, mb: 2 }}>
                 Ready to Elevate Your Sound?
               </Typography>
               <Typography sx={{
