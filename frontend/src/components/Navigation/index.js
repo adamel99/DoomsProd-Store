@@ -177,15 +177,16 @@ function Navigation({ isLoaded }) {
           </Box>
 
           {/* ── Col 2: Nav links OR search bar — always truly centered ── */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center' }}>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <AnimatePresence mode="wait">
               {showSearch ? (
                 <motion.div
                   key="search-open"
-                  initial={{ width: 200, opacity: 0 }}
-                  animate={{ width: 380, opacity: 1 }}
-                  exit={{ width: 200, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ width: 220, opacity: 0 }}
+                  animate={{ width: 340, opacity: 1 }}
+                  exit={{ width: 220, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ display: 'flex', alignItems: 'center' }}
                 >
                   <Box
                     component="form"
@@ -193,32 +194,43 @@ function Navigation({ isLoaded }) {
                     sx={(theme) => ({
                       display: 'flex',
                       alignItems: 'center',
-                      background: theme.custom.clay.surfaceSoft,
-                      border: theme.custom.clay.border,
-                      borderRadius: '100px',
-                      pl: 2, pr: 0.75,
-                      height: 38,
+                      background: theme.palette.background.paper,
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: '10px',
+                      pl: 1.5, pr: 0.75,
+                      height: 40,
                       width: '100%',
-                      boxShadow: theme.custom.clay.pressed,
-                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                      position: 'relative',
+                      top: '8px',
+                      transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
                       '&:focus-within': {
-                        borderColor: theme.palette.primary.main,
-                        boxShadow: `${theme.custom.clay.pressed}, 0 0 0 3px ${theme.palette.primary.main}33`,
+                        borderColor: theme.custom.transparent(theme.palette.primary.main, 0.7),
+                        boxShadow: `0 0 0 2px ${theme.custom.transparent(theme.palette.primary.main, 0.12)}`,
                       },
                     })}
                   >
-                    <SearchIcon sx={{ fontSize: 15, color: 'text.secondary', mr: 1.2, flexShrink: 0 }} />
+                    <SearchIcon sx={{ fontSize: 17, color: 'text.disabled', mr: 1, flexShrink: 0 }} />
                     <InputBase
-                      placeholder="Search beats, kits, plugins…"
+                      placeholder="Search products…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       autoFocus
                       sx={{
                         flex: 1,
+                        minHeight: 0,
+                        border: 0,
+                        borderRadius: 0,
+                        background: 'transparent',
+                        boxShadow: 'none',
                         fontFamily: (theme) => theme.custom.fonts.body,
-                        fontSize: '0.875rem',
+                        fontSize: '0.84rem',
                         color: 'text.primary',
-                        '& input::placeholder': { color: 'text.disabled' },
+                        '&.Mui-focused': {
+                          background: 'transparent',
+                          boxShadow: 'none',
+                        },
+                        '& .MuiInputBase-input': { py: 0 },
+                        '& input::placeholder': { color: 'text.disabled', opacity: 1 },
                       }}
                     />
                     <IconButton
@@ -226,13 +238,20 @@ function Navigation({ isLoaded }) {
                       onClick={handleCloseSearch}
                       sx={{
                         width: 28, height: 28,
-                        borderRadius: '100px',
+                        minWidth: 28, minHeight: 28,
+                        p: 0,
+                        borderRadius: '7px',
+                        border: 0,
                         color: 'text.secondary',
+                        background: 'transparent',
+                        boxShadow: 'none',
                         flexShrink: 0,
                         transition: 'all 0.15s ease',
                         '&:hover': {
-                          color: 'primary.main',
-                          background: (theme) => `${theme.custom.colors.cream}80`,
+                          color: 'text.primary',
+                          background: (theme) => theme.palette.action.hover,
+                          boxShadow: 'none',
+                          transform: 'none',
                         },
                       }}
                     >

@@ -102,24 +102,17 @@ const NeumorphCard = ({ children, sx = {}, highlighted = false, onClick }) => (
   <Box
     onClick={onClick}
     sx={(theme) => ({
-      background: theme.custom.clay.surfaceSoft,
+      background: "#000000",
       borderRadius: "18px",
       border: highlighted
         ? `1px solid ${theme.custom.transparent(theme.palette.primary.main, 0.28)}`
-        : theme.custom.clay.hairline,
-      boxShadow: highlighted
-        ? "10px 12px 26px rgba(0,0,0,0.34), -8px -8px 18px rgba(255,255,255,0.032)"
-        : "7px 8px 18px rgba(0,0,0,0.28), -6px -6px 14px rgba(255,255,255,0.026)",
-      transition: "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
+        : "1px solid #171717",
+      boxShadow: "none",
+      transition: "border-color 180ms ease",
       cursor: onClick ? "pointer" : "default",
       height: "100%",
       display: "flex",
       flexDirection: "column",
-      "&:hover": {
-        transform: "translateY(-2px)",
-        borderColor: theme.custom.transparent(theme.palette.primary.main, 0.34),
-        boxShadow: "12px 14px 30px rgba(0,0,0,0.36), -8px -8px 18px rgba(255,255,255,0.032)",
-      },
       ...sx,
     })}
   >

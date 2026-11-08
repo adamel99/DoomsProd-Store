@@ -7,8 +7,6 @@ import {
   Button,
   InputBase,
   IconButton,
-  ToggleButtonGroup,
-  ToggleButton,
   FormControl,
   InputLabel,
   MenuItem,
@@ -17,8 +15,6 @@ import {
 import { useLocation, useHistory } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
-import GridViewIcon from "@mui/icons-material/GridView";
-import ViewListIcon from "@mui/icons-material/ViewList";
 import ProductCard from "../ProductCard/ProductCard";
 import * as productActions from "../../store/products";
 import { formatProductType } from "../../utils/formatProductType";
@@ -92,7 +88,6 @@ const ProductList = () => {
   const urlSearchTerm = query.get("search")?.toLowerCase() || "";
 
   const [searchTerm, setSearchTerm] = useState(urlSearchTerm);
-  const [viewMode, setViewMode] = useState("grid");
   const [filterType, setFilterType] = useState("all");
   const [filterGenre, setFilterGenre] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
@@ -103,7 +98,9 @@ const ProductList = () => {
   useEffect(() => { dispatch(productActions.getAllProductsThunk()); }, [dispatch]);
   useEffect(() => { setSearchTerm(urlSearchTerm); }, [urlSearchTerm]);
 
-  const allProductsArray = Object.values(allProducts || {});
+  const allProductsArray = Object.values(allProducts || {}).filter(
+    (product) => product.type?.toLowerCase() !== "plugin"
+  );
   const isAdmin = sessionUser?.role === "admin";
   const displaySearchTerm = searchTerm.replace(/_/g, " ");
   const activeSortLabel = sortOptions.find((option) => option.value === sortBy)?.label || "Most recent";
@@ -221,7 +218,7 @@ const ProductList = () => {
               fontSize: { xs: "1rem", md: "1.08rem" },
               maxWidth: 560,
             }}>
-              Browse release-ready beats, kits, plugins, and production assets from the DOOMS catalog.
+              Browse release-ready beats, kits, and production assets from the DOOMS catalog.
             </Typography>
           </Box>
 
@@ -430,28 +427,6 @@ const ProductList = () => {
               </Box>
             )}
 
-            <ToggleButtonGroup
-              value={viewMode}
-              exclusive
-              onChange={(e, value) => { if (value) setViewMode(value); }}
-              fullWidth
-              sx={{
-                display: { xs: "none", md: "flex" },
-                "& .MuiToggleButton-root": {
-                  flex: 1,
-                  borderRadius: "14px !important",
-                  border: (theme) => theme.custom.clay.hairline,
-                  color: "text.secondary",
-                  "&.Mui-selected": {
-                    color: "primary.main",
-                    background: "rgba(225,90,151,0.1)",
-                  },
-                },
-              }}
-            >
-              <ToggleButton value="grid" aria-label="Grid view"><GridViewIcon fontSize="small" /></ToggleButton>
-              <ToggleButton value="list" aria-label="List view"><ViewListIcon fontSize="small" /></ToggleButton>
-            </ToggleButtonGroup>
           </Box>
 
           <Box>
@@ -459,15 +434,13 @@ const ProductList = () => {
               <Box sx={{
                 display: "grid",
                 gap: 2.25,
-                gridTemplateColumns: viewMode === "list"
-                  ? "1fr"
-                  : {
-                    xs: "1fr",
-                    sm: "repeat(2, minmax(0, 1fr))",
-                    md: "repeat(3, minmax(0, 1fr))",
-                    lg: "repeat(4, minmax(0, 1fr))",
-                    xl: "repeat(5, minmax(0, 1fr))",
-                  },
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  md: "repeat(3, minmax(0, 1fr))",
+                  lg: "repeat(4, minmax(0, 1fr))",
+                  xl: "repeat(5, minmax(0, 1fr))",
+                },
                 alignItems: "stretch",
               }}>
                 {filteredProducts.map((product) => (
@@ -475,7 +448,7 @@ const ProductList = () => {
                     key={product.id}
                     sx={{ display: "flex", minWidth: 0, maxWidth: "100%" }}
                   >
-                    <ProductCard customProduct={product} viewMode={viewMode} />
+                    <ProductCard customProduct={product} />
                   </Box>
                 ))}
               </Box>
