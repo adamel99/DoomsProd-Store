@@ -1,4 +1,5 @@
-const { Cart, CartItem, Product, License, Order, OrderItem, sequelize } = require('../db/models');
+const { Cart, CartItem, Product, License, Order, OrderItem, Promotion, sequelize } = require('../db/models');
+const { Op } = require('sequelize');
 
 const cents = (amount) => Math.round(Number(amount || 0) * 100);
 
@@ -93,7 +94,93 @@ const getUserCartItems = async (userId, transaction) => {
   });
 };
 
-const createOrderFromCart = async (userId) => {
+const getPromotionQuote = async (userId, cartItems, promoCode = '') => {
+  const lineItems = cartItems.map((item) => {
+    validateLineItem(item);
+    return {
+      cartItem: item,
+      product: item.Product,
+      license: item.License,
+      quantity: item.quantity || 1,
+      price: getItemPrice(item),
+    };
+  });
+  const subtotalCents = lineItems.reduce((sum, item) => sum + cents(item.price) * item.quantity, 0);
+  const discountableCents = lineItems.reduce((sum, item) => (
+    sum + (item.price > 0 ? cents(item.price) * item.quantity : 0)
+  ), 0);
+  const now = new Date();
+  const promotions = await Promotion.findAll({ where: { isActive: true } });
+  const normalizedCode = String(promoCode || '').trim().toUpperCase();
+  const basicBeatCount = lineItems.reduce((sum, item) => (
+    item.price > 0 && item.product.type === 'beat' && String(item.license?.name || '').trim().toLowerCase() === 'basic'
+      ? sum + item.quantity : sum
+  ), 0);
+  const completedPaidPurchases = await Order.count({
+    where: { userId, status: 'completed', subtotalPrice: { [Op.gt]: 0 } },
+  });
+  const activePromotions = promotions.filter((promotion) => {
+    if (promotion.startsAt && new Date(promotion.startsAt) > now) return false;
+    if (promotion.endsAt && new Date(promotion.endsAt) < now) return false;
+    return true;
+  });
+  const matchingCode = activePromotions.find((promotion) => (
+    promotion.type === 'code' && String(promotion.code || '').trim().toUpperCase() === normalizedCode
+  ));
+  if (normalizedCode && !matchingCode) {
+    const error = new Error('That promo code is invalid, inactive, expired, or not eligible for this cart.');
+    error.status = 400;
+    throw error;
+  }
+  const eligible = discountableCents > 0 ? activePromotions.filter((promotion) => {
+    if (promotion.type === 'code') return promotion === matchingCode;
+    if (promotion.type === 'first_purchase') return completedPaidPurchases === 0;
+    if (promotion.type === 'bundle') return basicBeatCount >= Number(promotion.minBasicBeatCount || 2);
+    return false;
+  }) : [];
+  const selectedPromotion = eligible.sort((a, b) => Number(b.discountPercent) - Number(a.discountPercent))[0] || null;
+  const discountPercent = selectedPromotion ? Number(selectedPromotion.discountPercent) : 0;
+  const discountedLineItems = lineItems.map((item) => ({
+    ...item,
+    originalPrice: item.price,
+    price: item.price > 0 ? Math.round(cents(item.price) * (100 - discountPercent) / 100) / 100 : 0,
+  }));
+  const totalCents = discountedLineItems.reduce((sum, item) => sum + cents(item.price) * item.quantity, 0);
+  const discountCents = subtotalCents - totalCents;
+  const promotion = discountCents > 0 ? selectedPromotion : null;
+  return {
+    lineItems: discountedLineItems,
+    promotion,
+    subtotalCents,
+    discountCents,
+    totalCents,
+    totalPrice: totalCents / 100,
+    subtotalPrice: subtotalCents / 100,
+  };
+};
+
+const previewCartPromotion = async (userId, promoCode = '') => {
+  const cartItems = await getUserCartItems(userId);
+  if (!cartItems.length) {
+    const err = new Error('Cart is empty.');
+    err.status = 400;
+    throw err;
+  }
+  const quote = await getPromotionQuote(userId, cartItems, promoCode);
+  return {
+    subtotalPrice: quote.subtotalPrice.toFixed(2),
+    totalPrice: quote.totalPrice.toFixed(2),
+    discountAmount: (quote.discountCents / 100).toFixed(2),
+    promotion: quote.promotion ? {
+      name: quote.promotion.name,
+      type: quote.promotion.type,
+      code: quote.promotion.type === 'code' ? quote.promotion.code : null,
+      discountPercent: Number(quote.promotion.discountPercent),
+    } : null,
+  };
+};
+
+const createOrderFromCart = async (userId, promoCode = '') => {
   return sequelize.transaction(async (transaction) => {
     const cartItems = await getUserCartItems(userId, transaction);
     if (!cartItems.length) {
@@ -102,23 +189,17 @@ const createOrderFromCart = async (userId) => {
       throw err;
     }
 
-    const lineItems = cartItems.map((item) => {
-      validateLineItem(item);
-      const price = getItemPrice(item);
-      return {
-        cartItem: item,
-        product: item.Product,
-        license: item.License,
-        quantity: item.quantity || 1,
-        price,
-      };
-    });
-
-    const totalPrice = lineItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const quote = await getPromotionQuote(userId, cartItems, promoCode);
+    const { lineItems, totalPrice, subtotalPrice, promotion, discountCents } = quote;
 
     const order = await Order.create({
       userId,
+      subtotalPrice: subtotalPrice.toFixed(2),
       totalPrice: totalPrice.toFixed(2),
+      promotionName: promotion?.name || null,
+      promoCode: promotion?.type === 'code' ? promotion.code : null,
+      discountPercent: promotion ? Number(promotion.discountPercent).toFixed(2) : '0.00',
+      discountAmount: (discountCents / 100).toFixed(2),
       status: totalPrice === 0 ? 'completed' : 'pending',
     }, { transaction });
 
@@ -181,6 +262,11 @@ const getOrderReceiptDetails = async (orderId, user, transaction) => {
     purchasedAt: order.createdAt,
     status: order.status,
     totalPaid: Number(order.totalPrice || 0).toFixed(2),
+    subtotalPrice: Number(order.subtotalPrice || order.totalPrice || 0).toFixed(2),
+    promotionName: order.promotionName || null,
+    promoCode: order.promoCode || null,
+    discountPercent: Number(order.discountPercent || 0).toFixed(2),
+    discountAmount: Number(order.discountAmount || 0).toFixed(2),
     items: (order.OrderItems || []).map((item) => ({
       title: item.Product?.title || 'Deleted product',
       type: item.Product?.type || null,
@@ -243,6 +329,7 @@ module.exports = {
   cents,
   clearCartForOrder,
   createOrderFromCart,
+  previewCartPromotion,
   getOrderDownloadFiles,
   getOrderFileKeys,
   getOrderReceiptDetails,

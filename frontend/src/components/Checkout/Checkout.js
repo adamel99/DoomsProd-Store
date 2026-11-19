@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 import StripeCheckoutButton from "../StripeCheckoutButton/StripeCheckoutButton";
-import { Box, Typography, Button, Checkbox, FormControlLabel, Link } from "@mui/material";
+import { Box, Typography, Button, Checkbox, FormControlLabel, Link, TextField, Alert } from "@mui/material";
 import { motion } from "framer-motion";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { formatProductType } from "../../utils/formatProductType";
+import { csrfFetch } from "../../store/csrf";
 
 // ─── Shared primitives ───────────────────────────────────────────────────────
 
@@ -165,10 +166,16 @@ const OrderItemRow = ({ item, index }) => (
 const Checkout = () => {
   const history = useHistory();
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState("");
+  const [promotionQuote, setPromotionQuote] = useState(null);
+  const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
   const user = useSelector((state) => state.session.user);
   const cartItems = useSelector((state) =>
     Object.values(state.cartItems?.allItems || {})
   );
+  const cartSignature = cartItems.map((item) => `${item.id}:${item.price}:${item.licenseType}`).join("|");
 
   const formattedCartItems = cartItems.map((item) => {
     return {
@@ -180,7 +187,43 @@ const Checkout = () => {
     };
   });
 
-  const total = formattedCartItems.reduce((acc, item) => acc + item.price, 0).toFixed(2);
+  const subtotal = formattedCartItems.reduce((acc, item) => acc + item.price, 0).toFixed(2);
+  const total = promotionQuote?.totalPrice || subtotal;
+
+  const refreshPromotionQuote = useCallback(async (code = "") => {
+    if (!user || !cartSignature) return;
+    setPromoLoading(true);
+    setPromoError("");
+    try {
+      await csrfFetch("/api/csrf/restore");
+      const response = await csrfFetch("/api/payment/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode: code }),
+      });
+      const quote = await response.json();
+      setPromotionQuote(quote);
+      setAppliedPromoCode(code.trim());
+    } catch (error) {
+      let message = "Could not apply that promo code.";
+      if (error?.json) {
+        const data = await error.json();
+        message = data.message || message;
+      }
+      setPromoError(message);
+      setAppliedPromoCode("");
+      if (code) {
+        try {
+          const response = await csrfFetch("/api/payment/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ promoCode: "" }) });
+          setPromotionQuote(await response.json());
+        } catch (_previewError) { setPromotionQuote(null); }
+      }
+    } finally { setPromoLoading(false); }
+  }, [cartSignature, user]);
+
+  useEffect(() => { refreshPromotionQuote(""); }, [refreshPromotionQuote]);
+
+  const applyPromoCode = () => refreshPromotionQuote(promoCode);
 
   return (
     <Box sx={{
@@ -298,6 +341,33 @@ const Checkout = () => {
             <Box sx={{ height: "1px", background: (theme) => theme.palette.divider, mb: 3 }} />
 
             {/* Total row */}
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 1.5 }}>
+              <TextField
+                size="small"
+                label="Promo code"
+                value={promoCode}
+                onChange={(event) => setPromoCode(event.target.value.toUpperCase())}
+                sx={{ flex: 1 }}
+              />
+              <Button variant="outlined" onClick={applyPromoCode} disabled={promoLoading}>
+                Apply
+              </Button>
+            </Box>
+            {promoError && <Alert severity="error" sx={{ mb: 1.5 }}>{promoError}</Alert>}
+            {promotionQuote?.promotion && (
+              <Alert severity="success" sx={{ mb: 1.5 }}>
+                {promotionQuote.promotion.name} · {promotionQuote.promotion.discountPercent}% off
+                {promotionQuote.promotion.code ? ` · ${promotionQuote.promotion.code}` : ""}
+              </Alert>
+            )}
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, color: "text.secondary" }}>
+              <Typography>Subtotal</Typography><Typography>${subtotal}</Typography>
+            </Box>
+            {Number(promotionQuote?.discountAmount || 0) > 0 && (
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, color: "success.main" }}>
+                <Typography>Discount</Typography><Typography>−${promotionQuote.discountAmount}</Typography>
+              </Box>
+            )}
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3.5 }}>
               <Box>
                 <Typography sx={{
@@ -362,7 +432,7 @@ const Checkout = () => {
                 borderRadius: "14px !important",
               },
             }}>
-              <StripeCheckoutButton cartItems={formattedCartItems} userId={user?.id} disabled={!acceptedTerms} />
+                  <StripeCheckoutButton cartItems={formattedCartItems} userId={user?.id} promoCode={appliedPromoCode} checkoutTotal={total} disabled={!acceptedTerms || promoLoading} />
             </Box>
 
             <Typography sx={{

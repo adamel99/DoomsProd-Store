@@ -1,13 +1,97 @@
 const express = require('express');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
 const { Op } = require('sequelize');
-const { Order, User, OrderItem, Product, License } = require('../../db/models');
+const { Order, User, OrderItem, Product, License, Promotion } = require('../../db/models');
 
 const router = express.Router();
 
 const toNumber = (value) => Number(value || 0);
 const monthKey = (date) => new Date(date).toISOString().slice(0, 7);
 const dayKey = (date) => new Date(date).toISOString().slice(0, 10);
+
+const normalizePromotionInput = (body) => {
+  const type = ['code', 'first_purchase', 'bundle'].includes(body.type) ? body.type : null;
+  const discountPercent = Number(body.discountPercent);
+  if (!body.name?.trim() || !type || !Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+    const error = new Error('Provide a name, sale type, and discount from 0.01% to 100%.');
+    error.status = 400;
+    throw error;
+  }
+  if (type === 'code' && !String(body.code || '').trim()) {
+    const error = new Error('Promo code is required for code sales.');
+    error.status = 400;
+    throw error;
+  }
+  const minBasicBeatCount = Number(body.minBasicBeatCount || 2);
+  if (type === 'bundle' && (!Number.isInteger(minBasicBeatCount) || minBasicBeatCount < 2)) {
+    const error = new Error('Bundle sales need a whole number of at least 2 Basic beat leases.');
+    error.status = 400;
+    throw error;
+  }
+  const startsAt = body.startsAt ? new Date(body.startsAt) : null;
+  const endsAt = body.endsAt ? new Date(body.endsAt) : null;
+  if (body.isIndefinite === false && !endsAt) {
+    const error = new Error('Choose an end date or mark the sale as indefinite.');
+    error.status = 400;
+    throw error;
+  }
+  if ((startsAt && Number.isNaN(startsAt.getTime())) || (endsAt && Number.isNaN(endsAt.getTime()))
+    || (startsAt && endsAt && endsAt < startsAt)) {
+    const error = new Error('Sale dates are invalid or the end date comes before the start date.');
+    error.status = 400;
+    throw error;
+  }
+  return {
+    name: body.name.trim(),
+    type,
+    code: type === 'code' ? String(body.code).trim().toUpperCase() : null,
+    discountPercent: discountPercent.toFixed(2),
+    minBasicBeatCount: type === 'bundle' ? minBasicBeatCount : 0,
+    startsAt,
+    endsAt,
+    isActive: body.isActive !== false,
+  };
+};
+
+router.get('/promotions', requireAuth, requireAdmin, async (_req, res, next) => {
+  try {
+    const promotions = await Promotion.findAll({ order: [['createdAt', 'DESC']] });
+    return res.json({ promotions });
+  } catch (error) { return next(error); }
+});
+
+router.post('/promotions', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const promotion = await Promotion.create(normalizePromotionInput(req.body));
+    return res.status(201).json({ promotion });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ message: error.message });
+    if (error.name === 'SequelizeUniqueConstraintError') return res.status(409).json({ message: 'That promo code already exists.' });
+    return next(error);
+  }
+});
+
+router.put('/promotions/:promotionId', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const promotion = await Promotion.findByPk(req.params.promotionId);
+    if (!promotion) return res.status(404).json({ message: 'Sale not found.' });
+    await promotion.update(normalizePromotionInput(req.body));
+    return res.json({ promotion });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ message: error.message });
+    if (error.name === 'SequelizeUniqueConstraintError') return res.status(409).json({ message: 'That promo code already exists.' });
+    return next(error);
+  }
+});
+
+router.patch('/promotions/:promotionId/toggle', requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const promotion = await Promotion.findByPk(req.params.promotionId);
+    if (!promotion) return res.status(404).json({ message: 'Sale not found.' });
+    await promotion.update({ isActive: Boolean(req.body.isActive) });
+    return res.json({ promotion });
+  } catch (error) { return next(error); }
+});
 
 router.get('/users', requireAuth, requireAdmin, async (req, res, next) => {
   try {

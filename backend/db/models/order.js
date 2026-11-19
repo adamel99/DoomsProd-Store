@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    subtotalPrice: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+    promotionName: { type: DataTypes.STRING(120), allowNull: true },
+    promoCode: { type: DataTypes.STRING(40), allowNull: true },
+    discountPercent: { type: DataTypes.DECIMAL(5, 2), allowNull: false, defaultValue: 0 },
+    discountAmount: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
     status: {
       type: DataTypes.ENUM('pending', 'completed', 'cancelled'),
       allowNull: false,

@@ -83,6 +83,11 @@ async function sendProductEmail(email, files = [], receipt = {}) {
   const username = escapeHtml(receipt.username || "there");
   const receiptItems = Array.isArray(receipt.items) ? receipt.items.map(formatReceiptItem) : [];
   const totalPaid = formatCurrency(receipt.totalPaid);
+  const subtotal = formatCurrency(receipt.subtotalPrice ?? receipt.totalPaid);
+  const discountAmount = Number(receipt.discountAmount || 0);
+  const promotionDetails = receipt.promotionName
+    ? `${receipt.promotionName}${receipt.discountPercent ? ` (${Number(receipt.discountPercent)}% off)` : ''}${receipt.promoCode ? ` · Code ${receipt.promoCode}` : ''}`
+    : '';
   const purchaseTime = formatPurchaseTime(receipt.purchasedAt);
   const siteUrl = (process.env.FRONTEND_URL || "https://dooma.studio").replace(/\/$/, "");
   const termsUrl = `${siteUrl}/terms`;
@@ -155,6 +160,18 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                                 <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Purchased</td>
                                 <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(purchaseTime)}</td>
                               </tr>
+                              <tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Subtotal</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(subtotal)}</td>
+                              </tr>
+                              ${receipt.promotionName ? `<tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Sale applied</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(promotionDetails)}</td>
+                              </tr>` : ''}
+                              ${discountAmount > 0 ? `<tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Discount</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.primary};">−${escapeHtml(formatCurrency(discountAmount))}</td>
+                              </tr>` : ''}
                               <tr>
                                 <td style="padding:14px 0;font-size:13px;color:${colors.textMuted};">Paid</td>
                                 <td align="right" style="padding:14px 0;font-size:13px;font-weight:800;color:${colors.text};">${escapeHtml(totalPaid)}</td>

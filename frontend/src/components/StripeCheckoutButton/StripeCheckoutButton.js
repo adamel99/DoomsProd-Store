@@ -6,7 +6,7 @@ import { csrfFetch } from "../../store/csrf";
 const publishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = loadStripe(publishableKey);
 
-const StripeCheckoutButton = ({ cartItems, userId, disabled = false }) => {
+const StripeCheckoutButton = ({ cartItems, userId, promoCode = "", checkoutTotal, disabled = false }) => {
   const history = useHistory();
 
   const handleCheckout = async () => {
@@ -18,12 +18,15 @@ const StripeCheckoutButton = ({ cartItems, userId, disabled = false }) => {
 
       await csrfFetch("/api/csrf/restore");
 
-      const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+      const total = Number.isFinite(Number(checkoutTotal))
+        ? Number(checkoutTotal)
+        : cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
       if (total === 0) {
         const response = await csrfFetch("/api/payment/free-checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ promoCode }),
         });
         const data = await response.json();
 
@@ -41,6 +44,7 @@ const StripeCheckoutButton = ({ cartItems, userId, disabled = false }) => {
       const response = await csrfFetch("/api/payment/create-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promoCode }),
       });
       const data = await response.json();
       if (!data.sessionId) throw new Error("No sessionId received");
@@ -52,7 +56,9 @@ const StripeCheckoutButton = ({ cartItems, userId, disabled = false }) => {
     }
   };
 
-  const total = cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+  const total = Number.isFinite(Number(checkoutTotal))
+    ? Number(checkoutTotal)
+    : cartItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
   return (
     <button

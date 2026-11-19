@@ -9,6 +9,7 @@ const {
   createOrderFromCart,
   getOrderDownloadFiles,
   getOrderReceiptDetails,
+  previewCartPromotion,
 } = require('../../utils/checkout');
 const { Order } = require('../../db/models');
 const { logError } = require('../../utils/logger');
@@ -47,6 +48,21 @@ const getReusableCheckoutSessionId = async (userId) => {
 };
 
 router.post(
+  '/preview',
+  requireAuth,
+  rateLimit({ windowMs: 10 * 60 * 1000, max: 30 }),
+  async (req, res) => {
+    try {
+      const preview = await previewCartPromotion(req.user.id, req.body?.promoCode || '');
+      return res.json(preview);
+    } catch (error) {
+      const status = error.status || 500;
+      return res.status(status).json({ message: status === 500 ? 'Could not calculate sale.' : error.message });
+    }
+  }
+);
+
+router.post(
   '/create-session',
   requireAuth,
   rateLimit({ windowMs: 10 * 60 * 1000, max: 10 }),
@@ -54,10 +70,11 @@ router.post(
     try {
       requireCheckoutEnv();
 
-      const reusableSessionId = await getReusableCheckoutSessionId(req.user.id);
+      const promoCode = String(req.body?.promoCode || '').trim();
+      const reusableSessionId = promoCode ? null : await getReusableCheckoutSessionId(req.user.id);
       if (reusableSessionId) return res.json({ sessionId: reusableSessionId });
 
-      const { order, lineItems, totalPrice } = await createOrderFromCart(req.user.id);
+      const { order, lineItems, totalPrice } = await createOrderFromCart(req.user.id, promoCode);
 
       if (totalPrice <= 0) {
         return res.status(400).json({ message: 'Use free checkout for free carts.' });
@@ -108,7 +125,7 @@ router.post(
   rateLimit({ windowMs: 10 * 60 * 1000, max: 6 }),
   async (req, res) => {
     try {
-      const { order, totalPrice } = await createOrderFromCart(req.user.id);
+      const { order, totalPrice } = await createOrderFromCart(req.user.id, req.body?.promoCode || '');
 
       if (totalPrice > 0) {
         await order.update({ status: 'cancelled' });

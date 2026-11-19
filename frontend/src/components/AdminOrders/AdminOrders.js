@@ -40,6 +40,7 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { csrfFetch } from "../../store/csrf";
 import { formatProductType } from "../../utils/formatProductType";
 import { formatDate, formatDateTime, formatMoney } from "../../utils/formatters";
+import AdminSales from "./AdminSales";
 
 const statusMeta = {
   completed: { label: "Completed", color: "success" },
@@ -321,7 +322,7 @@ const AdminOrders = () => {
 
   const exportOrders = () => {
     const rows = [
-      ["Order ID", "Date", "Customer", "Email", "Status", "Items", "Licenses", "Product Types", "Quantity", "Total", "Payment Intent"],
+      ["Order ID", "Date", "Customer", "Email", "Status", "Items", "Licenses", "Product Types", "Quantity", "Subtotal", "Sale", "Promo Code", "Discount %", "Discount Amount", "Total", "Payment Intent"],
       ...filteredOrders.map((order) => [
         order.id,
         formatDateTime(order.createdAt),
@@ -332,6 +333,11 @@ const AdminOrders = () => {
         getOrderLicenses(order).join(" | "),
         getOrderProductTypes(order).map(formatProductType).join(" | "),
         getOrderQuantity(order),
+        Number(order.subtotalPrice ?? order.totalPrice ?? 0).toFixed(2),
+        order.promotionName || "",
+        order.promoCode || "",
+        `${Number(order.discountPercent || 0)}%`,
+        Number(order.discountAmount || 0).toFixed(2),
         Number(order.totalPrice || 0).toFixed(2),
         order.paymentIntentId || "",
       ]),
@@ -442,6 +448,7 @@ const AdminOrders = () => {
                 <Tab value="products" label="Products" />
                 <Tab value="revenue" label="Revenue" />
                 <Tab value="licenses" label="Licenses" />
+                <Tab value="sales" label="Sales & Promo Codes" />
               </Tabs>
             </Panel>
 
@@ -498,6 +505,8 @@ const AdminOrders = () => {
                 />
               </>
             )}
+
+            {tab === "sales" && <AdminSales />}
 
             {tab === "customers" && <CustomersTable customers={customers} />}
             {tab === "users" && <UsersTable users={registeredUsers} loading={usersLoading} error={usersError} />}
@@ -817,6 +826,15 @@ const OrderDetails = ({ order, receiptInfo }) => (
     borderTop: theme.custom.clay.hairline,
     borderBottom: theme.custom.clay.hairline,
   })}>
+    {Number(order.discountAmount || 0) > 0 && (
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2, color: "text.secondary" }}>
+        <Typography variant="body2">Subtotal: {formatMoney(order.subtotalPrice)}</Typography>
+        <Typography variant="body2" color="success.main">
+          Sale: {order.promotionName} ({Number(order.discountPercent)}%{order.promoCode ? ` · ${order.promoCode}` : ""}) — {formatMoney(order.discountAmount)} off
+        </Typography>
+        <Typography variant="body2" fontWeight={700}>Paid: {formatMoney(order.totalPrice)}</Typography>
+      </Box>
+    )}
     <Grid container spacing={2}>
       {getOrderItems(order).map((item) => (
         <Grid item xs={12} md={6} lg={4} key={item.id}>
