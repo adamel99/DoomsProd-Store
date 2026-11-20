@@ -273,6 +273,9 @@ router.delete('/:orderId', requireAuth, requireAdmin, validateOrderId, async (re
   try {
     const order = await Order.findByPk(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found.' });
+    if (order.status === 'pending') {
+      return res.status(409).json({ message: 'Pending orders cannot be deleted. Cancel or resolve the payment first.' });
+    }
 
     await order.destroy();
 

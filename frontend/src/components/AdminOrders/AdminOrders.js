@@ -7,6 +7,11 @@ import {
   CircularProgress,
   Collapse,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   Grid,
   IconButton,
@@ -29,6 +34,7 @@ import {
 } from "@mui/material";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import DownloadIcon from "@mui/icons-material/Download";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EmailIcon from "@mui/icons-material/Email";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -37,6 +43,9 @@ import Inventory2Icon from "@mui/icons-material/Inventory2";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import LibraryMusicOutlinedIcon from "@mui/icons-material/LibraryMusicOutlined";
+import SellOutlinedIcon from "@mui/icons-material/SellOutlined";
 import { csrfFetch } from "../../store/csrf";
 import { formatProductType } from "../../utils/formatProductType";
 import { formatDate, formatDateTime, formatMoney } from "../../utils/formatters";
@@ -69,9 +78,9 @@ const getPresetRange = (preset) => {
 const Panel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
     background: theme.custom.clay.surfaceSoft,
-    border: theme.custom.clay.border,
-    borderRadius: "14px",
-    boxShadow: theme.custom.clay.raisedSmall,
+    border: `1px solid rgba(255,255,255,0.075)`,
+    borderRadius: "18px",
+    boxShadow: "0 18px 44px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.025)",
     ...sx,
   })}>
     {children}
@@ -158,6 +167,11 @@ const AdminOrders = () => {
   const [receiptState, setReceiptState] = useState({});
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [actionNotice, setActionNotice] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -185,7 +199,7 @@ const AdminOrders = () => {
 
     loadAdminData();
     return () => { isMounted = false; };
-  }, [startDate, endDate]);
+  }, [startDate, endDate, refreshKey]);
 
   useEffect(() => {
     if (loading) return undefined;
@@ -216,7 +230,7 @@ const AdminOrders = () => {
 
     loadOrders();
     return () => { isMounted = false; };
-  }, [loading, page, rowsPerPage, search, statusFilter, typeFilter, sortBy, startDate, endDate]);
+  }, [loading, page, rowsPerPage, search, statusFilter, typeFilter, sortBy, startDate, endDate, refreshKey]);
 
   useEffect(() => {
     if (loading || tab !== "users") return undefined;
@@ -243,7 +257,7 @@ const AdminOrders = () => {
 
     loadUsers();
     return () => { isMounted = false; };
-  }, [loading, tab]);
+  }, [loading, tab, refreshKey]);
 
   const applyDatePreset = (preset) => {
     setDatePreset(preset);
@@ -320,6 +334,58 @@ const AdminOrders = () => {
     }
   };
 
+  const requestDeleteOrder = (order) => {
+    setDeleteError("");
+    setDeleteTarget({ type: "order", id: order.id, label: `Order #${order.id}` });
+  };
+
+  const requestDeleteUser = (user) => {
+    setDeleteError("");
+    setDeleteTarget({
+      type: "user",
+      id: user.id,
+      label: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.email || "this customer",
+      email: user.email,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    setDeleteError("");
+    const path = deleteTarget.type === "order"
+      ? `/api/orders/${deleteTarget.id}`
+      : `/api/admin/users/${deleteTarget.id}`;
+    try {
+      await csrfFetch(path, { method: "DELETE" });
+      if (deleteTarget.type === "order") {
+        setOrders((current) => current.filter((order) => order.id !== deleteTarget.id));
+        setExpanded((current) => {
+          const next = { ...current };
+          delete next[deleteTarget.id];
+          return next;
+        });
+        const nextTotal = Math.max(0, orderTotalCount - 1);
+        setOrderTotalCount(nextTotal);
+        setPage((current) => Math.min(current, Math.max(0, Math.ceil(nextTotal / rowsPerPage) - 1)));
+      } else {
+        setRegisteredUsers((current) => current.filter((user) => user.id !== deleteTarget.id));
+      }
+      setActionNotice(`${deleteTarget.label} deleted. Related dashboard analytics are refreshing.`);
+      setRefreshKey((current) => current + 1);
+      setDeleteTarget(null);
+    } catch (err) {
+      let message = `Could not delete ${deleteTarget.type}.`;
+      if (err?.json) {
+        const data = await err.json();
+        message = data.message || message;
+      }
+      setDeleteError(message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const exportOrders = () => {
     const rows = [
       ["Order ID", "Date", "Customer", "Email", "Status", "Items", "Licenses", "Product Types", "Quantity", "Subtotal", "Sale", "Promo Code", "Discount %", "Discount Amount", "Total", "Payment Intent"],
@@ -376,50 +442,78 @@ const AdminOrders = () => {
     downloadCsv("admin-users.csv", rows);
   };
 
+  const canExport = ["orders", "customers", "users"].includes(tab);
+  const handleExport = tab === "users" ? exportUsers : tab === "customers" ? exportCustomers : exportOrders;
+  const tabMeta = {
+    orders: ["Orders", "Review purchases, payment state, and customer details."],
+    customers: ["Customers", "Understand repeat buyers and lifetime value."],
+    users: ["Registered users", "Browse accounts registered in your store."],
+    products: ["Product performance", "See which releases are driving sales."],
+    revenue: ["Revenue analytics", "Track performance and sales mix over time."],
+    licenses: ["License performance", "Compare units sold and revenue by license."],
+  };
+
   return (
     <Box sx={{
       minHeight: "100vh",
       bgcolor: "background.default",
       color: "text.primary",
       overflowX: "hidden",
-      pt: { xs: 7, md: 10 },
-      pb: { xs: 9, md: 12 },
+      pt: { xs: 5, md: 7 },
+      pb: { xs: 8, md: 11 },
+      backgroundImage: "radial-gradient(ellipse at 8% 0%, rgba(228,34,120,0.09), transparent 34rem), radial-gradient(ellipse at 100% 22%, rgba(67,113,165,0.07), transparent 30rem)",
     }}>
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" sx={{ maxWidth: "1480px !important" }}>
         <Box sx={{
           display: "flex",
-          alignItems: { xs: "flex-start", md: "flex-end" },
+          alignItems: { xs: "stretch", md: "center" },
           justifyContent: "space-between",
           flexDirection: { xs: "column", md: "row" },
-          gap: 2,
-          mb: 3,
+          gap: 2.5,
+          mb: { xs: 3, md: 4 },
         }}>
-          <Box>
-            <Typography sx={{
-              fontFamily: (theme) => theme.custom.fonts.mono,
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              letterSpacing: "2px",
-              textTransform: "uppercase",
+          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+            <Box sx={(theme) => ({
+              width: 52,
+              height: 52,
+              display: "grid",
+              placeItems: "center",
+              flex: "0 0 auto",
+              borderRadius: "16px",
               color: "primary.main",
-              mb: 1,
-            }}>
-              Admin
-            </Typography>
-            <Typography variant="h1" sx={{ fontSize: { xs: "2.7rem", md: "4.6rem" }, lineHeight: 0.95 }}>
-              Dashboard
-            </Typography>
+              border: `1px solid ${theme.palette.primary.main}35`,
+              background: `${theme.palette.primary.main}12`,
+              boxShadow: `0 10px 28px ${theme.palette.primary.main}14`,
+            })}>
+              <ShoppingBagIcon />
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "primary.main", mb: 0.6 }}>
+                Store operations
+              </Typography>
+              <Typography variant="h1" sx={{ fontSize: { xs: "2.15rem", sm: "2.65rem", md: "3.2rem" }, lineHeight: 1.05, letterSpacing: "-0.045em" }}>
+                Admin dashboard
+              </Typography>
+              <Typography sx={{ color: "text.secondary", mt: 0.8, fontSize: { xs: "0.9rem", md: "1rem" } }}>
+                Manage orders, customers, catalog performance, and promotions.
+              </Typography>
+            </Box>
           </Box>
 
-          <Button
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            onClick={tab === "users" ? exportUsers : tab === "customers" ? exportCustomers : exportOrders}
-            disabled={loading || Boolean(error) || (tab === "users" && (usersLoading || Boolean(usersError)))}
-          >
-            Export CSV
-          </Button>
+          {canExport && (
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleExport}
+              disabled={loading || Boolean(error) || (tab === "users" && (usersLoading || Boolean(usersError)))}
+              sx={{ alignSelf: { xs: "stretch", md: "center" }, minWidth: 150, bgcolor: "rgba(255,255,255,0.025)" }}
+            >
+              Export {tab === "users" ? "users" : tab === "customers" ? "customers" : "orders"}
+            </Button>
+          )}
         </Box>
+
+        {actionNotice && <Alert severity="success" onClose={() => setActionNotice("")} sx={{ mb: 2 }}>{actionNotice}</Alert>}
 
         {loading ? (
           <Box sx={{ py: 12, display: "flex", justifyContent: "center" }}>
@@ -429,28 +523,62 @@ const AdminOrders = () => {
           <Alert severity="error">{error}</Alert>
         ) : (
           <>
-            <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-              <StatCard icon={<ShoppingBagIcon />} label="Revenue" value={formatMoney(summary.totalRevenue)} />
-              <StatCard icon={<ReceiptLongIcon />} label="Orders" value={summary.totalOrders} />
-              <StatCard icon={<GroupsIcon />} label="Customers" value={summary.uniqueCustomers} />
-              <StatCard icon={<BarChartIcon />} label="Avg Order" value={formatMoney(summary.averageOrderValue)} />
-              <StatCard icon={<Inventory2Icon />} label="Products Sold" value={summary.totalProductsSold} />
-              <StatCard icon={<ReceiptLongIcon />} label="Completed" value={summary.completedOrders} />
-              <StatCard icon={<ReceiptLongIcon />} label="Pending" value={summary.pendingOrders} />
-              <StatCard icon={<ReceiptLongIcon />} label="Cancelled" value={summary.cancelledOrders} />
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <StatCard icon={<ShoppingBagIcon />} label="Net revenue" value={formatMoney(summary.totalRevenue)} detail="Completed orders" />
+              <StatCard icon={<ReceiptLongIcon />} label="Total orders" value={summary.totalOrders} detail={`${summary.completedOrders} completed`} />
+              <StatCard icon={<GroupsIcon />} label="Customers" value={summary.uniqueCustomers} detail="Unique buyers" />
+              <StatCard icon={<BarChartIcon />} label="Average order" value={formatMoney(summary.averageOrderValue)} detail="Per completed order" />
             </Grid>
 
-            <Panel sx={{ mb: 2 }}>
-              <Tabs value={tab} onChange={(event, value) => setTab(value)} variant="scrollable" scrollButtons="auto" sx={{ px: 1 }}>
-                <Tab value="orders" label="Orders" />
-                <Tab value="customers" label="Customers" />
-                <Tab value="users" label="Users" />
-                <Tab value="products" label="Products" />
-                <Tab value="revenue" label="Revenue" />
-                <Tab value="licenses" label="Licenses" />
-                <Tab value="sales" label="Sales & Promo Codes" />
+            <OrderStatusOverview summary={summary} productsSold={summary.totalProductsSold} />
+
+            <Panel sx={{ p: 0.7, mb: 2.5, mt: 2.5 }}>
+              <Tabs
+                value={tab}
+                onChange={(event, value) => setTab(value)}
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+                sx={{
+                  minHeight: 54,
+                  "& .MuiTabs-indicator": { display: "none" },
+                  "& .MuiTabs-flexContainer": { gap: 0.5 },
+                  "& .MuiTab-root": {
+                    minHeight: 48,
+                    minWidth: "auto",
+                    px: { xs: 1.4, md: 2 },
+                    py: 1,
+                    borderRadius: "12px",
+                    color: "text.secondary",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    textTransform: "none",
+                    transition: "all 160ms ease",
+                    "&:hover": { color: "text.primary", bgcolor: "rgba(255,255,255,0.045)" },
+                    "&.Mui-selected": { color: "text.primary", bgcolor: "rgba(255,255,255,0.075)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" },
+                  },
+                  "& .MuiTab-iconWrapper": { mr: 0.8, mb: "0 !important", fontSize: 18 },
+                }}
+              >
+                <Tab value="orders" icon={<ReceiptLongIcon />} iconPosition="start" label="Orders" />
+                <Tab value="customers" icon={<GroupsIcon />} iconPosition="start" label="Customers" />
+                <Tab value="users" icon={<PersonOutlineIcon />} iconPosition="start" label="Users" />
+                <Tab value="products" icon={<Inventory2Icon />} iconPosition="start" label="Products" />
+                <Tab value="revenue" icon={<BarChartIcon />} iconPosition="start" label="Revenue" />
+                <Tab value="licenses" icon={<LibraryMusicOutlinedIcon />} iconPosition="start" label="Licenses" />
+                <Tab value="sales" icon={<SellOutlinedIcon />} iconPosition="start" label="Sales & promos" />
               </Tabs>
             </Panel>
+
+            {tab !== "sales" && (
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 1.75 }}>
+                <Box>
+                  <Typography sx={{ fontSize: { xs: "1.25rem", md: "1.45rem" }, fontWeight: 800, letterSpacing: "-0.025em" }}>{tabMeta[tab]?.[0]}</Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: "0.82rem", mt: 0.3 }}>{tabMeta[tab]?.[1]}</Typography>
+                </Box>
+                {tab === "orders" && <Chip label={`${orderTotalCount} records`} size="small" sx={{ color: "text.secondary", bgcolor: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.08)" }} />}
+              </Box>
+            )}
 
             {tab === "orders" && (
               <>
@@ -502,59 +630,118 @@ const AdminOrders = () => {
                   setPage={setPage}
                   setRowsPerPage={setRowsPerPage}
                   onResendReceipt={resendReceipt}
+                  onDeleteOrder={requestDeleteOrder}
                 />
               </>
             )}
 
             {tab === "sales" && <AdminSales />}
 
-            {tab === "customers" && <CustomersTable customers={customers} />}
-            {tab === "users" && <UsersTable users={registeredUsers} loading={usersLoading} error={usersError} />}
+            {tab === "customers" && <CustomersTable customers={customers} onDelete={requestDeleteUser} />}
+            {tab === "users" && <UsersTable users={registeredUsers} loading={usersLoading} error={usersError} onDelete={requestDeleteUser} />}
             {tab === "products" && <ProductsTable products={products} />}
             {tab === "revenue" && <RevenuePanel summary={summary} breakdowns={analytics?.breakdowns} />}
             {tab === "licenses" && <LicensesTable licenses={analytics?.licenses || []} />}
           </>
         )}
       </Container>
+
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onClose={() => { if (!deleteLoading) { setDeleteTarget(null); setDeleteError(""); } }}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: { p: 0.5, border: "1px solid rgba(255,255,255,0.1)" } }}
+      >
+        <DialogTitle sx={{ pb: 1, fontWeight: 800 }}>
+          Delete {deleteTarget?.type === "order" ? "order" : "customer account"}?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: "text.secondary", fontSize: "0.9rem", lineHeight: 1.7 }}>
+            {deleteTarget?.type === "order"
+              ? `${deleteTarget.label} and its order items will be permanently deleted. Its revenue, license, and product totals will be removed from the dashboard.`
+              : `Delete ${deleteTarget?.label || "this customer"}${deleteTarget?.email ? ` (${deleteTarget.email})` : ""} and their account data? Their orders and cart will also be deleted, and dashboard analytics will be recalculated. Any product listings attached to their account will stay in your catalog. This cannot be undone.`}
+          </DialogContentText>
+          {deleteError && <Alert severity="error" sx={{ mt: 2 }}>{deleteError}</Alert>}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button variant="outlined" onClick={() => { setDeleteTarget(null); setDeleteError(""); }} disabled={deleteLoading}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleteLoading} startIcon={<DeleteOutlineIcon />}>
+            {deleteLoading ? "Deleting…" : "Delete permanently"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
 
-const StatCard = ({ icon, label, value }) => (
+const StatCard = ({ icon, label, value, detail }) => (
   <Grid item xs={12} sm={6} md={3}>
-    <Panel sx={{ p: 1.8 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+    <Panel sx={{ p: { xs: 1.8, md: 2.1 }, height: "100%", minHeight: 116 }}>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
         <Box sx={(theme) => ({
-          width: 34,
-          height: 34,
+          width: 42,
+          height: 42,
           display: "grid",
           placeItems: "center",
-          borderRadius: "10px",
+          borderRadius: "13px",
           color: "primary.main",
-          background: `${theme.palette.primary.main}14`,
-          border: theme.custom.clay.hairline,
+          background: `${theme.palette.primary.main}12`,
+          border: `1px solid ${theme.palette.primary.main}24`,
           flex: "0 0 auto",
         })}>
           {icon}
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{
-            fontFamily: (theme) => theme.custom.fonts.mono,
-            fontSize: "0.63rem",
-            letterSpacing: "1px",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            letterSpacing: "0.04em",
             textTransform: "uppercase",
-            color: "text.disabled",
+            color: "text.secondary",
           }}>
             {label}
           </Typography>
-          <Typography sx={{ fontSize: "1.1rem", fontWeight: 700, overflowWrap: "anywhere" }}>
+          <Typography sx={{ fontSize: { xs: "1.35rem", md: "1.55rem" }, fontWeight: 800, lineHeight: 1.25, overflowWrap: "anywhere", mt: 0.45 }}>
             {value}
           </Typography>
+          <Typography sx={{ color: "text.disabled", fontSize: "0.75rem", mt: 0.3 }}>{detail}</Typography>
         </Box>
       </Box>
     </Panel>
   </Grid>
 );
+
+const OrderStatusOverview = ({ summary, productsSold }) => {
+  const statuses = [
+    { label: "Completed", value: summary.completedOrders, color: "#68C7A5" },
+    { label: "Pending", value: summary.pendingOrders, color: "#EAB76E" },
+    { label: "Cancelled", value: summary.cancelledOrders, color: "#B6A9B8" },
+    { label: "Items sold", value: productsSold, color: "#86A9DF" },
+  ];
+
+  return (
+    <Panel sx={{ p: { xs: 1.5, md: 1.8 } }}>
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, alignItems: { md: "center" }, gap: { xs: 1.2, md: 2 } }}>
+        <Box sx={{ minWidth: { md: 145 } }}>
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Order status</Typography>
+          <Typography sx={{ color: "text.disabled", fontSize: "0.75rem", mt: 0.25 }}>At a glance</Typography>
+        </Box>
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" }, gap: 1, flex: 1 }}>
+          {statuses.map((status) => (
+            <Box key={status.label} sx={{ display: "flex", alignItems: "center", gap: 1.1, py: 0.8, px: 1.1, borderRadius: "11px", bgcolor: "rgba(255,255,255,0.025)" }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: status.color, boxShadow: `0 0 12px ${status.color}80` }} />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: "1rem", fontWeight: 800, lineHeight: 1.1 }}>{status.value}</Typography>
+                <Typography sx={{ fontSize: "0.68rem", color: "text.secondary", whiteSpace: "nowrap" }}>{status.label}</Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    </Panel>
+  );
+};
 
 const FilterBar = ({
   search,
@@ -572,28 +759,32 @@ const FilterBar = ({
   endDate,
   setEndDate,
 }) => (
-  <Panel sx={{ p: 1.5, mb: 2 }}>
+  <Panel sx={{ p: { xs: 1.5, md: 2 }, mb: 1.75 }}>
+    <Box sx={{ mb: 1.5 }}>
+      <Typography sx={{ fontWeight: 800, fontSize: "0.88rem" }}>Find and filter orders</Typography>
+      <Typography sx={{ color: "text.disabled", fontSize: "0.74rem", mt: 0.25 }}>Narrow results by customer, status, product, or date.</Typography>
+    </Box>
     <Box sx={{
       display: "grid",
-      gridTemplateColumns: { xs: "1fr", md: "minmax(260px, 1fr) repeat(3, 150px)" },
+      gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "minmax(260px, 1.6fr) repeat(3, minmax(140px, 0.75fr))" },
       gap: 1.5,
       alignItems: "center",
     }}>
       <Box sx={(theme) => ({
         display: "flex",
         alignItems: "center",
-        height: 42,
+        height: 48,
         px: 1.5,
         borderRadius: "10px",
-        background: "rgba(255,255,255,0.04)",
-        border: theme.custom.clay.hairline,
+        background: "rgba(255,255,255,0.025)",
+        border: `1px solid rgba(255,255,255,0.09)`,
       })}>
         <SearchIcon sx={{ fontSize: 18, color: "text.secondary", mr: 1 }} />
         <InputBase
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search orders, customers, products, payment IDs"
-          sx={{ width: "100%", fontSize: "0.88rem" }}
+          sx={{ width: "100%", fontSize: "0.84rem", "& input::placeholder": { opacity: 0.75 } }}
         />
       </Box>
 
@@ -620,10 +811,10 @@ const FilterBar = ({
     </Box>
     <Box sx={{
       display: "grid",
-      gridTemplateColumns: { xs: "1fr", md: "170px 170px 170px" },
+      gridTemplateColumns: { xs: "1fr", sm: "repeat(3, minmax(0, 1fr))", md: "minmax(180px, 230px) repeat(2, minmax(150px, 190px))" },
       gap: 1.5,
       alignItems: "center",
-      mt: 1.5,
+      mt: 1.25,
     }}>
       <SmallSelect label="Date Range" value={datePreset} onChange={setDatePreset}>
         <MenuItem value="all">All Time</MenuItem>
@@ -637,6 +828,7 @@ const FilterBar = ({
         label="Start"
         type="date"
         size="small"
+        fullWidth
         value={startDate}
         onChange={(event) => setStartDate(event.target.value)}
         InputLabelProps={{ shrink: true }}
@@ -645,6 +837,7 @@ const FilterBar = ({
         label="End"
         type="date"
         size="small"
+        fullWidth
         value={endDate}
         onChange={(event) => setEndDate(event.target.value)}
         InputLabelProps={{ shrink: true }}
@@ -656,7 +849,7 @@ const FilterBar = ({
 const SmallSelect = ({ label, value, onChange, children }) => (
   <FormControl size="small" fullWidth>
     <InputLabel>{label}</InputLabel>
-    <Select value={value} label={label} onChange={(event) => onChange(event.target.value)} sx={{ borderRadius: "10px", fontSize: "0.88rem" }}>
+    <Select value={value} label={label} onChange={(event) => onChange(event.target.value)} sx={{ borderRadius: "11px", fontSize: "0.84rem", bgcolor: "rgba(255,255,255,0.025)" }}>
       {children}
     </Select>
   </FormControl>
@@ -674,33 +867,29 @@ const OrdersTable = ({
   setPage,
   setRowsPerPage,
   onResendReceipt,
+  onDeleteOrder,
 }) => {
   return (
-  <Panel>
+  <Panel sx={{ overflow: "hidden" }}>
     {loading && (
-      <Box sx={{ height: 3, bgcolor: "primary.main", opacity: 0.75 }} />
+      <Box sx={{ height: 3, bgcolor: "primary.main", opacity: 0.85 }} />
     )}
-    <TableContainer>
-      <Table size="small" stickyHeader sx={{ width: "100%", minWidth: 0, tableLayout: "fixed" }}>
+    <TableContainer sx={{ overflowX: "auto" }}>
+      <Table stickyHeader sx={{ minWidth: 960, tableLayout: "fixed" }}>
         <colgroup>
-          {[5, 5, 8, 9, 12, 7, 13, 8, 7, 4, 7, 9, 6].map((width, index) => (
+          {[8, 11, 19, 11, 24, 6, 9, 12].map((width, index) => (
             <col key={index} style={{ width: `${width}%` }} />
           ))}
         </colgroup>
         <TableHead>
           <TableRow>
-            <AdminHeadCell />
             <AdminHeadCell>Order</AdminHeadCell>
             <AdminHeadCell>Date</AdminHeadCell>
             <AdminHeadCell>Customer</AdminHeadCell>
-            <AdminHeadCell>Email</AdminHeadCell>
             <AdminHeadCell>Status</AdminHeadCell>
-            <AdminHeadCell>Items</AdminHeadCell>
-            <AdminHeadCell>Licenses</AdminHeadCell>
-            <AdminHeadCell>Types</AdminHeadCell>
+            <AdminHeadCell>Products</AdminHeadCell>
             <AdminHeadCell align="right">Qty</AdminHeadCell>
             <AdminHeadCell align="right">Total</AdminHeadCell>
-            <AdminHeadCell>Payment</AdminHeadCell>
             <AdminHeadCell align="right">Actions</AdminHeadCell>
           </TableRow>
         </TableHead>
@@ -713,9 +902,10 @@ const OrdersTable = ({
                 receiptInfo={receiptState[order.id]}
                 onToggle={() => setExpanded((prev) => ({ ...prev, [order.id]: !prev[order.id] }))}
                 onResendReceipt={() => onResendReceipt(order.id)}
+                onDelete={() => onDeleteOrder(order)}
               />
               <TableRow>
-                <TableCell colSpan={13} sx={{ p: 0, borderBottom: "none" }}>
+                <TableCell colSpan={8} sx={{ p: 0, borderBottom: "none" }}>
                   <Collapse in={Boolean(expanded[order.id])} timeout="auto" unmountOnExit>
                     <OrderDetails order={order} receiptInfo={receiptState[order.id]} />
                   </Collapse>
@@ -724,7 +914,7 @@ const OrdersTable = ({
             </Fragment>
           )) : (
             <TableRow>
-              <TableCell colSpan={13} sx={{ py: 6, textAlign: "center", color: "text.secondary" }}>
+              <TableCell colSpan={8} sx={{ py: 7, textAlign: "center", color: "text.secondary" }}>
                 No orders found.
               </TableCell>
             </TableRow>
@@ -743,6 +933,7 @@ const OrdersTable = ({
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
       }}
+      sx={{ borderTop: "1px solid rgba(255,255,255,0.07)", ".MuiTablePagination-toolbar": { minHeight: 58, px: { xs: 1.5, md: 2 } }, ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": { color: "text.secondary", fontSize: "0.76rem" } }}
     />
   </Panel>
   );
@@ -751,25 +942,25 @@ const OrdersTable = ({
 const AdminHeadCell = ({ children, align }) => (
   <TableCell
     align={align}
-    sx={(theme) => ({
-      bgcolor: theme.palette.background.paper,
+    sx={{
+      bgcolor: "#17151c",
       color: "text.secondary",
-      fontFamily: theme.custom.fonts.mono,
-      fontSize: "0.68rem",
-      fontWeight: 700,
-      letterSpacing: "0.8px",
+      fontSize: "0.66rem",
+      fontWeight: 800,
+      letterSpacing: "0.09em",
       textTransform: "uppercase",
       whiteSpace: "normal",
       lineHeight: 1.2,
-      px: { xs: 0.5, sm: 0.75, lg: 1 },
-      py: 1,
-    })}
+      px: 1.75,
+      py: 1.55,
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+    }}
   >
     {children}
   </TableCell>
 );
 
-const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt }) => {
+const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt, onDelete }) => {
   const user = order.User || {};
   const status = statusMeta[order.status] || statusMeta.pending;
   const items = getOrderItems(order);
@@ -777,43 +968,54 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
   const canResend = order.status === "completed";
 
   return (
-    <TableRow hover>
-      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
-        <Tooltip title={expanded ? "Collapse" : "Expand"}>
-          <IconButton size="small" onClick={onToggle}>
-            {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-          </IconButton>
-        </Tooltip>
+    <TableRow hover sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.025)" }, "& td": { borderBottomColor: "rgba(255,255,255,0.06)" } }}>
+      <TableCell sx={{ px: 1.75, py: 1.55 }}>
+        <Typography sx={{ fontWeight: 800, fontSize: "0.87rem" }}>#{order.id}</Typography>
+        {order.promotionName && <Typography sx={{ color: "success.main", fontSize: "0.68rem", mt: 0.2 }}>Promo applied</Typography>}
       </TableCell>
-      <TableCell sx={{ fontWeight: 700, overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>#{order.id}</TableCell>
-      <TableCell sx={{ overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{formatDate(order.createdAt)}</TableCell>
-      <TableCell sx={{ overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getCustomerName(user)}</TableCell>
-      <TableCell sx={{ color: "text.secondary", overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{user.email || "No email"}</TableCell>
-      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
-        <Chip label={status.label} color={status.color} size="small" sx={{ fontWeight: 700 }} />
+      <TableCell sx={{ color: "text.secondary", fontSize: "0.8rem", px: 1.75, py: 1.55 }}>{formatDate(order.createdAt)}</TableCell>
+      <TableCell sx={{ px: 1.75, py: 1.55 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: "0.82rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getCustomerName(user)}</Typography>
+        <Typography sx={{ color: "text.disabled", fontSize: "0.72rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email || "No email"}</Typography>
       </TableCell>
-      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
-        <Typography title={productNames || "No items"} sx={{ fontSize: "0.78rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <TableCell sx={{ px: 1.75, py: 1.55 }}>
+        <Chip label={status.label} color={status.color} size="small" sx={{ fontWeight: 700, height: 26, "& .MuiChip-label": { px: 1.1 } }} />
+      </TableCell>
+      <TableCell sx={{ px: 1.75, py: 1.55 }}>
+        <Typography title={productNames || "No items"} sx={{ fontSize: "0.8rem", lineHeight: 1.45, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
           {productNames || "No items"}
         </Typography>
       </TableCell>
-      <TableCell sx={{ fontSize: "0.72rem", overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getOrderLicenses(order).join(", ") || "None"}</TableCell>
-      <TableCell sx={{ fontSize: "0.72rem", overflowWrap: "anywhere", px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getOrderProductTypes(order).map(formatProductType).join(", ") || "None"}</TableCell>
-      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{getOrderQuantity(order)}</TableCell>
-      <TableCell align="right" sx={{ fontWeight: 700, px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>{formatMoney(order.totalPrice)}</TableCell>
-      <TableCell sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
-        <Typography title={order.paymentIntentId || "None"} sx={{ fontSize: "0.72rem", color: "text.secondary", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {order.paymentIntentId || "None"}
-        </Typography>
-      </TableCell>
-      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 0.75, lg: 1 }, py: 1 }}>
+      <TableCell align="right" sx={{ px: 1.75, py: 1.55, color: "text.secondary" }}>{getOrderQuantity(order)}</TableCell>
+      <TableCell align="right" sx={{ fontWeight: 800, px: 1.75, py: 1.55, whiteSpace: "nowrap" }}>{formatMoney(order.totalPrice)}</TableCell>
+      <TableCell align="right" sx={{ px: 1.3, py: 1.2 }}>
+        <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.45 }}>
+          <Tooltip title={expanded ? "Collapse details" : "View details"}>
+            <IconButton size="small" onClick={onToggle} sx={{ width: 36, height: 36, minWidth: 36, minHeight: 36, p: 0, bgcolor: "transparent", boxShadow: "none", border: "none", color: "text.secondary", "&:hover": { bgcolor: "rgba(255,255,255,0.06)", color: "text.primary", transform: "none", boxShadow: "none" } }}>
+              {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
         <Tooltip title={canResend ? "Resend receipt" : "Completed orders only"}>
           <span>
-            <IconButton size="small" onClick={onResendReceipt} disabled={!canResend || receiptInfo?.loading}>
+            <IconButton size="small" onClick={onResendReceipt} disabled={!canResend || receiptInfo?.loading} sx={{ width: 36, height: 36, minWidth: 36, minHeight: 36, p: 0, bgcolor: "transparent", boxShadow: "none", border: "none", color: "text.secondary", "&:hover": { bgcolor: "rgba(255,255,255,0.06)", color: "primary.main", transform: "none", boxShadow: "none" }, "&.Mui-disabled": { bgcolor: "transparent", boxShadow: "none" } }}>
               <EmailIcon fontSize="small" />
             </IconButton>
           </span>
         </Tooltip>
+        <Tooltip title={order.status === "pending" ? "Resolve pending payment before deleting" : "Delete order"}>
+          <span>
+            <IconButton
+              size="small"
+              onClick={onDelete}
+              disabled={order.status === "pending"}
+              aria-label={`Delete order ${order.id}`}
+              sx={{ width: 36, height: 36, minWidth: 36, minHeight: 36, p: 0, bgcolor: "transparent", boxShadow: "none", border: "none", color: "text.secondary", "&:hover": { bgcolor: "rgba(255,77,109,0.1)", color: "error.main", transform: "none", boxShadow: "none" }, "&.Mui-disabled": { bgcolor: "transparent", boxShadow: "none" } }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        </Box>
       </TableCell>
     </TableRow>
   );
@@ -821,48 +1023,58 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
 
 const OrderDetails = ({ order, receiptInfo }) => (
   <Box sx={(theme) => ({
-    p: 2,
-    bgcolor: "rgba(255,255,255,0.035)",
+    p: { xs: 1.5, md: 2.5 },
+    bgcolor: "rgba(0,0,0,0.12)",
     borderTop: theme.custom.clay.hairline,
     borderBottom: theme.custom.clay.hairline,
   })}>
-    {Number(order.discountAmount || 0) > 0 && (
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2, color: "text.secondary" }}>
-        <Typography variant="body2">Subtotal: {formatMoney(order.subtotalPrice)}</Typography>
-        <Typography variant="body2" color="success.main">
-          Sale: {order.promotionName} ({Number(order.discountPercent)}%{order.promoCode ? ` · ${order.promoCode}` : ""}) — {formatMoney(order.discountAmount)} off
-        </Typography>
-        <Typography variant="body2" fontWeight={700}>Paid: {formatMoney(order.totalPrice)}</Typography>
-      </Box>
-    )}
-    <Grid container spacing={2}>
+    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" }, gap: 1, mb: 2 }}>
+      <OrderMeta label="Subtotal" value={formatMoney(order.subtotalPrice ?? order.totalPrice)} />
+      <OrderMeta label="Sale applied" value={order.promotionName ? `${order.promotionName} · ${Number(order.discountPercent)}%${order.promoCode ? ` · ${order.promoCode}` : ""}` : "None"} accent={Boolean(order.promotionName)} />
+      <OrderMeta label="Discount" value={formatMoney(order.discountAmount || 0)} accent={Number(order.discountAmount || 0) > 0} />
+      <OrderMeta label="Paid" value={formatMoney(order.totalPrice)} strong />
+    </Box>
+    <Box sx={{ mb: 1.75, px: 0.2 }}>
+      <Typography sx={{ color: "text.disabled", fontSize: "0.7rem", overflowWrap: "anywhere" }}>
+        Payment reference · {order.paymentIntentId || "No payment reference"}
+      </Typography>
+    </Box>
+    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.15 }}>
+      <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Purchased items</Typography>
+      <Typography sx={{ fontSize: "0.72rem", color: "text.secondary" }}>{getOrderQuantity(order)} total</Typography>
+    </Box>
+    <Grid container spacing={1.4}>
       {getOrderItems(order).map((item) => (
         <Grid item xs={12} md={6} lg={4} key={item.id}>
           <Box sx={(theme) => ({
             display: "grid",
-            gridTemplateColumns: "52px minmax(0, 1fr)",
+            gridTemplateColumns: "56px minmax(0, 1fr)",
             gap: 1.4,
-            p: 1.3,
-            borderRadius: "10px",
-            border: theme.custom.clay.hairline,
+            p: 1.35,
+            height: "100%",
+            borderRadius: "14px",
+            border: `1px solid rgba(255,255,255,0.075)`,
+            bgcolor: "rgba(255,255,255,0.025)",
+            transition: "border-color 160ms ease, background-color 160ms ease",
+            "&:hover": { borderColor: `${theme.palette.primary.main}55`, bgcolor: "rgba(255,255,255,0.04)" },
           })}>
             <Box
               component="img"
               src={item.Product?.imageUrl || "/placeholder.jpg"}
               alt={item.Product?.title || "Product"}
-              sx={{ width: 52, height: 52, borderRadius: "8px", objectFit: "cover", bgcolor: "background.paper" }}
+              sx={{ width: 56, height: 56, borderRadius: "11px", objectFit: "cover", bgcolor: "background.paper" }}
             />
             <Box sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <Typography sx={{ fontWeight: 750, fontSize: "0.84rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {item.Product?.title || "Deleted product"}
               </Typography>
-              <Typography sx={{ color: "text.secondary", fontSize: "0.82rem" }}>
-                {formatProductType(item.Product?.type)} | {item.License?.name || "No license"} | Qty {item.quantity || 1}
+              <Typography sx={{ color: "text.secondary", fontSize: "0.73rem", mt: 0.35 }}>
+                {formatProductType(item.Product?.type)} · {item.License?.name || "No license"} · Qty {item.quantity || 1}
               </Typography>
-              <Typography sx={{ color: "text.secondary", fontSize: "0.82rem" }}>
-                {item.Product?.genre || "No genre"} {item.Product?.bpm ? `| ${item.Product.bpm} BPM` : ""} {item.Product?.key ? `| ${item.Product.key}` : ""}
+              <Typography sx={{ color: "text.disabled", fontSize: "0.7rem", mt: 0.25 }}>
+                {item.Product?.genre || "No genre"} {item.Product?.bpm ? `· ${item.Product.bpm} BPM` : ""} {item.Product?.key ? `· ${item.Product.key}` : ""}
               </Typography>
-              <Typography sx={{ fontWeight: 700, mt: 0.5 }}>{formatMoney(item.priceAtPurchase)}</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: "0.8rem", mt: 0.55 }}>{formatMoney(item.priceAtPurchase)}</Typography>
             </Box>
           </Box>
         </Grid>
@@ -874,9 +1086,16 @@ const OrderDetails = ({ order, receiptInfo }) => (
   </Box>
 );
 
-const CustomersTable = ({ customers }) => (
+const OrderMeta = ({ label, value, accent, strong }) => (
+  <Box sx={{ minWidth: 0, p: 1.2, borderRadius: "11px", border: "1px solid rgba(255,255,255,0.06)", bgcolor: "rgba(255,255,255,0.025)" }}>
+    <Typography sx={{ color: "text.disabled", fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</Typography>
+    <Typography sx={{ mt: 0.4, fontSize: "0.78rem", fontWeight: strong ? 800 : 650, color: accent ? "success.main" : "text.primary", overflowWrap: "anywhere" }}>{value}</Typography>
+  </Box>
+);
+
+const CustomersTable = ({ customers, onDelete }) => (
   <SimpleTable
-    headers={["Customer", "Email", "Orders", "Lifetime Spend", "Avg Order", "Last Order", "Subscribed"]}
+    headers={["Customer", "Email", "Orders", "Lifetime Spend", "Avg Order", "Last Order", "Subscribed", "Actions"]}
     empty="No customer analytics yet."
     rows={customers.map((customer) => [
       getCustomerName(customer),
@@ -886,11 +1105,16 @@ const CustomersTable = ({ customers }) => (
       formatMoney(customer.averageOrderValue),
       formatDate(customer.lastOrderDate),
       customer.isSubscribedToEmails ? "Yes" : "No",
+      <DeleteActionButton
+        label={`Delete customer ${getCustomerName(customer)}`}
+        disabled={customer.role === "admin"}
+        onClick={() => onDelete(customer)}
+      />,
     ])}
   />
 );
 
-const UsersTable = ({ users, loading, error }) => {
+const UsersTable = ({ users, loading, error, onDelete }) => {
   if (loading) {
     return (
       <Panel sx={{ py: 6, display: "flex", justifyContent: "center" }}>
@@ -903,15 +1127,37 @@ const UsersTable = ({ users, loading, error }) => {
 
   return (
     <SimpleTable
-      headers={["Name", "Email"]}
+      headers={["Name", "Email", "Account", "Actions"]}
       rows={users.map((user) => [
         [user.firstName, user.lastName].filter(Boolean).join(" ") || "Name unavailable",
         user.email,
+        user.role === "admin" ? <Chip size="small" label="Admin account" color="primary" /> : <Chip size="small" label="Customer account" />,
+        <DeleteActionButton
+          label={`Delete account ${user.email}`}
+          disabled={user.role === "admin"}
+          onClick={() => onDelete(user)}
+        />,
       ])}
       empty="No registered users found."
     />
   );
 };
+
+const DeleteActionButton = ({ label, onClick, disabled }) => (
+  <Tooltip title={disabled ? "Admin accounts are protected" : label}>
+    <span>
+      <IconButton
+        size="small"
+        aria-label={label}
+        onClick={onClick}
+        disabled={disabled}
+        sx={{ width: 36, height: 36, minWidth: 36, minHeight: 36, p: 0, color: disabled ? "text.disabled" : "text.secondary", bgcolor: "transparent", border: "none", boxShadow: "none", "&:hover": { bgcolor: "rgba(255,77,109,0.1)", color: "error.main", transform: "none", boxShadow: "none" }, "&.Mui-disabled": { bgcolor: "transparent", boxShadow: "none" } }}
+      >
+        <DeleteOutlineIcon fontSize="small" />
+      </IconButton>
+    </span>
+  </Tooltip>
+);
 
 const ProductsTable = ({ products }) => (
   <SimpleTable
@@ -1439,9 +1685,9 @@ const EmptyChart = ({ height = 160 }) => (
 );
 
 const SimpleTable = ({ headers, rows, empty }) => (
-  <Panel>
-    <TableContainer>
-      <Table size="small">
+  <Panel sx={{ overflow: "hidden" }}>
+    <TableContainer sx={{ overflowX: "auto" }}>
+      <Table sx={{ minWidth: 560 }}>
         <TableHead>
           <TableRow>
             {headers.map((header) => <AdminHeadCell key={header}>{header}</AdminHeadCell>)}
@@ -1449,9 +1695,9 @@ const SimpleTable = ({ headers, rows, empty }) => (
         </TableHead>
         <TableBody>
           {rows.length ? rows.map((row, index) => (
-            <TableRow hover key={`${row[0]}-${index}`}>
+            <TableRow hover key={`${row[0]}-${index}`} sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.025)" }, "& td": { borderBottomColor: "rgba(255,255,255,0.06)" } }}>
               {row.map((cell, cellIndex) => (
-                <TableCell key={`${cell}-${cellIndex}`} sx={{ whiteSpace: cellIndex === 0 ? "normal" : "nowrap" }}>
+                <TableCell key={`${cell}-${cellIndex}`} sx={{ px: 2, py: 1.5, fontSize: "0.82rem", color: cellIndex === 0 ? "text.primary" : "text.secondary", whiteSpace: cellIndex === 0 ? "normal" : "nowrap" }}>
                   {cell}
                 </TableCell>
               ))}

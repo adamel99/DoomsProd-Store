@@ -1,7 +1,7 @@
 const express = require('express');
 const { requireAuth, requireAdmin } = require('../../utils/auth');
 const { Op } = require('sequelize');
-const { Order, User, OrderItem, Product, License, Promotion } = require('../../db/models');
+const { Order, User, OrderItem, Product, License, Promotion, sequelize } = require('../../db/models');
 
 const router = express.Router();
 
@@ -96,12 +96,53 @@ router.patch('/promotions/:promotionId/toggle', requireAuth, requireAdmin, async
 router.get('/users', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const users = await User.findAll({
-      attributes: ['firstName', 'lastName', 'email'],
+      attributes: ['id', 'firstName', 'lastName', 'email', 'role'],
       order: [['createdAt', 'DESC']],
     });
 
     return res.status(200).json({ users });
   } catch (error) {
+    return next(error);
+  }
+});
+
+router.delete('/users/:userId', requireAuth, requireAdmin, async (req, res, next) => {
+  const userId = Number(req.params.userId);
+  if (!Number.isInteger(userId) || userId < 1) {
+    return res.status(400).json({ message: 'User id must be valid.' });
+  }
+
+  try {
+    await sequelize.transaction(async (transaction) => {
+      const user = await User.findByPk(userId, {
+        transaction,
+        lock: { level: transaction.LOCK.UPDATE, of: User },
+      });
+      if (!user) {
+        const error = new Error('User not found.');
+        error.status = 404;
+        throw error;
+      }
+      if (user.role === 'admin' || user.id === req.user.id) {
+        const error = new Error('Admin accounts cannot be deleted from the customer dashboard.');
+        error.status = 403;
+        throw error;
+      }
+
+      const pendingOrders = await Order.count({ where: { userId, status: 'pending' }, transaction });
+      if (pendingOrders) {
+        const error = new Error('This account has a pending order. Cancel or resolve it before deleting the account.');
+        error.status = 409;
+        throw error;
+      }
+
+      // Keep catalog items available if an account still owns any products.
+      await Product.update({ userId: req.user.id }, { where: { userId }, transaction });
+      await user.destroy({ transaction });
+    });
+    return res.status(204).end();
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ message: error.message });
     return next(error);
   }
 });
@@ -141,6 +182,7 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
             'totalPurchases',
             'rewardDiscount',
             'isSubscribedToEmails',
+            'role',
             'createdAt',
           ],
         },
@@ -192,6 +234,7 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
           totalPurchases: user.totalPurchases,
           rewardDiscount: user.rewardDiscount,
           isSubscribedToEmails: user.isSubscribedToEmails,
+          role: user.role,
           orderCount: 0,
           lifetimeSpend: 0,
           averageOrderValue: 0,
