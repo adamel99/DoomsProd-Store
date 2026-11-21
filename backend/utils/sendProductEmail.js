@@ -160,6 +160,14 @@ async function sendProductEmail(email, files = [], receipt = {}) {
                                 <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Purchased</td>
                                 <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(purchaseTime)}</td>
                               </tr>
+                              ${receipt.paymentMethod ? `<tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Payment method</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(receipt.paymentMethod)}</td>
+                              </tr>` : ''}
+                              ${receipt.paymentReference ? `<tr>
+                                <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Payment reference</td>
+                                <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(receipt.paymentReference)}</td>
+                              </tr>` : ''}
                               <tr>
                                 <td style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;color:${colors.textMuted};">Subtotal</td>
                                 <td align="right" style="padding:14px 0;border-bottom:${clay.hairline};font-size:13px;font-weight:700;color:${colors.text};">${escapeHtml(subtotal)}</td>

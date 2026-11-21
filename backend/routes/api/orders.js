@@ -109,6 +109,10 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
       const term = `%${search.trim()}%`;
       orderWhere[Op.or] = [
         { paymentIntentId: { [likeOperator]: term } },
+        { customerName: { [likeOperator]: term } },
+        { customerEmail: { [likeOperator]: term } },
+        { paymentMethod: { [likeOperator]: term } },
+        { paymentReference: { [likeOperator]: term } },
         { '$User.username$': { [likeOperator]: term } },
         { '$User.email$': { [likeOperator]: term } },
         { '$User.firstName$': { [likeOperator]: term } },
@@ -128,6 +132,7 @@ router.get('/', requireAuth, requireAdmin, async (req, res, next) => {
           model: User,
           attributes: adminUserAttributes,
           where: userWhere,
+          required: false,
         },
         {
           model: OrderItem,
@@ -211,9 +216,14 @@ router.post(
       return res.status(400).json({ message: 'Receipts can only be resent for completed orders.' });
     }
 
+    const recipientEmail = order.customerEmail || order.User?.email;
+    if (!recipientEmail) {
+      return res.status(400).json({ message: 'This order has no customer email address.' });
+    }
+
     const files = await getOrderDownloadFiles(order.id);
     const receipt = await getOrderReceiptDetails(order.id, order.User);
-    await sendProductEmail(order.User.email, files, receipt);
+    await sendProductEmail(recipientEmail, files, receipt);
 
     return res.status(200).json({ message: 'Receipt resent.' });
   } catch (error) {
@@ -251,7 +261,7 @@ router.post('/', requireAuth, async (req, res, next) => {
   }
 });
 
-// Update order total (and status if you add it later) — admin only
+// Update an order status — admin only
 router.put('/:orderId', requireAuth, requireAdmin, validateOrderUpdate, async (req, res, next) => {
   try {
     const order = await Order.findByPk(req.params.orderId);
@@ -274,7 +284,7 @@ router.delete('/:orderId', requireAuth, requireAdmin, validateOrderId, async (re
     const order = await Order.findByPk(req.params.orderId);
     if (!order) return res.status(404).json({ message: 'Order not found.' });
     if (order.status === 'pending') {
-      return res.status(409).json({ message: 'Pending orders cannot be deleted. Cancel or resolve the payment first.' });
+      return res.status(409).json({ message: 'Pending orders cannot be deleted. Change the status to completed or cancelled first.' });
     }
 
     await order.destroy();

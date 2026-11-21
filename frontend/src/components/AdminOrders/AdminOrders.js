@@ -33,6 +33,7 @@ import {
   Typography,
 } from "@mui/material";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import AddIcon from "@mui/icons-material/Add";
 import DownloadIcon from "@mui/icons-material/Download";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EmailIcon from "@mui/icons-material/Email";
@@ -90,8 +91,10 @@ const Panel = ({ children, sx = {} }) => (
 const normalize = (value) => String(value || "").toLowerCase();
 const getOrderItems = (order) => order.OrderItems || [];
 const getCustomerName = (user = {}) => (
-  [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "Customer"
+  user.customerName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "Customer"
 );
+const getOrderCustomerName = (order) => order.customerName || getCustomerName(order.User);
+const getOrderCustomerEmail = (order) => order.customerEmail || order.User?.email || "";
 const getOrderQuantity = (order) => (
   getOrderItems(order).reduce((sum, item) => sum + (item.quantity || 1), 0)
 );
@@ -172,6 +175,9 @@ const AdminOrders = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [actionNotice, setActionNotice] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [manualOrderOpen, setManualOrderOpen] = useState(false);
+  const [statusSaving, setStatusSaving] = useState({});
 
   useEffect(() => {
     let isMounted = true;
@@ -275,7 +281,7 @@ const AdminOrders = () => {
   const filteredOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
       if (sortBy === "totalPrice") return Number(b.totalPrice || 0) - Number(a.totalPrice || 0);
-      if (sortBy === "customer") return getCustomerName(a.User).localeCompare(getCustomerName(b.User));
+      if (sortBy === "customer") return getOrderCustomerName(a).localeCompare(getOrderCustomerName(b));
       if (sortBy === "status") return normalize(a.status).localeCompare(normalize(b.status));
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
@@ -285,7 +291,9 @@ const AdminOrders = () => {
     const completed = orders.filter((order) => order.status === "completed");
     const pending = orders.filter((order) => order.status === "pending");
     const cancelled = orders.filter((order) => order.status === "cancelled");
-    const customers = new Set(orders.map((order) => order.User?.id).filter(Boolean));
+    const customers = new Set(orders.map((order) => (
+      order.customerEmail || order.User?.email || order.User?.id
+    )).filter(Boolean).map((emailOrId) => String(emailOrId).toLowerCase()));
     const completedRevenue = completed.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0);
 
     return {
@@ -331,6 +339,33 @@ const AdminOrders = () => {
         ...prev,
         [orderId]: { loading: false, message: null, error: message },
       }));
+    }
+  };
+
+  const updateOrderStatus = async (orderId, status) => {
+    const previousStatus = orders.find((order) => order.id === orderId)?.status;
+    setStatusSaving((current) => ({ ...current, [orderId]: true }));
+    setActionError("");
+    try {
+      await csrfFetch(`/api/orders/${orderId}`, {
+        method: "PUT",
+        body: JSON.stringify({ status }),
+      });
+      setOrders((current) => current.map((order) => (
+        order.id === orderId ? { ...order, status } : order
+      )));
+      if (statusFilter === previousStatus) setStatusFilter("all");
+      setActionNotice(`Order #${orderId} status updated to ${statusMeta[status]?.label || status}.`);
+      setRefreshKey((current) => current + 1);
+    } catch (err) {
+      let message = "Could not update order status.";
+      if (err?.json) {
+        const data = await err.json();
+        message = data.message || message;
+      }
+      setActionError(message);
+    } finally {
+      setStatusSaving((current) => ({ ...current, [orderId]: false }));
     }
   };
 
@@ -388,12 +423,12 @@ const AdminOrders = () => {
 
   const exportOrders = () => {
     const rows = [
-      ["Order ID", "Date", "Customer", "Email", "Status", "Items", "Licenses", "Product Types", "Quantity", "Subtotal", "Sale", "Promo Code", "Discount %", "Discount Amount", "Total", "Payment Intent"],
+      ["Order ID", "Date", "Customer", "Email", "Status", "Items", "Licenses", "Product Types", "Quantity", "Subtotal", "Sale", "Promo Code", "Discount %", "Discount Amount", "Total", "Payment Intent", "Source", "Payment Method", "Payment Reference", "Notes"],
       ...filteredOrders.map((order) => [
         order.id,
         formatDateTime(order.createdAt),
-        getCustomerName(order.User),
-        order.User?.email || "",
+        getOrderCustomerName(order),
+        getOrderCustomerEmail(order),
         order.status,
         getOrderItems(order).map((item) => item.Product?.title || "Deleted product").join(" | "),
         getOrderLicenses(order).join(" | "),
@@ -406,6 +441,10 @@ const AdminOrders = () => {
         Number(order.discountAmount || 0).toFixed(2),
         Number(order.totalPrice || 0).toFixed(2),
         order.paymentIntentId || "",
+        order.source || "website",
+        order.paymentMethod || "",
+        order.paymentReference || "",
+        order.notes || "",
       ]),
     ];
 
@@ -417,7 +456,7 @@ const AdminOrders = () => {
       ["Customer", "Username", "Email", "Orders", "Lifetime Spend", "Average Order", "Last Order", "Subscribed"],
       ...customers.map((customer) => [
         getCustomerName(customer),
-        customer.username,
+        customer.username || "",
         customer.email,
         customer.orderCount,
         Number(customer.lifetimeSpend || 0).toFixed(2),
@@ -501,19 +540,27 @@ const AdminOrders = () => {
           </Box>
 
           {canExport && (
-            <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              onClick={handleExport}
-              disabled={loading || Boolean(error) || (tab === "users" && (usersLoading || Boolean(usersError)))}
-              sx={{ alignSelf: { xs: "stretch", md: "center" }, minWidth: 150, bgcolor: "rgba(255,255,255,0.025)" }}
-            >
-              Export {tab === "users" ? "users" : tab === "customers" ? "customers" : "orders"}
-            </Button>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+              {tab === "orders" && (
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => setManualOrderOpen(true)}>
+                  Add manual order
+                </Button>
+              )}
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleExport}
+                disabled={loading || Boolean(error) || (tab === "users" && (usersLoading || Boolean(usersError)))}
+                sx={{ minWidth: 150, bgcolor: "rgba(255,255,255,0.025)" }}
+              >
+                Export {tab === "users" ? "users" : tab === "customers" ? "customers" : "orders"}
+              </Button>
+            </Box>
           )}
         </Box>
 
         {actionNotice && <Alert severity="success" onClose={() => setActionNotice("")} sx={{ mb: 2 }}>{actionNotice}</Alert>}
+        {actionError && <Alert severity="error" onClose={() => setActionError("")} sx={{ mb: 2 }}>{actionError}</Alert>}
 
         {loading ? (
           <Box sx={{ py: 12, display: "flex", justifyContent: "center" }}>
@@ -630,6 +677,8 @@ const AdminOrders = () => {
                   setPage={setPage}
                   setRowsPerPage={setRowsPerPage}
                   onResendReceipt={resendReceipt}
+                  onStatusChange={updateOrderStatus}
+                  statusSaving={statusSaving}
                   onDeleteOrder={requestDeleteOrder}
                 />
               </>
@@ -671,7 +720,211 @@ const AdminOrders = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <ManualOrderDialog
+        open={manualOrderOpen}
+        onClose={() => setManualOrderOpen(false)}
+        onCreated={(order) => {
+          setManualOrderOpen(false);
+          setPage(0);
+          setSearch("");
+          setStatusFilter("all");
+          setTypeFilter("all");
+          setDatePreset("all");
+          setStartDate("");
+          setEndDate("");
+          setActionNotice(`Manual order #${order.id} added. Revenue and product analytics are refreshing.`);
+          setRefreshKey((current) => current + 1);
+        }}
+      />
     </Box>
+  );
+};
+
+const emptyManualOrder = () => ({
+  customerName: "",
+  customerEmail: "",
+  productId: "",
+  licenseId: "",
+  price: "",
+  orderDate: todayIso(),
+  paymentMethod: "paypal",
+  paymentReference: "",
+  status: "completed",
+  notes: "",
+});
+
+const ManualOrderDialog = ({ open, onClose, onCreated }) => {
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [form, setForm] = useState(emptyManualOrder);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const selectedProduct = products.find((product) => String(product.id) === String(form.productId));
+  const availableLicenses = selectedProduct?.licenses || [];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    let mounted = true;
+    setForm(emptyManualOrder());
+    setError("");
+    setProducts([]);
+    setProductsLoading(true);
+
+    csrfFetch("/api/products")
+      .then((response) => response.json())
+      .then((data) => {
+        if (mounted) setProducts((data.products || []).filter((product) => product.type === "beat"));
+      })
+      .catch(async (err) => {
+        let message = "Could not load beats for this order.";
+        if (err?.json) {
+          const data = await err.json();
+          message = data.message || message;
+        }
+        if (mounted) setError(message);
+      })
+      .finally(() => { if (mounted) setProductsLoading(false); });
+
+    return () => { mounted = false; };
+  }, [open]);
+
+  const updateField = (field) => (event) => {
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+  };
+
+  const selectProduct = (event) => {
+    const productId = event.target.value;
+    const product = products.find((candidate) => String(candidate.id) === String(productId));
+    const licenses = product?.licenses || [];
+    const initialLicense = licenses.find((license) => String(license.name).toLowerCase() === "basic") || licenses[0];
+    setForm((current) => ({
+      ...current,
+      productId,
+      licenseId: initialLicense ? String(initialLicense.id) : "",
+      price: initialLicense ? Number(initialLicense.price).toFixed(2) : "",
+    }));
+  };
+
+  const selectLicense = (event) => {
+    const licenseId = event.target.value;
+    const license = availableLicenses.find((candidate) => String(candidate.id) === String(licenseId));
+    setForm((current) => ({
+      ...current,
+      licenseId,
+      price: license ? Number(license.price).toFixed(2) : current.price,
+    }));
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const response = await csrfFetch("/api/admin/manual-orders", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      const data = await response.json();
+      onCreated(data.order);
+    } catch (err) {
+      let message = "Could not add this manual order.";
+      if (err?.json) {
+        const data = await err.json();
+        message = data.message || message;
+      }
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={() => { if (!saving) onClose(); }} fullWidth maxWidth="md">
+      <Box component="form" onSubmit={submit}>
+        <DialogTitle sx={{ pb: 0.5, fontWeight: 800 }}>Add an off-site beat order</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2.5, color: "text.secondary" }}>
+            Record a beat sale paid outside the website. This won’t create a Stripe charge or apply a promotion.
+          </DialogContentText>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {productsLoading ? (
+            <Box sx={{ py: 5, display: "flex", justifyContent: "center" }}><CircularProgress size={28} /></Box>
+          ) : !products.length ? (
+            <Alert severity="info">No beats are available in the catalog yet.</Alert>
+          ) : (
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField required fullWidth label="Customer name" value={form.customerName} onChange={updateField("customerName")} inputProps={{ maxLength: 160 }} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField required fullWidth type="email" label="Customer email" value={form.customerEmail} onChange={updateField("customerEmail")} inputProps={{ maxLength: 254 }} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl required fullWidth>
+                  <InputLabel id="manual-order-beat-label">Beat</InputLabel>
+                  <Select labelId="manual-order-beat-label" value={form.productId} label="Beat" onChange={selectProduct}>
+                    {products.map((product) => <MenuItem key={product.id} value={String(product.id)}>{product.title}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl required fullWidth disabled={!availableLicenses.length}>
+                  <InputLabel id="manual-order-license-label">Lease</InputLabel>
+                  <Select labelId="manual-order-license-label" value={form.licenseId} label="Lease" onChange={selectLicense}>
+                    {availableLicenses.map((license) => (
+                      <MenuItem key={license.id} value={String(license.id)}>
+                        {license.name} · {formatMoney(license.price)} list price
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField required fullWidth type="number" label="Price paid (USD)" value={form.price} onChange={updateField("price")} inputProps={{ min: 0.01, step: 0.01 }} />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField required fullWidth type="date" label="Sale date" value={form.orderDate} onChange={updateField("orderDate")} InputLabelProps={{ shrink: true }} />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl required fullWidth>
+                  <InputLabel id="manual-order-payment-label">Payment method</InputLabel>
+                  <Select labelId="manual-order-payment-label" value={form.paymentMethod} label="Payment method" onChange={updateField("paymentMethod")}>
+                    <MenuItem value="paypal">PayPal</MenuItem>
+                    <MenuItem value="venmo">Venmo</MenuItem>
+                    <MenuItem value="zelle">Zelle</MenuItem>
+                    <MenuItem value="cash_app">Cash App</MenuItem>
+                    <MenuItem value="cash">Cash</MenuItem>
+                    <MenuItem value="other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl required fullWidth>
+                  <InputLabel id="manual-order-status-label">Order status</InputLabel>
+                  <Select labelId="manual-order-status-label" value={form.status} label="Order status" onChange={updateField("status")}>
+                    <MenuItem value="completed">Completed / paid</MenuItem>
+                    <MenuItem value="pending">Pending</MenuItem>
+                    <MenuItem value="cancelled">Cancelled</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Payment reference (optional)" value={form.paymentReference} onChange={updateField("paymentReference")} inputProps={{ maxLength: 200 }} helperText="For example, a PayPal transaction ID." />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth multiline minRows={2} label="Order notes (optional)" value={form.notes} onChange={updateField("notes")} inputProps={{ maxLength: 2000 }} />
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button variant="outlined" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={productsLoading || !products.length || saving || !form.productId || !form.licenseId}>
+            {saving ? "Adding order…" : "Add order"}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
   );
 };
 
@@ -867,6 +1120,8 @@ const OrdersTable = ({
   setPage,
   setRowsPerPage,
   onResendReceipt,
+  onStatusChange,
+  statusSaving,
   onDeleteOrder,
 }) => {
   return (
@@ -902,6 +1157,8 @@ const OrdersTable = ({
                 receiptInfo={receiptState[order.id]}
                 onToggle={() => setExpanded((prev) => ({ ...prev, [order.id]: !prev[order.id] }))}
                 onResendReceipt={() => onResendReceipt(order.id)}
+                onStatusChange={(status) => onStatusChange(order.id, status)}
+                statusSaving={Boolean(statusSaving[order.id])}
                 onDelete={() => onDeleteOrder(order)}
               />
               <TableRow>
@@ -960,9 +1217,7 @@ const AdminHeadCell = ({ children, align }) => (
   </TableCell>
 );
 
-const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt, onDelete }) => {
-  const user = order.User || {};
-  const status = statusMeta[order.status] || statusMeta.pending;
+const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt, onStatusChange, statusSaving, onDelete }) => {
   const items = getOrderItems(order);
   const productNames = items.map((item) => item.Product?.title || "Deleted product").join(", ");
   const canResend = order.status === "completed";
@@ -975,11 +1230,22 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
       </TableCell>
       <TableCell sx={{ color: "text.secondary", fontSize: "0.8rem", px: 1.75, py: 1.55 }}>{formatDate(order.createdAt)}</TableCell>
       <TableCell sx={{ px: 1.75, py: 1.55 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: "0.82rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getCustomerName(user)}</Typography>
-        <Typography sx={{ color: "text.disabled", fontSize: "0.72rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email || "No email"}</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: "0.82rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getOrderCustomerName(order)}</Typography>
+        <Typography sx={{ color: "text.disabled", fontSize: "0.72rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getOrderCustomerEmail(order) || "No email"}</Typography>
+        {order.source === "manual" && <Typography sx={{ color: "primary.main", fontSize: "0.65rem", mt: 0.15 }}>Off-site sale</Typography>}
       </TableCell>
       <TableCell sx={{ px: 1.75, py: 1.55 }}>
-        <Chip label={status.label} color={status.color} size="small" sx={{ fontWeight: 700, height: 26, "& .MuiChip-label": { px: 1.1 } }} />
+        <FormControl size="small" fullWidth>
+          <Select
+            value={order.status}
+            onChange={(event) => onStatusChange(event.target.value)}
+            disabled={statusSaving}
+            inputProps={{ "aria-label": `Change order ${order.id} status` }}
+            sx={{ borderRadius: "9px", fontSize: "0.76rem", height: 34, bgcolor: "rgba(255,255,255,0.025)" }}
+          >
+            {Object.entries(statusMeta).map(([value, meta]) => <MenuItem key={value} value={value}>{meta.label}</MenuItem>)}
+          </Select>
+        </FormControl>
       </TableCell>
       <TableCell sx={{ px: 1.75, py: 1.55 }}>
         <Typography title={productNames || "No items"} sx={{ fontSize: "0.8rem", lineHeight: 1.45, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
@@ -1002,7 +1268,7 @@ const OrderTableRow = ({ order, expanded, receiptInfo, onToggle, onResendReceipt
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title={order.status === "pending" ? "Resolve pending payment before deleting" : "Delete order"}>
+        <Tooltip title={order.status === "pending" ? "Change the status before deleting" : "Delete order"}>
           <span>
             <IconButton
               size="small"
@@ -1036,8 +1302,11 @@ const OrderDetails = ({ order, receiptInfo }) => (
     </Box>
     <Box sx={{ mb: 1.75, px: 0.2 }}>
       <Typography sx={{ color: "text.disabled", fontSize: "0.7rem", overflowWrap: "anywhere" }}>
-        Payment reference · {order.paymentIntentId || "No payment reference"}
+        {order.source === "manual" ? "Manual sale" : "Website order"}
+        {order.paymentMethod ? ` · Paid via ${order.paymentMethod}` : ""}
+        {order.paymentReference ? ` · Ref ${order.paymentReference}` : order.paymentIntentId ? ` · Stripe ${order.paymentIntentId}` : " · No payment reference"}
       </Typography>
+      {order.notes && <Typography sx={{ color: "text.secondary", fontSize: "0.76rem", mt: 0.65, whiteSpace: "pre-wrap" }}>Notes · {order.notes}</Typography>}
     </Box>
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.15 }}>
       <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Purchased items</Typography>
@@ -1107,7 +1376,8 @@ const CustomersTable = ({ customers, onDelete }) => (
       customer.isSubscribedToEmails ? "Yes" : "No",
       <DeleteActionButton
         label={`Delete customer ${getCustomerName(customer)}`}
-        disabled={customer.role === "admin"}
+        disabled={customer.role === "admin" || !customer.id}
+        disabledReason={customer.role === "admin" ? "Admin accounts are protected" : !customer.id ? "Delete this buyer’s orders from the Orders tab" : undefined}
         onClick={() => onDelete(customer)}
       />,
     ])}
@@ -1143,8 +1413,8 @@ const UsersTable = ({ users, loading, error, onDelete }) => {
   );
 };
 
-const DeleteActionButton = ({ label, onClick, disabled }) => (
-  <Tooltip title={disabled ? "Admin accounts are protected" : label}>
+const DeleteActionButton = ({ label, onClick, disabled, disabledReason }) => (
+  <Tooltip title={disabled ? (disabledReason || "Admin accounts are protected") : label}>
     <span>
       <IconButton
         size="small"

@@ -44,7 +44,7 @@ router.post("/", async (req, res) => {
           lock: { level: transaction.LOCK.UPDATE, of: Order },
         });
 
-        if (!order || order.status === "completed") return;
+        if (!order || order.status !== "pending") return;
         email = order.User.email;
         username = order.User.username;
 

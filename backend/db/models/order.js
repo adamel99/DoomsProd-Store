@@ -12,8 +12,14 @@ module.exports = (sequelize, DataTypes) => {
   Order.init({
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
+    customerName: { type: DataTypes.STRING(160), allowNull: true },
+    customerEmail: { type: DataTypes.STRING(254), allowNull: true },
+    source: { type: DataTypes.STRING(24), allowNull: false, defaultValue: 'website' },
+    paymentMethod: { type: DataTypes.STRING(40), allowNull: true },
+    paymentReference: { type: DataTypes.STRING(200), allowNull: true },
+    notes: { type: DataTypes.TEXT, allowNull: true },
     totalPrice: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,

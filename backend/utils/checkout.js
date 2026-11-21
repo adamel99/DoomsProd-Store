@@ -1,4 +1,4 @@
-const { Cart, CartItem, Product, License, Order, OrderItem, Promotion, sequelize } = require('../db/models');
+const { Cart, CartItem, Product, License, Order, OrderItem, Promotion, User, sequelize } = require('../db/models');
 const { Op } = require('sequelize');
 
 const cents = (amount) => Math.round(Number(amount || 0) * 100);
@@ -116,8 +116,21 @@ const getPromotionQuote = async (userId, cartItems, promoCode = '') => {
     item.price > 0 && item.product.type === 'beat' && String(item.license?.name || '').trim().toLowerCase() === 'basic'
       ? sum + item.quantity : sum
   ), 0);
+  const buyer = await User.findByPk(userId, { attributes: ['email'] });
+  const completedPurchaseMatches = [{ userId }];
+  if (buyer?.email) {
+    const emailLike = Order.sequelize.getDialect() === 'postgres' ? Op.iLike : Op.like;
+    completedPurchaseMatches.push({
+      userId: null,
+      customerEmail: { [emailLike]: String(buyer.email).trim() },
+    });
+  }
   const completedPaidPurchases = await Order.count({
-    where: { userId, status: 'completed', subtotalPrice: { [Op.gt]: 0 } },
+    where: {
+      status: 'completed',
+      subtotalPrice: { [Op.gt]: 0 },
+      [Op.or]: completedPurchaseMatches,
+    },
   });
   const activePromotions = promotions.filter((promotion) => {
     if (promotion.startsAt && new Date(promotion.startsAt) > now) return false;
@@ -257,10 +270,12 @@ const getOrderReceiptDetails = async (orderId, user, transaction) => {
 
   return {
     orderId: order.id,
-    username: user?.username || 'there',
-    email: user?.email || '',
+    username: user?.username || String(order.customerName || '').trim().split(/\s+/)[0] || 'there',
+    email: order.customerEmail || user?.email || '',
     purchasedAt: order.createdAt,
     status: order.status,
+    paymentMethod: order.paymentMethod || null,
+    paymentReference: order.paymentReference || null,
     totalPaid: Number(order.totalPrice || 0).toFixed(2),
     subtotalPrice: Number(order.subtotalPrice || order.totalPrice || 0).toFixed(2),
     promotionName: order.promotionName || null,

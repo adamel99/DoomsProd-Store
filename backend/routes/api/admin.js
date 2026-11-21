@@ -6,6 +6,8 @@ const { Order, User, OrderItem, Product, License, Promotion, sequelize } = requi
 const router = express.Router();
 
 const toNumber = (value) => Number(value || 0);
+const orderStatuses = ['pending', 'completed', 'cancelled'];
+const manualPaymentMethods = ['paypal', 'venmo', 'zelle', 'cash_app', 'cash', 'other'];
 const monthKey = (date) => new Date(date).toISOString().slice(0, 7);
 const dayKey = (date) => new Date(date).toISOString().slice(0, 10);
 
@@ -147,6 +149,114 @@ router.delete('/users/:userId', requireAuth, requireAdmin, async (req, res, next
   }
 });
 
+router.post('/manual-orders', requireAuth, requireAdmin, async (req, res, next) => {
+  const input = req.body || {};
+  const customerName = String(input.customerName || '').trim();
+  const customerEmail = String(input.customerEmail || '').trim().toLowerCase();
+  const productId = Number(input.productId);
+  const licenseId = Number(input.licenseId);
+  const amount = Number(input.price);
+  const priceCents = Math.round(amount * 100);
+  const paymentMethod = String(input.paymentMethod || '').trim().toLowerCase();
+  const status = String(input.status || 'completed').trim().toLowerCase();
+  const paymentReference = String(input.paymentReference || '').trim();
+  const notes = String(input.notes || '').trim();
+  const orderDate = String(input.orderDate || '').trim();
+
+  if (!customerName || customerName.length > 160) {
+    return res.status(400).json({ message: 'Enter a customer name up to 160 characters.' });
+  }
+  if (customerEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    return res.status(400).json({ message: 'Enter a valid customer email address.' });
+  }
+  if (!Number.isInteger(productId) || productId < 1 || !Number.isInteger(licenseId) || licenseId < 1) {
+    return res.status(400).json({ message: 'Choose a beat and lease.' });
+  }
+  if (!Number.isFinite(amount) || priceCents < 1 || priceCents > 9999999999) {
+    return res.status(400).json({ message: 'Enter a price greater than $0.00 and below $100,000,000.' });
+  }
+  if (!manualPaymentMethods.includes(paymentMethod)) {
+    return res.status(400).json({ message: 'Choose a supported payment method.' });
+  }
+  if (!orderStatuses.includes(status)) {
+    return res.status(400).json({ message: 'Choose a valid order status.' });
+  }
+  if (paymentReference.length > 200 || notes.length > 2000) {
+    return res.status(400).json({ message: 'Payment reference or notes are too long.' });
+  }
+  const orderCreatedAt = orderDate
+    ? new Date(`${orderDate}T12:00:00.000Z`)
+    : new Date();
+  if (Number.isNaN(orderCreatedAt.getTime()) || (orderDate && orderCreatedAt.toISOString().slice(0, 10) !== orderDate)) {
+    return res.status(400).json({ message: 'Enter a valid order date.' });
+  }
+
+  try {
+    const createdOrder = await sequelize.transaction(async (transaction) => {
+      const [product, license] = await Promise.all([
+        Product.findByPk(productId, { transaction }),
+        License.findByPk(licenseId, { transaction }),
+      ]);
+
+      if (!product || product.type !== 'beat') {
+        const error = new Error('The selected catalog item is not an available beat.');
+        error.status = 400;
+        throw error;
+      }
+      if (!license) {
+        const error = new Error('The selected lease could not be found.');
+        error.status = 400;
+        throw error;
+      }
+
+      const amountAtPurchase = (priceCents / 100).toFixed(2);
+      const order = await Order.create({
+        userId: null,
+        customerName,
+        customerEmail,
+        source: 'manual',
+        paymentMethod,
+        paymentReference: paymentReference || null,
+        notes: notes || null,
+        subtotalPrice: amountAtPurchase,
+        totalPrice: amountAtPurchase,
+        promotionName: null,
+        promoCode: null,
+        discountPercent: '0.00',
+        discountAmount: '0.00',
+        status,
+        paymentIntentId: null,
+        createdAt: orderCreatedAt,
+        updatedAt: orderCreatedAt,
+      }, { transaction });
+
+      await OrderItem.create({
+        orderId: order.id,
+        productId: product.id,
+        licenseId: license.id,
+        quantity: 1,
+        priceAtPurchase: amountAtPurchase,
+      }, { transaction });
+
+      return Order.findByPk(order.id, {
+        include: [
+          { model: User, attributes: ['id', 'username', 'email', 'firstName', 'lastName'], required: false },
+          { model: OrderItem, include: [
+            { model: Product, attributes: ['id', 'title', 'type', 'imageUrl', 'genre', 'bpm', 'key'] },
+            { model: License, attributes: ['id', 'name', 'description'] },
+          ] },
+        ],
+        transaction,
+      });
+    });
+
+    return res.status(201).json({ order: createdOrder });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ message: error.message });
+    return next(error);
+  }
+});
+
 const addDateRange = (where, startDate, endDate) => {
   const createdAt = {};
   if (startDate) {
@@ -173,6 +283,7 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
       include: [
         {
           model: User,
+          required: false,
           attributes: [
             'id',
             'username',
@@ -224,30 +335,41 @@ router.get('/dashboard', requireAuth, requireAdmin, async (req, res, next) => {
       ordersByDay.set(orderDay, (ordersByDay.get(orderDay) || 0) + 1);
 
       const user = order.User;
-      if (user) {
-        const existing = customers.get(user.id) || {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          totalPurchases: user.totalPurchases,
-          rewardDiscount: user.rewardDiscount,
-          isSubscribedToEmails: user.isSubscribedToEmails,
-          role: user.role,
-          orderCount: 0,
-          lifetimeSpend: 0,
-          averageOrderValue: 0,
-          lastOrderDate: null,
-        };
+      const customerEmail = String(order.customerEmail || user?.email || '').trim();
+      const customerKey = customerEmail
+        ? `email:${customerEmail.toLowerCase()}`
+        : user?.id ? `user:${user.id}` : `order:${order.id}`;
+      const customerName = String(order.customerName || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.username || 'Customer');
+      const nameParts = customerName.split(/\s+/).filter(Boolean);
+      const existing = customers.get(customerKey) || {
+        id: user?.id || null,
+        customerName,
+        username: user?.username || null,
+        email: customerEmail || null,
+        firstName: nameParts[0] || null,
+        lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : null,
+        totalPurchases: user?.totalPurchases ?? null,
+        rewardDiscount: user?.rewardDiscount ?? null,
+        isSubscribedToEmails: user?.isSubscribedToEmails ?? false,
+        role: user?.role || null,
+        orderCount: 0,
+        lifetimeSpend: 0,
+        averageOrderValue: 0,
+        lastOrderDate: null,
+      };
 
-        existing.orderCount += 1;
-        existing.lifetimeSpend += toNumber(order.totalPrice);
-        if (!existing.lastOrderDate || new Date(order.createdAt) > new Date(existing.lastOrderDate)) {
-          existing.lastOrderDate = order.createdAt;
-        }
-        customers.set(user.id, existing);
+      existing.id = existing.id || user?.id || null;
+      existing.role = existing.role || user?.role || null;
+      existing.username = existing.username || user?.username || null;
+      existing.email = existing.email || user?.email || null;
+      if (user) existing.isSubscribedToEmails = user.isSubscribedToEmails;
+      existing.customerName = order.customerName || existing.customerName;
+      existing.orderCount += 1;
+      existing.lifetimeSpend += toNumber(order.totalPrice);
+      if (!existing.lastOrderDate || new Date(order.createdAt) > new Date(existing.lastOrderDate)) {
+        existing.lastOrderDate = order.createdAt;
       }
+      customers.set(customerKey, existing);
 
       (order.OrderItems || []).forEach((item) => {
         const quantity = item.quantity || 1;
