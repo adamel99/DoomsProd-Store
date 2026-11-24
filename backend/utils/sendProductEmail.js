@@ -15,6 +15,7 @@ const s3 = new S3Client({
 });
 
 const privateDownloadsBucket = process.env.AWS_PRIVATE_S3_BUCKET_NAME || "doomsstore-private-downloads";
+const publicDownloadsBucket = process.env.AWS_S3_BUCKET_NAME;
 const SIGNED_URL_EXPIRES_IN_SECONDS = 900;
 
 function escapeHtml(value) {
@@ -44,6 +45,45 @@ async function getSignedDownload(file) {
   if (file?.url) return { type, url: file.url };
   const url = await getSignedFileUrl(key);
   return { type, url };
+}
+
+async function getSignedPublicMp3Download(key, fileName) {
+  if (!publicDownloadsBucket || typeof key !== "string" || !key.startsWith("products/")) {
+    throw new Error("Invalid free MP3 download");
+  }
+  const command = new GetObjectCommand({
+    Bucket: publicDownloadsBucket,
+    Key: key,
+    ResponseContentType: "audio/mpeg",
+    ResponseContentDisposition: `attachment; filename=\"${String(fileName || "beat.mp3").replace(/[\"\\\\\r\n]/g, "_")}\"`,
+  });
+  return getSignedUrl(s3, command, { expiresIn: SIGNED_URL_EXPIRES_IN_SECONDS });
+}
+
+async function sendFreeBeatDownloadEmail(email, username, title, downloadUrl) {
+  const safeTitle = escapeHtml(title || "Beat");
+  const safeUsername = escapeHtml(username || "there");
+  const { data, error } = await resend.emails.send({
+    from: "doomsprod <noreply@dooma.studio>",
+    to: email,
+    subject: `Free MP3 download: ${title || "your beat"}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#292326;line-height:1.6">
+        <h1 style="color:#d74383">doomsprod</h1>
+        <p>Hi ${safeUsername},</p>
+        <p>Your free MP3 for <strong>${safeTitle}</strong> is ready. This download link expires in 15 minutes.</p>
+        <p><a href="${downloadUrl}" style="display:inline-block;padding:12px 20px;background:#d74383;color:white;text-decoration:none;border-radius:8px;font-weight:bold">Download the MP3</a></p>
+        <h2>Free download terms</h2>
+        <p>The MP3 is provided for evaluation and private recording purposes only. Downloading it does not grant a license or transfer copyright, publishing, master, or ownership rights. You may write and record a song using the beat, but you may not release, distribute, monetize, publicly perform, submit to streaming services, register with Content ID, or otherwise commercially exploit that song until you purchase and comply with a valid license for this beat.</p>
+        <p>You may not resell, share, re-upload, distribute, or make the beat file available as a standalone file. Unauthorized use may result in takedown requests and legal action. A license must be purchased before any release or commercial use. License terms and permitted use are defined by the license selected at purchase.</p>
+        <p>Questions? Contact <a href="mailto:adamelh1999@gmail.com">adamelh1999@gmail.com</a>.</p>
+      </div>`,
+  });
+  if (error) {
+    logError("Free beat download email failed", error);
+    throw new Error("Could not send the free MP3 email.");
+  }
+  return data;
 }
 
 function formatCurrency(value) {
@@ -278,4 +318,4 @@ async function sendProductEmail(email, files = [], receipt = {}) {
   return data;
 }
 
-module.exports = { sendProductEmail, getSignedFileUrl, getSignedDownload };
+module.exports = { sendProductEmail, getSignedFileUrl, getSignedDownload, getSignedPublicMp3Download, sendFreeBeatDownloadEmail };

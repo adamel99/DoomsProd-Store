@@ -177,6 +177,8 @@ const hasZipDownload = (product) => (
 const publicProduct = (product, user) => {
   const productJson = product.toJSON ? product.toJSON() : product;
   productJson.audioPreviewUrl = getPlayableAudioUrl(productJson);
+  productJson.hasFreeMp3 = parseDownloadUrls(productJson.downloadUrls)
+    .some((file) => String(file?.type).toLowerCase() === 'mp3' && Boolean(file?.key));
   if (user?.role !== 'admin') delete productJson.downloadUrls;
   return productJson;
 };

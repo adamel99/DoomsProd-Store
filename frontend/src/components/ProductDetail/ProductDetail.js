@@ -10,6 +10,7 @@ import {
   MenuItem,
   Select,
   IconButton,
+  Chip,
 } from "@mui/material";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,8 +25,10 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DownloadIcon from "@mui/icons-material/Download";
 import { formatProductType } from "../../utils/formatProductType";
 import { useAudioPlayer } from "../../context/AudioPlayer";
+import { csrfFetch } from "../../store/csrf";
 
 const DetailPanel = ({ children, sx = {} }) => (
   <Box sx={(theme) => ({
@@ -73,6 +76,7 @@ const ProductDetailPage = () => {
   const [selectedLicenseId, setSelectedLicenseId] = useState("");
   const [addCartError, setAddCartError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [freeDownloadState, setFreeDownloadState] = useState({ loading: false, error: null, success: null });
 
   useEffect(() => {
     dispatch(getSingleProductThunk(productId));
@@ -101,7 +105,12 @@ const ProductDetailPage = () => {
   const isAdmin = currentUser?.role === "admin";
   const youtubeEmbedUrl = getYouTubeEmbedUrl(youtubeLink);
   const selectedLicense = licenses.find((license) => license.id === selectedLicenseId);
-  const displayPrice = type === "beat" && selectedLicense ? selectedLicense.price : price;
+  const lowestLicensePrice = licenses.reduce((lowest, license) => (
+    lowest === null || Number(license.price) < lowest ? Number(license.price) : lowest
+  ), null);
+  const displayPrice = type === "beat"
+    ? selectedLicense?.price ?? lowestLicensePrice
+    : price;
   const isCurrentTrackPlaying = activeTrackId === id && isPlaying;
 
   const handleAddToCart = async () => {
@@ -119,6 +128,24 @@ const ProductDetailPage = () => {
       setTimeout(() => setSuccess(false), 3500);
     } catch {
       setAddCartError("Something went wrong. Try again.");
+    }
+  };
+
+  const handleFreeMp3Download = async () => {
+    setFreeDownloadState({ loading: true, error: null, success: null });
+    try {
+      const response = await csrfFetch(`/api/downloads/free-mp3/${id}`, { method: "POST" });
+      const data = await response.json();
+      const link = document.createElement("a");
+      link.href = data.downloadUrl;
+      link.download = data.fileName || `${title}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setFreeDownloadState({ loading: false, error: null, success: data.message || "Your MP3 and license terms were emailed to you." });
+    } catch (errorResponse) {
+      const data = await errorResponse.json?.().catch(() => null);
+      setFreeDownloadState({ loading: false, error: data?.message || "Could not prepare the free MP3. Please try again.", success: null });
     }
   };
 
@@ -148,14 +175,33 @@ const ProductDetailPage = () => {
       minHeight: "100vh",
     }}>
       <Container maxWidth="lg">
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => history.push("/products")}
-          variant="text"
-          sx={{ mb: 4, color: "text.secondary", "&:hover": { color: "primary.main" } }}
-        >
-          Back to collection
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 4 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => history.push("/products")}
+            variant="text"
+            sx={{ color: "text.secondary", flexShrink: 0, "&:hover": { color: "primary.main" } }}
+          >
+            Back to collection
+          </Button>
+          {type === "beat" && product.hasFreeMp3 && (
+            <Chip
+              icon={<DownloadIcon sx={{ fontSize: "16px !important" }} />}
+              label="Free MP3 version available"
+              size="small"
+              sx={(theme) => ({
+                fontSize: { xs: "0.58rem", sm: "0.7rem" },
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: theme.palette.success.dark,
+                backgroundColor: theme.custom.transparent(theme.palette.success.main, 0.1),
+                border: `1px solid ${theme.custom.transparent(theme.palette.success.main, 0.28)}`,
+                "& .MuiChip-icon": { color: "inherit" },
+              })}
+            />
+          )}
+        </Box>
 
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="start">
           <Grid item xs={12} md={6}>
@@ -241,7 +287,7 @@ const ProductDetailPage = () => {
                 </Box>
               </DetailPanel>
 
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 2 }}>
+              <Box sx={{ display: "flex", gap: 0.85, flexWrap: "wrap", mt: 1.5 }}>
                 <MetaPill label="Genre" value={genre} />
                 <MetaPill label="BPM" value={bpm} />
                 <MetaPill label="Key" value={productKey} />
@@ -251,22 +297,23 @@ const ProductDetailPage = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Typography sx={{
-              fontFamily: (theme) => theme.custom.fonts.mono,
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              letterSpacing: "2.4px",
-              textTransform: "uppercase",
-              color: "primary.main",
-              mb: 1.5,
-            }}>
-              Product detail
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1.25, mb: 1.5 }}>
+              <Typography sx={{
+                fontFamily: (theme) => theme.custom.fonts.mono,
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                letterSpacing: "2.4px",
+                textTransform: "uppercase",
+                color: "primary.main",
+              }}>
+                {formatProductType(type)}
+              </Typography>
+            </Box>
 
             <Typography variant="h1" sx={{
-              fontSize: { xs: "2.55rem", md: "4.15rem" },
-              lineHeight: 0.95,
-              mb: 3,
+              fontSize: { xs: "2.35rem", md: "3.45rem" },
+              lineHeight: 1,
+              mb: 2,
               overflowWrap: "anywhere",
             }}>
               {title}
@@ -277,13 +324,17 @@ const ProductDetailPage = () => {
               whiteSpace: "pre-line",
               lineHeight: 1.75,
               fontSize: "1rem",
-              mb: 4,
+              mb: 3,
               maxWidth: 620,
             }}>
               {description || "No description available."}
             </Typography>
 
-            <DetailPanel sx={{ p: { xs: 3, md: 4 }, mb: 3 }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: "1.35rem", md: "1.55rem" }, mb: 1.5 }}>
+              {type === "beat" ? "License & purchase" : "Purchase"}
+            </Typography>
+            <DetailPanel sx={{ p: { xs: 2.5, md: 3.5 }, mb: 3 }}>
+
               {type === "beat" && licenses.length > 0 && (
                 <FormControl fullWidth sx={{ mb: 3 }}>
                   <InputLabel>Select License</InputLabel>
@@ -321,7 +372,7 @@ const ProductDetailPage = () => {
                     textTransform: "uppercase",
                     mb: 0.6,
                   }}>
-                    {selectedLicense ? selectedLicense.name : "Price"}
+                    {selectedLicense ? selectedLicense.name : type === "beat" ? "Starting at" : "Price"}
                   </Typography>
                   <Typography sx={{
                     fontFamily: (theme) => theme.custom.fonts.display,
@@ -330,7 +381,7 @@ const ProductDetailPage = () => {
                     color: "text.primary",
                     lineHeight: 1,
                   }}>
-                    ${displayPrice}
+                    {displayPrice === null || displayPrice === undefined ? "Choose a license" : `$${displayPrice}`}
                   </Typography>
                 </Box>
               </Box>
@@ -361,6 +412,50 @@ const ProductDetailPage = () => {
                 Add to Cart
               </Button>
             </DetailPanel>
+
+            {type === "beat" && product.hasFreeMp3 && (
+              <Box sx={{ mt: 4, pt: 3, borderTop: (theme) => `1px solid ${theme.palette.divider}` }}>
+                <Typography variant="h2" sx={{ fontSize: { xs: "1.35rem", md: "1.55rem" }, mb: 1 }}>
+                  Free MP3 for recording demos
+                </Typography>
+                <Typography sx={{ color: "text.secondary", fontSize: "0.92rem", lineHeight: 1.7, mb: 2 }}>
+                  Try the beat while you write and record. A license is required before you release, distribute, or monetize your song.
+                </Typography>
+                {currentUser ? (
+                  <>
+                    {freeDownloadState.error && <Typography role="alert" sx={{ color: "error.main", mb: 1.5 }}>{freeDownloadState.error}</Typography>}
+                    {freeDownloadState.success && <Typography role="status" sx={{ color: "success.main", mb: 1.5 }}>{freeDownloadState.success}</Typography>}
+                    <Button variant="outlined" size="large" onClick={handleFreeMp3Download} disabled={freeDownloadState.loading} sx={{ width: { xs: "100%", sm: "auto" }, px: 3 }}>
+                      {freeDownloadState.loading ? "Preparing download…" : "Get free MP3"}
+                    </Button>
+                  </>
+                ) : (
+                  <Typography sx={{ color: "text.secondary", lineHeight: 1.7 }}>
+                    <Button onClick={() => history.push("/login")} sx={{ px: 0, minWidth: 0, mr: 0.5 }}>Log in</Button>
+                    or <Button onClick={() => history.push("/signup")} sx={{ px: 0, minWidth: 0, mx: 0.5 }}>sign up</Button>
+                    to download the free MP3 version.
+                  </Typography>
+                )}
+                <Box sx={(theme) => ({
+                  mt: 2.5,
+                  pl: 2,
+                  py: 0.25,
+                  borderLeft: `2px solid ${theme.custom.transparent(theme.palette.primary.main, 0.55)}`,
+                })}>
+                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", mb: 0.75 }}>
+                    Free download terms
+                  </Typography>
+                  <Typography sx={{ color: "text.secondary", lineHeight: 1.7, fontSize: "0.86rem" }}>
+                    This MP3 is for evaluation and private recording only. Downloading it does not grant a license or transfer copyright, publishing, master, or ownership rights. You may write and record with the beat, but you must purchase and follow a valid license before releasing, distributing, monetizing, publicly performing, submitting to streaming services, or registering your song with Content ID. Do not resell, share, re-upload, or distribute the beat as a standalone file. Unauthorized use may result in takedowns and legal action; the purchased license defines your permitted use.
+                  </Typography>
+                  {currentUser && (
+                    <Typography sx={{ color: "text.disabled", fontSize: "0.78rem", lineHeight: 1.5, mt: 1 }}>
+                      We’ll email these terms with your download link, which expires after 15 minutes.
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            )}
 
             {isAdmin && (
               <Box sx={{ display: "flex", gap: 1.5, mb: 4 }}>
@@ -406,10 +501,10 @@ const ProductDetailPage = () => {
                   textTransform: "uppercase",
                   mb: 1,
                 }}>
-                  Preview
+                  Listen
                 </Typography>
-                <Typography variant="h3" sx={{ fontSize: { xs: "1.8rem", md: "2.6rem" } }}>
-                  YouTube Preview
+                <Typography variant="h3" sx={{ fontSize: { xs: "1.8rem", md: "2.4rem" } }}>
+                  Full preview
                 </Typography>
               </Box>
             </Box>
