@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Button,
@@ -145,37 +145,6 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
       })} />
 
       <Box sx={(theme) => ({
-        position: "absolute",
-        top: { xs: 18, md: 42 },
-        left: { xs: 8, sm: 24, md: 10 },
-        width: { xs: 150, md: 178 },
-        pl: 2,
-        borderLeft: `2px solid ${theme.custom.transparent(theme.palette.primary.main, 0.72)}`,
-        filter: "drop-shadow(0 12px 22px rgba(0,0,0,0.34))",
-        zIndex: 2,
-      })}>
-        <Typography sx={{
-          fontFamily: (theme) => theme.custom.fonts.mono,
-          fontSize: "0.62rem",
-          letterSpacing: "1.6px",
-          color: "text.disabled",
-          textTransform: "uppercase",
-          mb: 1.2,
-        }}>
-          Latest drop
-        </Typography>
-        <Typography sx={{
-          fontFamily: (theme) => theme.custom.fonts.display,
-          fontSize: { xs: "1.15rem", md: "1.35rem" },
-          fontWeight: 700,
-          color: "text.primary",
-          lineHeight: 1,
-        }}>
-          New heat in rotation
-        </Typography>
-      </Box>
-
-      <Box sx={(theme) => ({
         width: { xs: "78vw", sm: 360, md: 430 },
         maxWidth: 430,
         aspectRatio: "1 / 1.15",
@@ -187,21 +156,57 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
         boxShadow: theme.custom.clay.raised,
       })}>
         <Box
-          component="img"
-          src={imageUrl}
-          alt={title}
+          component={product ? RouterLink : "div"}
+          to={product ? `/products/${product.id}` : undefined}
+          aria-label={product ? `View ${title}` : undefined}
           sx={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
+            position: "absolute",
+            inset: 0,
             display: "block",
+            overflow: "hidden",
+            cursor: product ? "pointer" : "default",
+            "&:focus-visible": { outline: "3px solid", outlineColor: "primary.main", outlineOffset: -4 },
+            "&:hover img": { transform: "scale(1.025)" },
           }}
-        />
-        <Box sx={(theme) => ({
-          position: "absolute",
-          inset: 0,
-          background: theme.custom.gradients.mediaScrim,
-        })} />
+        >
+          <Box
+            component="img"
+            src={imageUrl}
+            alt={title}
+            sx={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              transition: "transform 240ms ease",
+            }}
+          />
+          <Box sx={(theme) => ({
+            position: "absolute",
+            top: { xs: 14, sm: 18 },
+            left: { xs: 14, sm: 18 },
+            px: 1.5,
+            py: 0.9,
+            borderRadius: "999px",
+            background: theme.custom.colors.clayDeep,
+            border: `1px solid ${theme.custom.colors.pink}`,
+            boxShadow: "0 6px 20px rgba(0,0,0,0.32)",
+            zIndex: 1,
+          })}>
+            <Typography sx={{
+              fontFamily: (theme) => theme.custom.fonts.mono,
+              color: "#fff",
+              fontSize: "0.66rem",
+              fontWeight: 800,
+              letterSpacing: "1.5px",
+              lineHeight: 1,
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+            }}>
+              Latest drop
+            </Typography>
+          </Box>
+        </Box>
         <IconButton
           onClick={onPlay}
           disabled={!product?.audioPreviewUrl}
@@ -210,6 +215,7 @@ const HeroArtwork = ({ product, onPlay, isPlaying }) => {
             position: "absolute",
             left: "50%",
             top: "50%",
+            zIndex: 2,
             transform: "translate(-50%, -50%)",
             width: { xs: 68, md: 82 },
             height: { xs: 68, md: 82 },

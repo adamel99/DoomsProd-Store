@@ -4,12 +4,19 @@ import {
   IconButton,
   Slider,
   Typography,
+  Button,
+  Dialog,
+  DialogContent,
+  Grow,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import PauseIcon from "@mui/icons-material/Pause";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Replay10Icon from "@mui/icons-material/Replay10";
 import StopIcon from "@mui/icons-material/Stop";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 
@@ -142,6 +149,7 @@ export const useAudioPlayer = () => {
 };
 
 const GlobalAudioPlayer = ({ track }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const {
     close,
     currentTime,
@@ -167,7 +175,7 @@ const GlobalAudioPlayer = ({ track }) => {
         bottom: { xs: 8, md: 22 },
         zIndex: 1400,
         display: "grid",
-        gridTemplateColumns: { xs: "38px minmax(0, 1fr) auto auto", md: "56px minmax(0, 1fr) 360px auto" },
+        gridTemplateColumns: { xs: "38px minmax(0, 1fr) auto 34px 34px", md: "56px minmax(0, 1fr) 360px 48px 48px" },
         gap: { xs: 0.75, md: 2 },
         alignItems: "center",
         p: { xs: 0.75, md: 1.5 },
@@ -193,13 +201,19 @@ const GlobalAudioPlayer = ({ track }) => {
       />
 
       <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{
+        <Typography
+          component={RouterLink}
+          to={`/products/${track.id}`}
+          sx={{
           fontWeight: 700,
           fontSize: { xs: "0.82rem", md: "1rem" },
           lineHeight: 1.15,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
+          color: "inherit",
+          textDecoration: "none",
+          "&:hover": { color: "primary.main" },
         }}>
           {track.title}
         </Typography>
@@ -275,6 +289,19 @@ const GlobalAudioPlayer = ({ track }) => {
       </Box>
 
       <IconButton
+        aria-label="Expand audio player"
+        onClick={() => setIsExpanded(true)}
+        sx={{
+          width: { xs: 34, md: 48 },
+          height: { xs: 34, md: 48 },
+          minWidth: { xs: 34, md: 48 },
+          minHeight: { xs: 34, md: 48 },
+        }}
+      >
+        <OpenInFullIcon sx={{ fontSize: { xs: 17, md: 20 } }} />
+      </IconButton>
+
+      <IconButton
         aria-label="Close player"
         onClick={close}
         sx={{
@@ -286,6 +313,86 @@ const GlobalAudioPlayer = ({ track }) => {
       >
         <CloseIcon sx={{ fontSize: { xs: 18, md: 24 } }} />
       </IconButton>
+
+      <Dialog
+        open={isExpanded}
+        onClose={() => setIsExpanded(false)}
+        fullScreen
+        TransitionComponent={Grow}
+        TransitionProps={{
+          timeout: { enter: 520, exit: 360 },
+          style: { transformOrigin: "50% calc(100% - 42px)" },
+        }}
+        sx={{ zIndex: 1600 }}
+        PaperProps={{
+          sx: (theme) => ({
+            color: "text.primary",
+            backgroundColor: theme.custom.colors.clayDeep,
+            backgroundImage: "radial-gradient(ellipse at 50% 20%, rgba(255,87,159,0.2), transparent 48%), linear-gradient(145deg, rgba(255,255,255,0.04), transparent 48%)",
+            transformOrigin: "50% calc(100% - 42px)",
+          }),
+        }}
+        aria-labelledby="expanded-player-title"
+      >
+        <DialogContent sx={{ display: "flex", justifyContent: "center", overflowY: "auto", px: { xs: 2.5, sm: 4 }, py: { xs: 2, sm: 4 } }}>
+          <Box sx={{ width: "100%", maxWidth: 520, minHeight: "100%", display: "flex", flexDirection: "column" }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: { xs: 2.5, sm: 4 } }}>
+              <IconButton aria-label="Collapse audio player" onClick={() => setIsExpanded(false)}>
+                <KeyboardArrowDownIcon />
+              </IconButton>
+              <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "1.8px", textTransform: "uppercase", color: "text.secondary" }}>
+                Now playing
+              </Typography>
+              <IconButton aria-label="Close player" onClick={close}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            <Box sx={{ width: "min(72vw, 360px)", aspectRatio: "1 / 1", mx: "auto", mb: { xs: 3, sm: 4 }, borderRadius: { xs: "24px", sm: "32px" }, overflow: "hidden", boxShadow: (theme) => theme.custom.clay.floating, border: (theme) => theme.custom.clay.border, bgcolor: "background.paper" }}>
+              <Box component="img" src={track.imageUrl || "/placeholder.jpg"} alt={track.title} sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            </Box>
+
+            <Box sx={{ mb: 1.25 }}>
+              <Typography sx={{ fontFamily: (theme) => theme.custom.fonts.mono, fontSize: "0.68rem", letterSpacing: "1.6px", textTransform: "uppercase", color: "primary.main", mb: 0.6 }}>
+                {String(track.type || "Product").replace(/_/g, " ")}
+              </Typography>
+              <Typography id="expanded-player-title" variant="h1" sx={{ fontSize: { xs: "1.8rem", sm: "2.25rem" }, lineHeight: 1.05, overflowWrap: "anywhere" }}>
+                {track.title}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: "grid", gridTemplateColumns: "42px minmax(0, 1fr) 42px", alignItems: "center", gap: 1, mb: 1 }}>
+              <Typography sx={{ fontSize: "0.72rem", color: "text.secondary", fontFamily: (theme) => theme.custom.fonts.mono }}>{formatTime(currentTime)}</Typography>
+              <Slider min={0} max={duration || 0} value={Math.min(currentTime, duration || 0)} onChange={(e, value) => seek(Number(value))} aria-label="Audio progress" />
+              <Typography sx={{ fontSize: "0.72rem", color: "text.secondary", fontFamily: (theme) => theme.custom.fonts.mono, textAlign: "right" }}>{formatTime(duration)}</Typography>
+            </Box>
+
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: { xs: 2, sm: 3 }, mb: 2.5 }}>
+              <IconButton aria-label="Rewind 10 seconds" onClick={rewind} sx={{ width: 48, height: 48 }}><Replay10Icon /></IconButton>
+              <IconButton aria-label={isPlaying ? "Pause" : "Play"} onClick={isPlaying ? pause : resume} sx={(theme) => ({ width: 68, height: 68, color: "primary.contrastText", background: theme.custom.gradients.brand, boxShadow: theme.custom.clay.raisedSmall, "&:hover": { background: theme.custom.gradients.brandHover, transform: "scale(1.04)" } })}>
+                {isPlaying ? <PauseIcon sx={{ fontSize: 34 }} /> : <PlayArrowIcon sx={{ fontSize: 38, ml: 0.4 }} />}
+              </IconButton>
+              <IconButton aria-label="Stop" onClick={stop} sx={{ width: 48, height: 48 }}><StopIcon /></IconButton>
+            </Box>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, width: "min(100%, 280px)", mx: "auto", mb: 3 }}>
+              <VolumeDownIcon sx={{ color: "text.secondary", fontSize: 18 }} />
+              <Slider min={0} max={1} step={0.01} value={volume} onChange={(e, value) => setVolume(Number(value))} aria-label="Volume" />
+              <VolumeUpIcon sx={{ color: "text.secondary", fontSize: 18 }} />
+            </Box>
+
+            <Button
+              component={RouterLink}
+              to={`/products/${track.id}`}
+              onClick={() => setIsExpanded(false)}
+              variant="outlined"
+              sx={{ alignSelf: "center", px: 3, mt: "auto", mb: { xs: 1, sm: 2 } }}
+            >
+              View {track.type === "beat" ? "beat" : "product"} details
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
